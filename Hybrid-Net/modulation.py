@@ -118,7 +118,7 @@ def get_ret_key2(best_key, head_chord, tail_chord, maj_min_dic, ret_key):
 
 
 def process_best_key(chords_score_list, head_chord, tail_chord, keys, maj_min_dic, ret_key, sus_dic, is_sus=True):
-    # 获取key
+    # gain the key
     if not chords_score_list:
         return None, None
     if is_sus:
