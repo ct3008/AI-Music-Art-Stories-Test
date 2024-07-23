@@ -22,44 +22,15 @@
 
     <link rel="stylesheet" href="{{url_for('static', filename='main.css')}}">
 
-    <title>Morse Code Mastery</title>
+    <title>Song Analysis</title>
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <img class="website-logo" src="{{url_for('static', filename='images/morse-code.png')}}"
-                alt="website logo" />
-            <a class="navbar-brand navBar" href="/">Morse Mastery</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup"
-                aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav">
-                    <a class="nav-link active" aria-current="page" href="/">Home</a>
-                    <a class="nav-link" href="/start">List</a>
-                    <a class="nav-link" href="/menuchar">Learn</a>
-                    <a class="nav-link" href="/quiz_landing">Quiz</a>
-                    <a class="nav-link" href="/intro">About</a>
-                </div>
-            </div>
-        </div>
-    </nav>
-
     <div class="container">
         {% block content %}
 
         {% endblock %}
     </div>
-
-    <div class="leftnote">
-        {% block leftnote %}
-
-        {% endblock%}
-    </div>
-
 </body>
 
 </html>
