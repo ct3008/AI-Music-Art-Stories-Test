@@ -10,7 +10,7 @@
 <button onclick="playAudio()">Play</button>
 <button onclick="clearBeats()" id="clearButton">Clear Beats</button>
 <button onclick="showSignificantPoints()" id="findIdealIntervals">Find Ideal Intervals</button>
-<button onclick="finalizeTimestamps()">Finalize Time Stamps</button>
+<button onclick="finalizeTimestamps('time')">Finalize Time Stamps</button>
 
 <div id="beatContainer">
     <div id="playhead" style="position: absolute; height: 100%; width: 2px; background-color: blue; left: 0px;"></div>
@@ -23,6 +23,12 @@
 <div id="timestampsContainer"></div>
 
 <div class="form-container" id="trash"> Trash</div>
+
+<!-- Dropdown Button -->
+<button id="add-transition" onclick="finalizeTimestamps('transition')">Add Transitions</button>
+<!-- Dropdown Container -->
+<div id="transitionsContainer"></div>
+
 
 {% endblock %}
 

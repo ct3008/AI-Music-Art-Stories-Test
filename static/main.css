@@ -43,48 +43,8 @@ audio {
 
 
 /* For the boxes */
-
-/* .form-container {
-    display: flex;
-    justify-content: space-between;
-    border: 5px solid black;
-    padding: 10px;
-    margin-top: 20px;
-}
-
-.section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: calc(100% / var(--sections-count));
-    box-sizing: border-box;
-    padding: 10px;
-    border-right: 1px solid #ccc;
-}
-.section .time-range {
-    text-align: center;
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-.label-container {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-.input-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-.input-container input[type="text"] {
-    width: calc(100% - 10px);
-    padding: 5px;
-    margin-bottom: 5px;
-    box-sizing: border-box;
-} */
-
 .form-container {
-    border: 5px solid black;
+    border: 2px solid black;
     padding: 10px;
     margin-top: 20px;
     display: grid;
@@ -127,3 +87,31 @@ audio {
     margin-bottom: 5px;
     box-sizing: border-box;
 }
+
+/* Dropdown */
+#dropdownContainer {
+    border: 5px solid black;
+    padding: 10px;
+    margin-top: 20px;
+    background-color: #f9f9f9;
+    width: 100%;
+}
+
+#transitionsContainer {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto; /* Allow horizontal scrolling if needed */
+    white-space: nowrap; /* Prevent wrapping */
+    margin-top: 20px;
+}
+
+.transition-container {
+    border: 5px solid black;
+    padding: 10px;
+    margin-right: 10px; /* Space between containers */
+    background-color: #f9f9f9;
+    display: inline-block; /* Ensure horizontal layout */
+}
+
+
+
