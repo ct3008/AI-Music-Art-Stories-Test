@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1>BEAT & LYRICS TEST</h1>
+<input type="file" id="audioFile" accept=".mp3, .wav">
+<input type="number" id="threshold" placeholder="Threshold (0-100)" min="0" max="100" value="70">
+
+<button onclick="processAudio()">Process Audio</button>
+<button onclick="playAudio()">Play</button>
+<button onclick="clearBeats()" id="clearButton">Clear Beats</button>
+<button onclick="showSignificantPoints()" id="findIdealIntervals">Find Ideal Intervals</button>
+<button onclick="finalizeTimestamps()">Finalize Time Stamps</button>
+
+<div id="beatContainer">
+    <div id="playhead" style="position: absolute; height: 100%; width: 2px; background-color: blue; left: 0px;"></div>
+    <canvas id="waveformCanvas"></canvas>
+</div>
+
+<audio id="audioPlayer" controls hidden></audio>
+
+<div id="outputContainer"></div>
+<div id="timestampsContainer"></div>
+
+<div class="form-container" id="trash"> Trash</div>
+
+{% endblock %}
+
+
+
+
