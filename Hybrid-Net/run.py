@@ -143,13 +143,13 @@ class AITabTranscription(object):
         
         # Get spectrogram
         spec = get_spec(waveform, self.spec_cfg)
-        print(spec)
+        # print(spec)
         print(spec.shape)
 
         with th.no_grad():
             # Predict beat
             # shape: (batch, source, channel, time, freq)
-            beat_features = spec[:, :, :, : :self.spec_cfg['n_fft'] // 2].unsqueeze(0)  # B, S, C, T, F
+            beat_features = spec[:, :, :, :self.spec_cfg['n_fft'] // 2].unsqueeze(0)  # B, S, C, T, F
             beat_features_mag = th.abs(beat_features)
             print(beat_features_mag.shape)
             beat_pred, beat_logist = beat_net(beat_features_mag)
