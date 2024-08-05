@@ -122,7 +122,7 @@ function finalizeTimestamps(name) {
             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
         } else if (name === 'transition') {
             if (i === sectionsCount) {
-                const start = (parseFloat(timestamps[i])- 0.5).toFixed(2);
+                const start = (parseFloat(timestamps[i + 1])- 0.5).toFixed(2);
                 timeRange.innerText = `Transition ${i + 1}: ${start} - ${audioDuration.toFixed(2)}`;
             } else {
                 const start = (parseFloat(timestamps[i + 1])-0.5).toFixed(2);
@@ -195,213 +195,6 @@ function finalizeTimestamps(name) {
     }
 }
 
-// function finalizeTimestamps(name) {
-//     const timestampsContainer = document.getElementById('timestampsContainer');
-//     timestampsContainer.innerHTML = ''; // Clear previous timestamps
-
-//     significantPoints.forEach(time => {
-//         const timestampElement = document.createElement('div');
-//         timestampElement.textContent = `Time: ${time.toFixed(2)} seconds`;
-//         timestampsContainer.appendChild(timestampElement);
-//     });
-
-//     const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
-//     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
-
-//     const sectionsCount = significantPoints.length; // Define sectionsCount based on the timestamps array length
-//     let container;
-//     if (name === 'time') {
-//         container = document.getElementById('trash');
-//     } else if (name === 'transition') {
-//         container = document.getElementById('transitionsContainer');
-//         container.style.border = '2px solid black'; // Corrected styling syntax
-//         const button = document.getElementById('add-transition');
-//         if (button) button.style.display = 'none'; // Hide button if it exists
-//     }
-
-//     container.innerHTML = ''; // Clear previous content
-//     container.style.setProperty('--sections-count', sectionsCount);
-
-//     const labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
-//     const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-//     const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing'];
-//     const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
-//     const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
-//     const colorOptions = ['black/white', 'pale blue', 'full color'];
-//     const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
-//     const strengths = ['weak', 'normal', 'strong', 'vstrong'];
-//     const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
-
-//     // Create labels container
-//     const labelsContainer = document.createElement('div');
-//     labelsContainer.className = 'label-container';
-//     labels.forEach(label => {
-//         const labelElement = document.createElement('div');
-//         labelElement.className = 'label';
-//         labelElement.innerText = label;
-//         labelsContainer.appendChild(labelElement);
-//     });
-//     container.appendChild(labelsContainer);
-
-//     // Create sections with time range and input boxes
-//     for (let i = 0; i < sectionsCount + 1; i++) { // Adjust loop to include all sections
-//         const section = document.createElement('div');
-//         section.className = 'section';
-
-//         // Add time range or transition label
-//         const timeRange = document.createElement('div');
-//         timeRange.className = 'time-range';
-//         if (name === 'time') {
-//             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
-//         } else if (name === 'transition') {
-//             timeRange.innerText = `Transition ${i + 1}`;
-//         }
-//         section.appendChild(timeRange);
-
-//         // Add input boxes with unique ids and datalists for dropdowns
-//         const inputContainer = document.createElement('div');
-//         inputContainer.className = 'input-container';
-//         labels.forEach((label, index) => {
-//             const input = document.createElement('input');
-//             input.type = 'text';
-//             input.className = 'dropdown-input'; // Add class for consistent width
-
-//             if (name === 'time') {
-//                 input.id = `${label.toLowerCase()}_form_${i + 1}`;
-//             } else if (name === 'transition') {
-//                 input.id = `${label.toLowerCase()}_trans_${i + 1}`;
-//             }
-
-//             // Create datalist for dropdown options
-//             const datalist = document.createElement('datalist');
-//             datalist.id = `${label.toLowerCase()}_options_${i + 1}`;
-
-//             let options;
-//             switch (label.toLowerCase()) {
-//                 case 'vibe':
-//                     options = vibes;
-//                     break;
-//                 case 'texture':
-//                     options = textures;
-//                     break;
-//                 case 'style':
-//                     options = styles;
-//                     break;
-//                 case 'imagery':
-//                     options = imageries;
-//                     break;
-//                 case 'color':
-//                     options = colorOptions;
-//                     break;
-//                 case 'motion':
-//                     options = motions;
-//                     break;
-//                 case 'strength':
-//                     options = strengths;
-//                     break;
-//                 case 'speed':
-//                     options = speeds;
-//                     break;
-//             }
-
-//             options.forEach(option => {
-//                 const optionElement = document.createElement('option');
-//                 optionElement.value = option;
-//                 datalist.appendChild(optionElement);
-//             });
-
-//             input.setAttribute('list', datalist.id);
-//             inputContainer.appendChild(input);
-//             inputContainer.appendChild(datalist);
-//         });
-
-//         section.appendChild(inputContainer);
-//         container.appendChild(section);
-//     }
-// }
-
-
-// function finalizeTimestamps(name) {
-//     const timestampsContainer = document.getElementById('timestampsContainer');
-//     timestampsContainer.innerHTML = ''; // Clear previous timestamps
-
-//     significantPoints.forEach(time => {
-//         const timestampElement = document.createElement('div');
-//         timestampElement.textContent = `Time: ${time.toFixed(2)} seconds`;
-//         timestampsContainer.appendChild(timestampElement);
-//     });
-
-//     const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
-//     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
-
-//     const sectionsCount = significantPoints.length; // Define sectionsCount based on the timestamps array length
-//     let container;
-//     if (name === 'time') {
-//         container = document.getElementById('trash');
-//         // const labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
-//     } else if (name === 'transition') {
-//         container = document.getElementById('transitionsContainer');
-//         container.style.border = '2px solid black'; // Corrected styling syntax
-//         const button = document.getElementById('add-transition');
-//         if (button) button.style.display = 'none'; // Hide button if it exists
-//         // const labels = ['Style', 'Color', 'Motion', 'Strength', 'Speed'];
-//     }
-
-//     container.innerHTML = ''; // Clear previous content
-//     container.style.setProperty('--sections-count', sectionsCount);
-
-//     // if (name === 'time'){
-//     const labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
-//     // }else if (name === 'transition'){
-//     //     const labels = ['Style', 'Color', 'Motion', 'Strength', 'Speed'];
-//     // }
-    
-
-//     // Create labels container
-//     const labelsContainer = document.createElement('div');
-//     labelsContainer.className = 'label-container';
-//     labels.forEach(label => {
-//         const labelElement = document.createElement('div');
-//         labelElement.className = 'label';
-//         labelElement.innerText = label;
-//         labelsContainer.appendChild(labelElement);
-//     });
-//     container.appendChild(labelsContainer);
-
-//     // Create sections with time range and input boxes
-//     for (let i = 0; i < sectionsCount + 1; i++) { // Adjust loop to include all sections
-//         const section = document.createElement('div');
-//         section.className = 'section';
-
-//         // Add time range or transition label
-//         const timeRange = document.createElement('div');
-//         timeRange.className = 'time-range';
-//         if (name === 'time') {
-//             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
-//         } else if (name === 'transition') {
-//             timeRange.innerText = `Transition ${i + 1}`;
-//         }
-//         section.appendChild(timeRange);
-
-//         // Add input boxes with unique ids
-//         const inputContainer = document.createElement('div');
-//         inputContainer.className = 'input-container';
-//         labels.forEach((label, index) => {
-//             const input = document.createElement('input');
-//             input.type = 'text';
-//             if (name === 'time') {
-//                 input.id = `${label.toLowerCase()}_form_${i + 1}`;
-//             } else if (name === 'transition') {
-//                 input.id = `${label.toLowerCase()}_trans_${i + 1}`;
-//             }
-//             input.placeholder = label;
-//             inputContainer.appendChild(input);
-//         });
-
-//         section.appendChild(inputContainer);
-//         container.appendChild(section);
-//     }
-// }
 
 function fillDefaults() {
     const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
@@ -490,6 +283,103 @@ function fillTransitionDefaults() {
                 }
             }
         });
+    });
+}
+
+function gatherFormData() { // Example significant points; replace with your actual significantPoints array
+    const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
+
+    // Prepare form data dictionary
+    const formData = {};
+    roundedSignificantPoints.forEach((timestamp, index) => {
+        formData[timestamp] = {
+            "vibe": document.getElementById(`vibe_form_${index + 1}`).value,
+            "imagery": document.getElementById(`imagery_form_${index + 1}`).value,
+            "texture": document.getElementById(`texture_form_${index + 1}`).value,
+            "style": document.getElementById(`style_form_${index + 1}`).value,
+            "color": document.getElementById(`color_form_${index + 1}`).value,
+            "motion": document.getElementById(`motion_form_${index + 1}`).value,
+            "strength": document.getElementById(`strength_form_${index + 1}`).value,
+            "speed": document.getElementById(`speed_form_${index + 1}`).value
+        };
+    });
+
+    return formData;
+}
+
+// Function to gather transition data
+function gatherTransitionData(formData) {
+    const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
+    const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
+
+    const transitionsData = {};
+    for (let i = 0; i < timestamps.length - 1; i++) {
+        const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
+        const end = (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
+        const timeRange = `${start}-${end}`;
+        // console.log(formData[timestamps[i]])
+        
+        transitionsData[timeRange] = {
+            "vibe": document.getElementById(`vibe_trans_${i + 1}`).value || document.getElementById(`vibe_form_${i + 1}`).value,
+            "imagery": document.getElementById(`imagery_trans_${i + 1}`).value || document.getElementById(`imagery_form_${i + 1}`).value,
+            "texture": document.getElementById(`texture_trans_${i + 1}`).value || document.getElementById(`texture_form_${i + 1}`).value,
+            "style": document.getElementById(`style_trans_${i + 1}`).value || document.getElementById(`style_form_${i + 1}`).value,
+            "color": document.getElementById(`color_trans_${i + 1}`).value || document.getElementById(`color_form_${i + 1}`).value,
+            "motion": document.getElementById(`motion_trans_${i + 1}`).value || document.getElementById(`motion_form_${i + 1}`).value,
+            "strength": document.getElementById(`strength_trans_${i + 1}`).value || document.getElementById(`strength_form_${i + 1}`).value,
+            "speed": document.getElementById(`speed_trans_${i + 1}`).value || document.getElementById(`speed_form_${i + 1}`).value
+        };
+        // console.log(transitionsData);
+        
+        // transitionsData[timeRange].transition = !!(
+        //     document.getElementById(`vibe_trans_${i + 1}`).value ||
+        //     document.getElementById(`imagery_trans_${i + 1}`).value ||
+        //     document.getElementById(`texture_trans_${i + 1}`).value ||
+        //     document.getElementById(`style_trans_${i + 1}`).value ||
+        //     document.getElementById(`color_trans_${i + 1}`).value ||
+        //     document.getElementById(`motion_trans_${i + 1}`).value ||
+        //     document.getElementById(`strength_trans_${i + 1}`).value ||
+        //     document.getElementById(`speed_trans_${i + 1}`).value
+        // );
+        if(document.getElementById(`motion_trans_${i + 1}`).value && document.getElementById(`strength_trans_${i + 1}`).value && document.getElementById(`speed_trans_${i + 1}`).value) {
+            transitionsData[timeRange]["transition"] = true;
+        }else {
+            transitionsData[timeRange]["transition"] = false;
+        }
+        console.log(transitionsData);
+    }
+
+    return transitionsData;
+}
+
+function processTable(){
+    const formData = gatherFormData();
+    const transitionsData = gatherTransitionData(formData);
+    const data = {
+        timestamps_scenes: significantPoints.map(point => point.toFixed(2)),  // Replace with your actual timestamps_scenes
+        form_data: formData,
+        transitions_data: transitionsData,
+        song_len: audioDuration
+    };
+    console.log(data);
+
+    fetch('/process-data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        for (const [key, value] of Object.entries(data)) {
+            console.log(`${key}: ${value}`);
+        }
+        // Handle the response from the server
+    })
+    .catch(error => {
+        console.error('Error:', error);
     });
 }
 
