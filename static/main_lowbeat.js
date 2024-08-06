@@ -14,38 +14,91 @@ let significantPoints = [];
 
 let motion_mode = "3D";
 
-function movePlayheadOG(audioPlayer) {
-    const playhead = document.getElementById('playhead');
-    const containerWidth = document.getElementById('beatContainer').offsetWidth; // Width of the container
-    const duration = audioDuration;// Duration of the audio in seconds
+// function movePlayheadOG(audioPlayer) {
+//     const playhead = document.getElementById('playhead');
+//     const containerWidth = document.getElementById('beatContainer').offsetWidth; // Width of the container
+//     const duration = audioDuration;// Duration of the audio in seconds
 
-    console.log(containerWidth, duration);
+//     console.log(containerWidth, duration);
+
+//     // Calculate pixels per second
+//     const pixelsPerSecond = containerWidth / duration;
+
+//     clearInterval(playheadInterval);
+//     playhead.style.left = '0px'; // Reset position at the start
+
+//     playheadInterval = setInterval(function () {
+//         if (!audioPlayer.paused && !audioPlayer.ended) {
+//             // Calculate new position based on pixels per second
+//             let newPosition = parseFloat(playhead.style.left, 10) + (pixelsPerSecond * 0.1); // Multiply by 0.05 because the interval is 50 milliseconds
+//             playhead.style.left = `${newPosition}px`;
+//         }
+//     }, 100); // Update every 50 milliseconds
+// }
+
+function movePlayheadOG(audioPlayer) {
+    const containerWidth = document.getElementById('beatContainer').offsetWidth; // Width of the container
+    const duration = audioPlayer.duration; // Duration of the audio in seconds
 
     // Calculate pixels per second
     const pixelsPerSecond = containerWidth / duration;
 
     clearInterval(playheadInterval);
-    playhead.style.left = '0px'; // Reset position at the start
 
     playheadInterval = setInterval(function () {
         if (!audioPlayer.paused && !audioPlayer.ended) {
-            // Calculate new position based on pixels per second
-            let newPosition = parseFloat(playhead.style.left, 10) + (pixelsPerSecond * 0.1); // Multiply by 0.05 because the interval is 50 milliseconds
+            // Calculate new position based on current time and pixels per second
+            let newPosition = audioPlayer.currentTime * pixelsPerSecond;
             playhead.style.left = `${newPosition}px`;
         }
-    }, 100); // Update every 50 milliseconds
+    }, 100); // Update every 100 milliseconds
 }
 
 
 // Ensure you have a function to clear the interval when the audio stops or ends
-document.getElementById('audioPlayer').addEventListener('ended', function () {
-    clearInterval(playheadInterval);
-    document.getElementById('playhead').style.left = '0px'; // Optionally reset the playhead
+// document.getElementById('audioPlayer').addEventListener('ended', function () {
+//     clearInterval(playheadInterval);
+//     document.getElementById('playhead').style.left = '0px'; // Optionally reset the playhead
+// });
+
+document.addEventListener('DOMContentLoaded', function () {
+    var audioPlayer = document.getElementById('audioPlayer');
+    var beatContainer = document.getElementById('beatContainer');
+    var playhead = document.getElementById('playhead');
+
+    beatContainer.addEventListener('click', function (event) {
+        console.log("click");
+    });
+    var playheadInterval;
+
+    beatContainer.addEventListener('click', function (event) {
+        var rect = beatContainer.getBoundingClientRect();
+        var offsetX = event.clientX - rect.left;
+        var percentage = offsetX / rect.width;
+        var newTime = percentage * audioPlayer.duration;
+        audioPlayer.currentTime = newTime;
+        movePlayhead(audioPlayer); // Update the playhead position immediately
+        if (audioPlayer.paused) {
+            audioPlayer.play();
+        }
+    });
+    audioPlayer.addEventListener('timeupdate', function () {
+        movePlayhead(audioPlayer);
+    });
+
+    audioPlayer.addEventListener('ended', function () {
+        console.log("ended")
+        clearInterval(playheadInterval);
+        playhead.style.left = '0px'; // Optionally reset the playhead
+    });
+    
+
+    // audioPlayer.addEventListener('pause', function () {
+    //     console.log("pause");
+    //     clearInterval(playheadInterval);
+    // });
 });
 
-document.getElementById('audioPlayer').addEventListener('pause', function () {
-    clearInterval(playheadInterval);
-});
 
 function playAudio() {
     var file = document.getElementById("audioFile").files[0];
@@ -960,8 +1013,8 @@ function displayBeats(data, beatContainer, audioPlayer, audioData, buffer, fileI
     canvas.width = durationInSeconds * 20; // 20 pixels per second
     drawWaveform(data, canvas, durationInSeconds);
 
-    const blob = new Blob([audioData], { type: getMimeType(fileInput.files[0].name) });
-    audioPlayer.src = URL.createObjectURL(blob);
+    // const blob = new Blob([audioData], { type: getMimeType(fileInput.files[0].name) });
+    // audioPlayer.src = URL.createObjectURL(blob);
     audioPlayer.hidden = false;
 }
 
