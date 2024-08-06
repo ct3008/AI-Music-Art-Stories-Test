@@ -147,3 +147,8 @@ audio {
     flex: 0 0 auto; /* Prevent section from growing or shrinking */
     margin-right: 10px; /* Add some spacing between sections */
 }
+
+#processedDataContainer{
+    margin-top: 5px;
+    
+}

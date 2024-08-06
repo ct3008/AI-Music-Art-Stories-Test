@@ -12,6 +12,7 @@
 <button onclick="showSignificantPoints()" id="findIdealIntervals">Find Ideal Intervals</button>
 <button onclick="finalizeTimestamps('time')">Finalize Time Stamps</button>
 
+
 <div id="beatContainer">
     <div id="playhead" style="position: absolute; height: 100%; width: 2px; background-color: blue; left: 0px;"></div>
     <canvas id="waveformCanvas"></canvas>
@@ -19,8 +20,11 @@
 
 <audio id="audioPlayer" controls hidden></audio>
 
+<button id="toggleMotionButton" onclick="toggleMotion()">3D Motion</button>
+
 <div id="outputContainer"></div>
 <div id="timestampsContainer"></div>
+
 
 <!-- <button onclick="fillDefaults()">Fill with Defaults</button> -->
 <button id="fill-defaults" onclick="fillDefaults()">Fill With Defaults</button>
@@ -37,7 +41,7 @@
 
 <button id="process-table" onclick="processTable()">Process Table</button>
 <!-- Add a condition later so that this only appears after everything is filled out -->
-
+<div id="processedDataContainer"></div>
 
 {% endblock %}
 

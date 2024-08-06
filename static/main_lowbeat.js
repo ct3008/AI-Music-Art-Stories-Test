@@ -12,6 +12,8 @@ let lowEnergyBeats = {};
 
 let significantPoints = [];
 
+let motion_mode = "3D";
+
 function movePlayhead(audioPlayer) {
     const playhead = document.getElementById('playhead');
     const containerWidth = document.getElementById('beatContainer').offsetWidth; // Width of the container
@@ -77,19 +79,22 @@ function finalizeTimestamps(name) {
 
     const sectionsCount = significantPoints.length; // Define sectionsCount based on the timestamps array length
     let container;
+    let labels = [];
     if (name === 'time') {
         container = document.getElementById('trash');
+        labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
     } else if (name === 'transition') {
         container = document.getElementById('transitionsContainer');
         container.style.border = '2px solid black'; // Corrected styling syntax
         const button = document.getElementById('add-transition');
         if (button) button.style.display = 'none'; // Hide button if it exists
+        labels = ['Motion', 'Strength', 'Speed'];
     }
 
     container.innerHTML = ''; // Clear previous content
     container.style.setProperty('--sections-count', sectionsCount);
 
-    const labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
+    // const labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
     const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
     const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing'];
     const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
@@ -319,12 +324,22 @@ function gatherTransitionData(formData) {
         const timeRange = `${start}-${end}`;
         // console.log(formData[timestamps[i]])
         
+        // transitionsData[timeRange] = {
+        //     "vibe": document.getElementById(`vibe_trans_${i + 1}`).value || document.getElementById(`vibe_form_${i + 1}`).value,
+        //     "imagery": document.getElementById(`imagery_trans_${i + 1}`).value || document.getElementById(`imagery_form_${i + 1}`).value,
+        //     "texture": document.getElementById(`texture_trans_${i + 1}`).value || document.getElementById(`texture_form_${i + 1}`).value,
+        //     "style": document.getElementById(`style_trans_${i + 1}`).value || document.getElementById(`style_form_${i + 1}`).value,
+        //     "color": document.getElementById(`color_trans_${i + 1}`).value || document.getElementById(`color_form_${i + 1}`).value,
+        //     "motion": document.getElementById(`motion_trans_${i + 1}`).value || document.getElementById(`motion_form_${i + 1}`).value,
+        //     "strength": document.getElementById(`strength_trans_${i + 1}`).value || document.getElementById(`strength_form_${i + 1}`).value,
+        //     "speed": document.getElementById(`speed_trans_${i + 1}`).value || document.getElementById(`speed_form_${i + 1}`).value
+        // };
         transitionsData[timeRange] = {
-            "vibe": document.getElementById(`vibe_trans_${i + 1}`).value || document.getElementById(`vibe_form_${i + 1}`).value,
-            "imagery": document.getElementById(`imagery_trans_${i + 1}`).value || document.getElementById(`imagery_form_${i + 1}`).value,
-            "texture": document.getElementById(`texture_trans_${i + 1}`).value || document.getElementById(`texture_form_${i + 1}`).value,
-            "style": document.getElementById(`style_trans_${i + 1}`).value || document.getElementById(`style_form_${i + 1}`).value,
-            "color": document.getElementById(`color_trans_${i + 1}`).value || document.getElementById(`color_form_${i + 1}`).value,
+            "vibe": document.getElementById(`vibe_form_${i + 1}`).value,
+            "imagery": document.getElementById(`imagery_form_${i + 1}`).value,
+            "texture": document.getElementById(`texture_form_${i + 1}`).value,
+            "style":  document.getElementById(`style_form_${i + 1}`).value,
+            "color": document.getElementById(`color_form_${i + 1}`).value,
             "motion": document.getElementById(`motion_trans_${i + 1}`).value || document.getElementById(`motion_form_${i + 1}`).value,
             "strength": document.getElementById(`strength_trans_${i + 1}`).value || document.getElementById(`strength_form_${i + 1}`).value,
             "speed": document.getElementById(`speed_trans_${i + 1}`).value || document.getElementById(`speed_form_${i + 1}`).value
@@ -359,7 +374,8 @@ function processTable(){
         timestamps_scenes: significantPoints.map(point => point.toFixed(2)),  // Replace with your actual timestamps_scenes
         form_data: formData,
         transitions_data: transitionsData,
-        song_len: audioDuration
+        song_len: audioDuration,
+        motion_mode: motion_mode
     };
     console.log(data);
 
@@ -373,10 +389,34 @@ function processTable(){
     .then(response => response.json())
     .then(data => {
         console.log(data);
+        console.log("returned back");
         for (const [key, value] of Object.entries(data)) {
             console.log(`${key}: ${value}`);
+            if (key === 'output') {
+                console.log(value);
+                window.open(value, '_blank');
+            }
         }
-        // Handle the response from the server
+        let resultHTML = '';
+
+        if (data.animation_prompts) {
+            resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
+        }
+
+        if (data.motion_strings) {
+            resultHTML += `<h3>Motion Strings:</h3><p>${data.motion_strings}</p>`;
+        }
+
+        if (data.prompts) {
+            resultHTML += `<h3>Prompts:</h3><p>${data.prompts}</p>`;
+        }
+
+        if (data.output) {
+            resultHTML += `<h3>Output:</h3><p><a href="${data.output}" target="_blank">Click here to view the output</a></p>`;
+        }
+
+        document.getElementById('processedDataContainer').innerHTML = resultHTML;
+        document.getElementById('processedDataContainer').style = "border: 2px solid black;"
     })
     .catch(error => {
         console.error('Error:', error);
@@ -815,5 +855,18 @@ function getLyrics() {
     });
 }
 
-
+function toggleMotion() {
+    const button = document.getElementById("toggleMotionButton");
+    if (button.textContent === "3D Motion") {
+        button.textContent = "2D Motion";
+        motion_mode = "2D";
+        // Add code here to handle the change to 3D motion
+        console.log("Switched to 2D Motion");
+    } else {
+        button.textContent = "3D Motion";
+        motion_mode = "3D";
+        // Add code here to handle the change to 2D motion
+        console.log("Switched to 3D Motion");
+    }
+}
 

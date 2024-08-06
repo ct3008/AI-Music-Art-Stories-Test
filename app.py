@@ -1,9 +1,15 @@
 import os
+import openai
+from openai import OpenAI
 import librosa
 import numpy as np
 from flask import Flask, jsonify, request, render_template
+import replicate
 
 app = Flask(__name__, template_folder='./templates', static_folder='./static')
+
+api_key = os.getenv("OPENAI_DISCO_API_KEY")
+client = OpenAI(api_key=api_key)
 
 motion_magnitudes = {
     "zoom_in": {"none": 1.00, "weak": 1.02, "normal": 1.04, "strong": 3, "vstrong": 6},
@@ -262,13 +268,13 @@ def calculate_frames(scene_change_times, time_intervals, motion_data, total_song
 
     current_frame = 0
     animation_prompts = []
-    
-    print(motion_data)
+    print("INTERVAL: ", time_intervals)
     for interval, motions in zip(time_intervals, motion_data):
         _, strength, speed = motions[0]
         start_time, end_time = map(float, interval.split('-'))
         if tmp_times:
             print(int(tmp_times[0]))
+        print("TMP TIME: ", tmp_times)
         if tmp_times != [] and int(tmp_times[0]) <= end_time and int(tmp_times[0]) >= start_time:
             new_frame = round(current_frame + (int(tmp_times[0]) - start_time) * 15 * speed_multiplier[speed])
             print("----------------END FRAME:---------------", new_frame)
@@ -358,6 +364,163 @@ def build_transition_strings(frame_data):
 
     return motion_strings
 
+def create_prompt(data):
+    vibe = data.get('vibe', '')
+    imagery = data.get('imagery', '')
+    texture = data.get('texture', '')
+    style = data.get('style', '')
+    color = data.get('color', '')
+
+    prompt = (
+        f"{color}, {style} in {texture} texture, simple abstract, beautiful, 4k, motion. "
+        f"{imagery}. Evoking a feeling of a {vibe} undertone."
+    )
+    return prompt
+
+def generate_image_prompts(form_data, final_anim_frames):
+    prompts = []
+
+    # Define a dictionary to map short descriptions to more detailed descriptions
+    detail_dict = {
+        "aggressive": "intense and powerful energy, creating a sense of urgency and dynamism",
+        "epic": "grand and majestic energy, evoking a sense of awe and excitement",
+        "happy": "bright and cheerful energy, evoking a sense of joy and positivity",
+        "chill": "calm and relaxed energy, creating a sense of tranquility and peace",
+        "sad": "melancholic and somber energy, evoking a sense of sorrow and introspection",
+        "romantic": "loving and tender energy, evoking a sense of affection and intimacy",
+        "uplifting": "encouraging and inspiring energy, evoking a sense of hope and motivation",
+        "starry night": "starry night sky with delicate splotches resembling stars",
+        "curvilinear intertwined circles": "intricate abstract recursive line art in watercolor texture",
+        "flowing waves": "flowing waves, merging and separating gracefully",
+        "blossoming flower": "delicate flower petals dancing in the wind, spiraling and intertwining gracefully",
+        "chaotic intertwining lines": "dynamic abstract gradient line art with jagged edges, evoking a sense of chaos and dissonance",
+        "painting": "beautiful, 4k",
+        "renaissance": "in a modern and forward-thinking style",
+        "black/white": "Black and white",
+        "pale blue": "Pale blue",
+        "full color": "Vibrant, full color"
+    }
+
+    # Generate prompts
+    for timestamp, data in form_data.items():
+        prompt_parts = [
+            detail_dict.get(data['color'], data['color']),
+            detail_dict.get(data['style'], data['style']),
+            detail_dict.get(data['texture'], data['texture']),
+            detail_dict.get(data['imagery'], data['imagery']),
+            detail_dict.get(data['vibe'], data['vibe'])
+        ]
+        
+        prompt = f"{prompt_parts[0]} color scheme, {prompt_parts[1]} style in {prompt_parts[2]} texture, beautiful, simple abstract, 4k. {prompt_parts[3]} imagery evoking the feeling of {prompt_parts[4]} vibe."
+        prompts.append(prompt)
+
+    combined_prompts = " | ".join([f"{final_anim_frames[i]}: {prompts[i]}" for i in range(len(prompts))])
+
+    return combined_prompts
+    # def create_prompt(data):
+    #     prompt_parts = [
+    #         f"Vibe: {data.get('vibe', '')}",
+    #         f"Imagery: {data.get('imagery', '')}",
+    #         f"Texture: {data.get('texture', '')}",
+    #         f"Style: {data.get('style', '')}",
+    #         f"Color: {data.get('color', '')}"
+    #     ]
+    #     return ", ".join(part for part in prompt_parts if part.split(": ")[1])
+
+    # prompts = []
+    # for data in form_data.values():
+    #     prompt = create_prompt(data)
+    #     prompts.append(prompt)
+
+    # return prompts
+
+def generate_prompt_completion(client, prompt):
+    completion = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+    return completion.choices[0].message['content']
+
+def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
+    # print("HERE ", ', '.join(motion_data['rotation_3d_y']))
+    # print(motion_data['rotation_3d_y'][0:-1])
+    input={
+        "fov": 40,
+        "fps": 15,
+        "seed": 868591112,
+        "zoom": ', '.join(motion_data['zoom']),
+        "angle":', '.join(motion_data['angle']),
+        "width": 512,
+        "border": "replicate",
+        "height": 512,
+        "sampler": "dpmpp_2m",
+        "use_init": True,
+        "use_mask": False,
+        "clip_name": "ViT-L/14",
+        "far_plane": 10000,
+        "init_image": "https://raw.githubusercontent.com/ct3008/ct3008.github.io/main/images/isee1.jpeg",
+        "max_frames": final_anim_frames[-1],
+        "near_plane": 200,
+        "invert_mask": False,
+        "midas_weight": 0.3,
+        "padding_mode": "border",
+        "rotation_3d_x": ', '.join(motion_data['rotation_3d_x']),
+        "rotation_3d_y": ', '.join(motion_data['rotation_3d_y']),
+        "rotation_3d_z": ', '.join(motion_data['rotation_3d_z']),
+        "sampling_mode": "bicubic",
+        "translation_x": ', '.join(motion_data['translation_x']),
+        "translation_y": ', '.join(motion_data['translation_y']),
+        "translation_z": "0:(0)",
+        "animation_mode": motion_mode,
+        "guidance_scale": 7,
+        "noise_schedule": "0: (0.02)",
+        "sigma_schedule": "0: (1.0)",
+        "use_mask_video": False,
+        "amount_schedule": "0: (0.2)",
+        "color_coherence": "Match Frame 0 RGB",
+        "kernel_schedule": "0: (5)",
+        "model_checkpoint": "Protogen_V2.2.ckpt",
+        "animation_prompts": prompts,
+        "contrast_schedule": "0: (1.0)",
+        "diffusion_cadence": "1",
+        "extract_nth_frame": 1,
+        "resume_timestring": "",
+        "strength_schedule": "0: (0.65)",
+        "use_depth_warping": True,
+        "threshold_schedule": "0: (0.0)",
+        "flip_2d_perspective": False,
+        "hybrid_video_motion": "None",
+        "num_inference_steps": 50,
+        "perspective_flip_fv": "0:(53)",
+        "interpolate_x_frames": 4,
+        "perspective_flip_phi": "0:(t%15)",
+        "hybrid_video_composite": False,
+        "interpolate_key_frames": False,
+        "perspective_flip_gamma": "0:(0)",
+        "perspective_flip_theta": "0:(0)",
+        "resume_from_timestring": False,
+        "hybrid_video_flow_method": "Farneback",
+        "overwrite_extracted_frames": True,
+        "hybrid_video_comp_mask_type": "None",
+        "hybrid_video_comp_mask_inverse": False,
+        "hybrid_video_comp_mask_equalize": "None",
+        "hybrid_video_comp_alpha_schedule": "0:(1)",
+        "hybrid_video_generate_inputframes": False,
+        "hybrid_video_comp_save_extra_frames": False,
+        "hybrid_video_use_video_as_mse_image": False,
+        "color_coherence_video_every_N_frames": 1,
+        "hybrid_video_comp_mask_auto_contrast": False,
+        "hybrid_video_comp_mask_contrast_schedule": "0:(1)",
+        "hybrid_video_use_first_frame_as_init_image": True,
+        "hybrid_video_comp_mask_blend_alpha_schedule": "0:(0.5)",
+        "hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule": "0:(0)",
+        "hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule": "0:(100)"
+    }
+    return input
+
 @app.route('/process-data', methods=['POST'])
 def process_data():
     data = request.json
@@ -365,6 +528,7 @@ def process_data():
     form_data = data['form_data']
     transitions_data = data['transitions_data']
     song_len = data['song_len']
+    motion_mode = data['motion_mode']
 
     # Here you can integrate your Python logic with the received data
     # Example: processed_data = your_function(timestamps_scenes, form_data, transitions_data)
@@ -377,6 +541,8 @@ def process_data():
     song_duration, scene_change_times, transition_times, time_intervals, interval_strings, motion_data = parse_input_data(form_data, transitions_data, song_len)
     final_anim_frames = []
     final_anim_frames.append(0)
+    if str(round(song_len,2)) not in scene_change_times:
+        scene_change_times.append(round(song_len,2))
     # Calculate frames and generate prompts
     frame_data, animation_prompts = calculate_frames(scene_change_times, interval_strings, motion_data, song_duration, final_anim_frames)
     motion_strings = build_transition_strings(frame_data)
@@ -395,13 +561,15 @@ def process_data():
 
     final_scene_times = scene_change_times
     final_scene_times.insert(0, '0')
-    final_scene_times.append(song_duration)
+    final_scene_times.append(round(song_duration,2))
     print(final_anim_frames)
     print(final_scene_times)
     # Print the animation prompts
     print("\nAnimation Prompts:")
     animation_prompts = ""
 
+    print("BAnANANANA", final_scene_times, final_anim_frames)
+    
     for i in range(len(final_anim_frames) - 1):
         animation_prompts += f"{final_anim_frames[i]}: | "
         print(f"Start Time: {final_scene_times[i]}, End Time: {final_scene_times[i+1]}, Start Frame: {final_anim_frames[i]}, End Frame: {final_anim_frames[i+1]}")
@@ -409,13 +577,25 @@ def process_data():
     animation_prompts = animation_prompts[:-2]
     print(animation_prompts)
     # For demonstration, we'll just return the received data
+    prompts = generate_image_prompts(form_data, final_anim_frames)
+    print(prompts)
+    print(motion_strings)
+    deforum_prompt = create_deforum_prompt(motion_strings, final_anim_frames, motion_mode, prompts)
+    print(deforum_prompt)
+    output = replicate.run(
+        "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
+        input=deforum_prompt)
+    # output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"
+    print("OUTPUT", output)
     response = {
         'timestamps_scenes': timestamps_scenes,
         'form_data': form_data,
         'transitions_data': transitions_data,
         'song_len': song_len,
         'animation_prompts': animation_prompts,
-        'motion_prompts': motion_strings
+        'motion_prompts': motion_strings,
+        'prompts': prompts,
+        'output': output
         # 'processed_data': processed_data
     }
 
