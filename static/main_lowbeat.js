@@ -14,7 +14,7 @@ let significantPoints = [];
 
 let motion_mode = "3D";
 
-function movePlayhead(audioPlayer) {
+function movePlayheadOG(audioPlayer) {
     const playhead = document.getElementById('playhead');
     const containerWidth = document.getElementById('beatContainer').offsetWidth; // Width of the container
     const duration = audioDuration;// Duration of the audio in seconds
@@ -56,13 +56,221 @@ function playAudio() {
         audioPlayer.addEventListener('loadedmetadata', function () {
             audioDuration = audioPlayer.duration; // Set the duration once metadata is loaded
             console.log("Audio Duration: " + audioDuration + " seconds"); // Optional: Log duration to console
-            movePlayhead(audioPlayer);
+            movePlayheadOG(audioPlayer);
         });
         audioPlayer.play();
     } else {
         alert("Please upload an MP3 file first.");
     }
 }
+
+// function finalizeTimestamps(name) {
+//     const timestampsContainer = document.getElementById('timestampsContainer');
+//     timestampsContainer.innerHTML = ''; // Clear previous timestamps
+
+//     significantPoints.forEach(time => {
+//         const timestampElement = document.createElement('div');
+//         timestampElement.textContent = `Time: ${time.toFixed(2)} seconds`;
+//         timestampsContainer.appendChild(timestampElement);
+//     });
+
+//     const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
+//     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
+
+//     const sectionsCount = significantPoints.length; // Define sectionsCount based on the timestamps array length
+//     let container;
+//     let labels = [];
+//     if (name === 'time') {
+//         container = document.getElementById('trash');
+//         labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
+//     } else if (name === 'transition') {
+//         container = document.getElementById('transitionsContainer');
+//         container.style.border = '2px solid black'; // Corrected styling syntax
+//         const button = document.getElementById('add-transition');
+//         if (button) button.style.display = 'none'; // Hide button if it exists
+//         labels = ['Motion', 'Strength', 'Speed'];
+//     }
+
+//     container.innerHTML = ''; // Clear previous content
+//     container.style.setProperty('--sections-count', sectionsCount);
+
+//     // const labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
+//     const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
+//     const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing'];
+//     const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
+//     const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
+//     const colorOptions = ['black/white', 'pale blue', 'full color'];
+//     const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
+//     const strengths = ['weak', 'normal', 'strong', 'vstrong'];
+//     const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
+
+//     // Create labels container
+//     const labelsContainer = document.createElement('div');
+//     labelsContainer.className = 'label-container';
+//     labels.forEach(label => {
+//         const labelElement = document.createElement('div');
+//         labelElement.className = 'label';
+//         labelElement.innerText = label;
+//         labelsContainer.appendChild(labelElement);
+//     });
+//     container.appendChild(labelsContainer);
+
+//     // Create sections with time range and input boxes
+//     for (let i = 0; i < sectionsCount + 1; i++) { // Adjust loop to include all sections
+//         const section = document.createElement('div');
+//         section.className = 'section';
+
+//         // Add time range or transition label
+//         const timeRange = document.createElement('div');
+//         timeRange.className = 'time-range';
+//         if (name === 'time') {
+//             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
+//         } else if (name === 'transition') {
+//             if (i === sectionsCount) {
+//                 const start = (parseFloat(timestamps[i + 1])- 0.5).toFixed(2);
+//                 timeRange.innerText = `Transition ${i + 1}: ${start} - ${audioDuration.toFixed(2)}`;
+//             } else {
+//                 const start = (parseFloat(timestamps[i + 1])-0.5).toFixed(2);
+//                 const end = (parseFloat(timestamps[i + 1])+ 0.5).toFixed(2);
+//                 timeRange.innerText = `Transition ${i + 1}: ${start} - ${end}`;
+//             }
+//             // timeRange.innerText = `Transition ${i + 1}`;
+//         }
+//         section.appendChild(timeRange);
+
+//         // Add input boxes with unique ids and datalists for dropdowns
+//         const inputContainer = document.createElement('div');
+//         inputContainer.className = 'input-container';
+//         labels.forEach((label, index) => {
+//             const input = document.createElement('input');
+//             input.type = 'text';
+//             input.className = 'dropdown-input'; // Add class for consistent width
+
+//             if (name === 'time') {
+//                 input.id = `${label.toLowerCase()}_form_${i + 1}`;
+//             } else if (name === 'transition') {
+//                 input.id = `${label.toLowerCase()}_trans_${i + 1}`;
+//             }
+
+//             // Create datalist for dropdown options
+//             const datalist = document.createElement('datalist');
+//             datalist.id = `${label.toLowerCase()}_options_${i + 1}`;
+
+//             let options;
+//             switch (label.toLowerCase()) {
+//                 case 'vibe':
+//                     options = vibes;
+//                     break;
+//                 case 'texture':
+//                     options = textures;
+//                     break;
+//                 case 'style':
+//                     options = styles;
+//                     break;
+//                 case 'imagery':
+//                     options = imageries;
+//                     break;
+//                 case 'color':
+//                     options = colorOptions;
+//                     break;
+//                 case 'motion':
+//                     options = motions;
+//                     break;
+//                 case 'strength':
+//                     options = strengths;
+//                     break;
+//                 case 'speed':
+//                     options = speeds;
+//                     break;
+//             }
+
+//             options.forEach(option => {
+//                 const optionElement = document.createElement('option');
+//                 optionElement.value = option;
+//                 datalist.appendChild(optionElement);
+//             });
+
+//             input.setAttribute('list', datalist.id);
+//             inputContainer.appendChild(input);
+//             inputContainer.appendChild(datalist);
+//         });
+
+//         section.appendChild(inputContainer);
+//         container.appendChild(section);
+//     }
+// }
+
+function movePlayhead(audioPlayer, endTime) {
+    const playhead = document.getElementById('playhead');
+    if (!playhead) {
+        const newPlayhead = document.createElement('div');
+        newPlayhead.id = 'playhead';
+        newPlayhead.style.position = 'absolute';
+        newPlayhead.style.width = '10px';
+        newPlayhead.style.height = '10px';
+        newPlayhead.style.backgroundColor = 'red';
+        document.body.appendChild(newPlayhead);
+    }
+
+    const updatePlayhead = () => {
+        const progress = audioPlayer.currentTime / audioPlayer.duration;
+        playhead.style.left = `${progress * 100}%`;
+        if (audioPlayer.currentTime >= endTime || audioPlayer.paused) {
+            clearInterval(interval);
+        }
+    };
+
+    const interval = setInterval(updatePlayhead, 100);
+    audioPlayer.addEventListener('pause', () => clearInterval(interval));
+}
+
+function playTimeRange(startTime, endTime) {
+    const file = document.getElementById("audioFile").files[0];
+    if (file) {
+        const audioPlayer = document.getElementById("audioPlayer");
+        audioPlayer.src = URL.createObjectURL(file);
+        audioPlayer.style.display = "block";
+
+        audioPlayer.addEventListener('loadedmetadata', function () {
+            audioPlayer.currentTime = startTime;
+            movePlayhead(audioPlayer, endTime);
+            audioPlayer.play();
+        });
+
+        const interval = setInterval(() => {
+            if (audioPlayer.currentTime >= endTime || audioPlayer.paused) {
+                audioPlayer.pause();
+                clearInterval(interval);
+            }
+        }, 100);
+    }
+}
+
+// function playTimeRange(startTime, endTime) {
+//     var file = document.getElementById("audioFile").files[0];
+//     if (file) {
+//         var audioPlayer = document.getElementById("audioPlayer");
+//         audioPlayer.src = URL.createObjectURL(file);
+//         audioPlayer.style.display = "block";
+//         audioPlayer.addEventListener('loadedmetadata', function () {
+//             audioDuration = audioPlayer.duration; // Set the duration once metadata is loaded
+//             console.log("Audio Duration: " + audioDuration + " seconds"); // Optional: Log duration to console
+//             audioPlayer.currentTime = startTime;
+//             // movePlayhead(audioPlayer);
+//         });
+//         audioPlayer.play();
+//     }
+//     // const audioPlayer = document.getElementById('audioPlayer');
+//     // audioPlayer.currentTime = startTime;
+//     // audioPlayer.play();
+
+//     const interval = setInterval(() => {
+//         if (audioPlayer.currentTime >= endTime || audioPlayer.paused) {
+//             audioPlayer.pause();
+//             clearInterval(interval);
+//         }
+//     }, 100);
+// }
 
 function finalizeTimestamps(name) {
     const timestampsContainer = document.getElementById('timestampsContainer');
@@ -94,16 +302,6 @@ function finalizeTimestamps(name) {
     container.innerHTML = ''; // Clear previous content
     container.style.setProperty('--sections-count', sectionsCount);
 
-    // const labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
-    const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-    const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing'];
-    const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
-    const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
-    const colorOptions = ['black/white', 'pale blue', 'full color'];
-    const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
-    const strengths = ['weak', 'normal', 'strong', 'vstrong'];
-    const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
-
     // Create labels container
     const labelsContainer = document.createElement('div');
     labelsContainer.className = 'label-container';
@@ -127,20 +325,33 @@ function finalizeTimestamps(name) {
             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
         } else if (name === 'transition') {
             if (i === sectionsCount) {
-                const start = (parseFloat(timestamps[i + 1])- 0.5).toFixed(2);
+                const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
                 timeRange.innerText = `Transition ${i + 1}: ${start} - ${audioDuration.toFixed(2)}`;
             } else {
-                const start = (parseFloat(timestamps[i + 1])-0.5).toFixed(2);
-                const end = (parseFloat(timestamps[i + 1])+ 0.5).toFixed(2);
+                const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
+                const end = (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
                 timeRange.innerText = `Transition ${i + 1}: ${start} - ${end}`;
             }
-            // timeRange.innerText = `Transition ${i + 1}`;
         }
         section.appendChild(timeRange);
+
+        // Add play button
+        const playButton = document.createElement('button');
+        playButton.innerText = 'Play';
+        playButton.addEventListener('click', () => playTimeRange(timestamps[i], timestamps[i + 1]));
+        section.appendChild(playButton);
 
         // Add input boxes with unique ids and datalists for dropdowns
         const inputContainer = document.createElement('div');
         inputContainer.className = 'input-container';
+        const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
+        const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing'];
+        const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
+        const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
+        const colorOptions = ['black/white', 'pale blue', 'full color'];
+        const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
+        const strengths = ['weak', 'normal', 'strong', 'vstrong'];
+        const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
         labels.forEach((label, index) => {
             const input = document.createElement('input');
             input.type = 'text';
@@ -276,7 +487,7 @@ function fillTransitionDefaults() {
         inputs.forEach(input => {
             if (input.id.includes('motion_trans')) {
                 if (!input.value) {
-                    input.value = index === transitionSections.length - 1 ? 'rotate_ccw' : 'rotate_right';
+                    input.value = index === transitionSections.length - 1 ? 'rotate_cw' : 'rotate_right';
                 }
             } else if (input.id.includes('strength_trans')) {
                 if (!input.value) {
@@ -322,18 +533,7 @@ function gatherTransitionData(formData) {
         const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
         const end = (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
         const timeRange = `${start}-${end}`;
-        // console.log(formData[timestamps[i]])
-        
-        // transitionsData[timeRange] = {
-        //     "vibe": document.getElementById(`vibe_trans_${i + 1}`).value || document.getElementById(`vibe_form_${i + 1}`).value,
-        //     "imagery": document.getElementById(`imagery_trans_${i + 1}`).value || document.getElementById(`imagery_form_${i + 1}`).value,
-        //     "texture": document.getElementById(`texture_trans_${i + 1}`).value || document.getElementById(`texture_form_${i + 1}`).value,
-        //     "style": document.getElementById(`style_trans_${i + 1}`).value || document.getElementById(`style_form_${i + 1}`).value,
-        //     "color": document.getElementById(`color_trans_${i + 1}`).value || document.getElementById(`color_form_${i + 1}`).value,
-        //     "motion": document.getElementById(`motion_trans_${i + 1}`).value || document.getElementById(`motion_form_${i + 1}`).value,
-        //     "strength": document.getElementById(`strength_trans_${i + 1}`).value || document.getElementById(`strength_form_${i + 1}`).value,
-        //     "speed": document.getElementById(`speed_trans_${i + 1}`).value || document.getElementById(`speed_form_${i + 1}`).value
-        // };
+ 
         transitionsData[timeRange] = {
             "vibe": document.getElementById(`vibe_form_${i + 1}`).value,
             "imagery": document.getElementById(`imagery_form_${i + 1}`).value,
@@ -344,18 +544,6 @@ function gatherTransitionData(formData) {
             "strength": document.getElementById(`strength_trans_${i + 1}`).value || document.getElementById(`strength_form_${i + 1}`).value,
             "speed": document.getElementById(`speed_trans_${i + 1}`).value || document.getElementById(`speed_form_${i + 1}`).value
         };
-        // console.log(transitionsData);
-        
-        // transitionsData[timeRange].transition = !!(
-        //     document.getElementById(`vibe_trans_${i + 1}`).value ||
-        //     document.getElementById(`imagery_trans_${i + 1}`).value ||
-        //     document.getElementById(`texture_trans_${i + 1}`).value ||
-        //     document.getElementById(`style_trans_${i + 1}`).value ||
-        //     document.getElementById(`color_trans_${i + 1}`).value ||
-        //     document.getElementById(`motion_trans_${i + 1}`).value ||
-        //     document.getElementById(`strength_trans_${i + 1}`).value ||
-        //     document.getElementById(`speed_trans_${i + 1}`).value
-        // );
         if(document.getElementById(`motion_trans_${i + 1}`).value && document.getElementById(`strength_trans_${i + 1}`).value && document.getElementById(`speed_trans_${i + 1}`).value) {
             transitionsData[timeRange]["transition"] = true;
         }else {
@@ -399,12 +587,15 @@ function processTable(){
         }
         let resultHTML = '';
 
-        if (data.animation_prompts) {
-            resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
-        }
+        // if (data.animation_prompts) {
+        //     resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
+        // }
 
-        if (data.motion_strings) {
-            resultHTML += `<h3>Motion Strings:</h3><p>${data.motion_strings}</p>`;
+        if (data.motion_prompts) {
+            resultHTML += `<h3>Motion Strings:</h3>`;
+            for (const [motion, transitions] of Object.entries(data.motion_prompts)) {
+                resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
+            }
         }
 
         if (data.prompts) {
@@ -843,7 +1034,6 @@ function getLyrics() {
             document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
             lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
             console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
-            // Optionally call a function to update UI or handle lowEnergyBeats here
             updateUIWithLowEnergyBeats(); // Example function call
         } else {
             document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
