@@ -20,6 +20,12 @@
     position: absolute;
 }
 
+
+.beat:hover {
+    cursor: grab; /* Changes the cursor to a grab hand when hovered */
+    background-color: green; /* Changes the color to green when hovered */
+}
+
 canvas {
     width: 100%;
     height: 100%;

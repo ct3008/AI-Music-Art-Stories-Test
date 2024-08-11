@@ -14,30 +14,10 @@ let significantPoints = [];
 
 let motion_mode = "3D";
 
-// function movePlayheadOG(audioPlayer) {
-//     const playhead = document.getElementById('playhead');
-//     const containerWidth = document.getElementById('beatContainer').offsetWidth; // Width of the container
-//     const duration = audioDuration;// Duration of the audio in seconds
+let newsigPoints = [];
 
-//     console.log(containerWidth, duration);
-
-//     // Calculate pixels per second
-//     const pixelsPerSecond = containerWidth / duration;
-
-//     clearInterval(playheadInterval);
-//     playhead.style.left = '0px'; // Reset position at the start
-
-//     playheadInterval = setInterval(function () {
-//         if (!audioPlayer.paused && !audioPlayer.ended) {
-//             // Calculate new position based on pixels per second
-//             let newPosition = parseFloat(playhead.style.left, 10) + (pixelsPerSecond * 0.1); // Multiply by 0.05 because the interval is 50 milliseconds
-//             playhead.style.left = `${newPosition}px`;
-//         }
-//     }, 100); // Update every 50 milliseconds
-// }
-
-function movePlayheadOG(audioPlayer) {
-    const containerWidth = document.getElementById('beatContainer').offsetWidth; // Width of the container
+function movePlayheadOG() {
+    const containerWidth = beatContainer.offsetWidth; // Width of the container
     const duration = audioPlayer.duration; // Duration of the audio in seconds
 
     // Calculate pixels per second
@@ -53,50 +33,230 @@ function movePlayheadOG(audioPlayer) {
         }
     }, 100); // Update every 100 milliseconds
 }
+// function movePlayheadOG(audioPlayer) {
+//     const containerWidth = document.getElementById('beatContainer').offsetWidth; // Width of the container
+//     const duration = audioPlayer.duration; // Duration of the audio in seconds
 
+//     // Calculate pixels per second
+//     const pixelsPerSecond = containerWidth / duration;
 
-// Ensure you have a function to clear the interval when the audio stops or ends
-// document.getElementById('audioPlayer').addEventListener('ended', function () {
 //     clearInterval(playheadInterval);
-//     document.getElementById('playhead').style.left = '0px'; // Optionally reset the playhead
-// });
+
+//     playheadInterval = setInterval(function () {
+//         if (!audioPlayer.paused && !audioPlayer.ended) {
+//             // Calculate new position based on current time and pixels per second
+//             let newPosition = audioPlayer.currentTime * pixelsPerSecond;
+//             playhead.style.left = `${newPosition}px`;
+//         }
+//     }, 100); // Update every 100 milliseconds
+// }
+
+function makeLineDraggable(beatLine, beatContainer, audioPlayer) {
+    let isDragging = false;
+
+    beatLine.addEventListener('mousedown', function (event) {
+        isDragging = true;
+        event.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function (event) {
+        if (isDragging) {
+            const rect = beatContainer.getBoundingClientRect();
+            let offsetX = event.clientX - rect.left;
+
+            // Ensure the line stays within the container bounds
+            if (offsetX < 0) offsetX = 0;
+            if (offsetX > beatContainer.offsetWidth) offsetX = beatContainer.offsetWidth;
+
+            // Move the line to the new position
+            beatLine.style.left = `${offsetX}px`;
+
+            // Update the associated time interval
+            const percentage = offsetX / beatContainer.offsetWidth;
+            const newTime = percentage * audioPlayer.duration;
+            // Update any displayed time intervals
+            updateTimeDisplay(beatLine, newTime);
+        }
+    });
+
+    document.addEventListener('mouseup', function () {
+        isDragging = false;
+    });
+}
+
+function updateTimeDisplay(beatLine, newTime) {
+    // Assuming you have a way to update the time display
+    // For example, updating a label or input next to the line
+    const timeLabel = document.getElementById(`${beatLine.id}_time`);
+    if (timeLabel) {
+        timeLabel.textContent = newTime.toFixed(2) + " seconds";
+    }
+}
+
+function clearPreviousTimestamps() {
+    const previousTimestamps = document.querySelectorAll('.beat-timestamp');
+    previousTimestamps.forEach(timestamp => timestamp.remove());
+}
 
 document.addEventListener('DOMContentLoaded', function () {
     var audioPlayer = document.getElementById('audioPlayer');
     var beatContainer = document.getElementById('beatContainer');
     var playhead = document.getElementById('playhead');
+    const beatLines = document.querySelectorAll('.beat');
+    var draggingBeat = null;
+    var playheadInterval;
 
+    function updateCurrentTime(line, time) {
+        const timeLabel = document.querySelector('.current-time-label');
+        if (timeLabel) {  // Check if the element exists
+            line.style.left = `${(time / audioPlayer.duration) * beatContainer.offsetWidth}px`;
+            timeLabel.textContent = time.toFixed(2) + 's';;
+        }
+    }
+
+
+
+    // beatContainer.addEventListener('mousedown', function (event) {
+    //     if (event.target.classList.contains('beat')) {
+    //         draggingBeat = event.target;
+    //         draggingBeat.classList.add('dragging');
+    //         draggingBeat.style.backgroundColor = 'green';
+    //     }
+    // });
+
+    // document.addEventListener('mousemove', function (event) {
+    //     if (draggingBeat) {
+    //         var rect = beatContainer.getBoundingClientRect();
+    //         var offsetX = event.clientX - rect.left;
+
+    //         if (offsetX < 0) offsetX = 0;
+    //         if (offsetX > beatContainer.offsetWidth) offsetX = beatContainer.offsetWidth;
+
+    //         draggingBeat.style.left = `${offsetX}px`;
+    //     }
+    // });
+
+    // document.addEventListener('mouseup', function () {
+    //     if (draggingBeat) {
+    //         draggingBeat.classList.remove('dragging');
+    //         draggingBeat.style.backgroundColor = ''; // Reset to the original color
+    //         draggingBeat = null;
+    //     }
+    // });
+
+    beatLines.forEach(beatLine => {
+        makeLineDraggable(beatLine, beatContainer, audioPlayer);
+    });
     beatContainer.addEventListener('click', function (event) {
         console.log("click");
     });
-    var playheadInterval;
 
-    beatContainer.addEventListener('click', function (event) {
-        var rect = beatContainer.getBoundingClientRect();
-        var offsetX = event.clientX - rect.left;
-        var percentage = offsetX / rect.width;
-        var newTime = percentage * audioPlayer.duration;
-        audioPlayer.currentTime = newTime;
-        movePlayhead(audioPlayer); // Update the playhead position immediately
-        if (audioPlayer.paused) {
-            audioPlayer.play();
+    // Add event listener for beat line drag
+    document.addEventListener('mousedown', function (event) {
+        const target = event.target;
+        if (target.classList.contains('beat')) {
+            let initialX = event.clientX;
+            let startTime = (target.offsetLeft / beatContainer.offsetWidth) * audioPlayer.duration;
+
+            function onMouseMove(moveEvent) {
+                const deltaX = moveEvent.clientX - initialX;
+                const newLeft = target.offsetLeft + deltaX;
+
+                const percentage = Math.max(0, Math.min(1, newLeft / beatContainer.offsetWidth));
+                const newTime = percentage * audioPlayer.duration;
+
+                updateCurrentTime(target, newTime);
+
+                initialX = moveEvent.clientX;
+            }
+
+            function onMouseUp() {
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+                target.style.backgroundColor = 'green'; // Change color after drag
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
         }
     });
+
+    // Hover effect to change cursor and color
+    document.addEventListener('mouseover', function (event) {
+        const target = event.target;
+        if (target.classList.contains('beat')) {
+            target.style.cursor = 'ew-resize'; // Change cursor to indicate draggable
+            target.style.backgroundColor = 'lightgreen'; // Change color on hover
+        }
+    });
+
+    document.addEventListener('mouseout', function (event) {
+        const target = event.target;
+        if (target.classList.contains('beat')) {
+            target.style.backgroundColor = ''; // Revert color on mouse out
+        }
+    });
+
+    // Update line position when typing in time value
+    beatContainer.addEventListener('input', function (event) {
+        const target = event.target;
+        if (target.classList.contains('time-label')) {
+            const newTime = parseFloat(target.textContent);
+            if (!isNaN(newTime) && newTime >= 0 && newTime <= audioPlayer.duration) {
+                const beatLine = target.closest('.beat');
+                updateCurrentTime(beatLine, newTime);
+            }
+        }
+    });
+
+    // Prevent errors when setting currentTime without a valid duration
+    beatContainer.addEventListener('click', function (event) {
+        if (!isNaN(audioPlayer.duration)) {
+            var rect = beatContainer.getBoundingClientRect();
+            var offsetX = event.clientX - rect.left;
+            var percentage = offsetX / rect.width;
+            var newTime = percentage * audioPlayer.duration;
+            audioPlayer.currentTime = newTime;
+            movePlayheadOG();
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+            }
+        } else {
+            console.error("Audio is not loaded or not playing.");
+        }
+    });
+
     audioPlayer.addEventListener('timeupdate', function () {
-        movePlayhead(audioPlayer);
+        movePlayheadOG();
     });
 
     audioPlayer.addEventListener('ended', function () {
-        console.log("ended")
         clearInterval(playheadInterval);
         playhead.style.left = '0px'; // Optionally reset the playhead
     });
-    
+    // var playheadInterval;
 
-    // audioPlayer.addEventListener('pause', function () {
-    //     console.log("pause");
-    //     clearInterval(playheadInterval);
+    // beatContainer.addEventListener('click', function (event) {
+    //     var rect = beatContainer.getBoundingClientRect();
+    //     var offsetX = event.clientX - rect.left;
+    //     var percentage = offsetX / rect.width;
+    //     var newTime = percentage * audioPlayer.duration;
+    //     audioPlayer.currentTime = newTime;
+    //     movePlayhead(audioPlayer); // Update the playhead position immediately
+    //     if (audioPlayer.paused) {
+    //         audioPlayer.play();
+    //     }
     // });
+    // audioPlayer.addEventListener('timeupdate', function () {
+    //     movePlayhead(audioPlayer);
+    // });
+
+    // audioPlayer.addEventListener('ended', function () {
+    //     console.log("ended")
+    //     clearInterval(playheadInterval);
+    //     playhead.style.left = '0px'; // Optionally reset the playhead
+    // });
+    
 });
 
 
@@ -117,141 +277,6 @@ function playAudio() {
     }
 }
 
-// function finalizeTimestamps(name) {
-//     const timestampsContainer = document.getElementById('timestampsContainer');
-//     timestampsContainer.innerHTML = ''; // Clear previous timestamps
-
-//     significantPoints.forEach(time => {
-//         const timestampElement = document.createElement('div');
-//         timestampElement.textContent = `Time: ${time.toFixed(2)} seconds`;
-//         timestampsContainer.appendChild(timestampElement);
-//     });
-
-//     const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
-//     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
-
-//     const sectionsCount = significantPoints.length; // Define sectionsCount based on the timestamps array length
-//     let container;
-//     let labels = [];
-//     if (name === 'time') {
-//         container = document.getElementById('trash');
-//         labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
-//     } else if (name === 'transition') {
-//         container = document.getElementById('transitionsContainer');
-//         container.style.border = '2px solid black'; // Corrected styling syntax
-//         const button = document.getElementById('add-transition');
-//         if (button) button.style.display = 'none'; // Hide button if it exists
-//         labels = ['Motion', 'Strength', 'Speed'];
-//     }
-
-//     container.innerHTML = ''; // Clear previous content
-//     container.style.setProperty('--sections-count', sectionsCount);
-
-//     // const labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
-//     const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-//     const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing'];
-//     const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
-//     const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
-//     const colorOptions = ['black/white', 'pale blue', 'full color'];
-//     const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
-//     const strengths = ['weak', 'normal', 'strong', 'vstrong'];
-//     const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
-
-//     // Create labels container
-//     const labelsContainer = document.createElement('div');
-//     labelsContainer.className = 'label-container';
-//     labels.forEach(label => {
-//         const labelElement = document.createElement('div');
-//         labelElement.className = 'label';
-//         labelElement.innerText = label;
-//         labelsContainer.appendChild(labelElement);
-//     });
-//     container.appendChild(labelsContainer);
-
-//     // Create sections with time range and input boxes
-//     for (let i = 0; i < sectionsCount + 1; i++) { // Adjust loop to include all sections
-//         const section = document.createElement('div');
-//         section.className = 'section';
-
-//         // Add time range or transition label
-//         const timeRange = document.createElement('div');
-//         timeRange.className = 'time-range';
-//         if (name === 'time') {
-//             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
-//         } else if (name === 'transition') {
-//             if (i === sectionsCount) {
-//                 const start = (parseFloat(timestamps[i + 1])- 0.5).toFixed(2);
-//                 timeRange.innerText = `Transition ${i + 1}: ${start} - ${audioDuration.toFixed(2)}`;
-//             } else {
-//                 const start = (parseFloat(timestamps[i + 1])-0.5).toFixed(2);
-//                 const end = (parseFloat(timestamps[i + 1])+ 0.5).toFixed(2);
-//                 timeRange.innerText = `Transition ${i + 1}: ${start} - ${end}`;
-//             }
-//             // timeRange.innerText = `Transition ${i + 1}`;
-//         }
-//         section.appendChild(timeRange);
-
-//         // Add input boxes with unique ids and datalists for dropdowns
-//         const inputContainer = document.createElement('div');
-//         inputContainer.className = 'input-container';
-//         labels.forEach((label, index) => {
-//             const input = document.createElement('input');
-//             input.type = 'text';
-//             input.className = 'dropdown-input'; // Add class for consistent width
-
-//             if (name === 'time') {
-//                 input.id = `${label.toLowerCase()}_form_${i + 1}`;
-//             } else if (name === 'transition') {
-//                 input.id = `${label.toLowerCase()}_trans_${i + 1}`;
-//             }
-
-//             // Create datalist for dropdown options
-//             const datalist = document.createElement('datalist');
-//             datalist.id = `${label.toLowerCase()}_options_${i + 1}`;
-
-//             let options;
-//             switch (label.toLowerCase()) {
-//                 case 'vibe':
-//                     options = vibes;
-//                     break;
-//                 case 'texture':
-//                     options = textures;
-//                     break;
-//                 case 'style':
-//                     options = styles;
-//                     break;
-//                 case 'imagery':
-//                     options = imageries;
-//                     break;
-//                 case 'color':
-//                     options = colorOptions;
-//                     break;
-//                 case 'motion':
-//                     options = motions;
-//                     break;
-//                 case 'strength':
-//                     options = strengths;
-//                     break;
-//                 case 'speed':
-//                     options = speeds;
-//                     break;
-//             }
-
-//             options.forEach(option => {
-//                 const optionElement = document.createElement('option');
-//                 optionElement.value = option;
-//                 datalist.appendChild(optionElement);
-//             });
-
-//             input.setAttribute('list', datalist.id);
-//             inputContainer.appendChild(input);
-//             inputContainer.appendChild(datalist);
-//         });
-
-//         section.appendChild(inputContainer);
-//         container.appendChild(section);
-//     }
-// }
 
 function movePlayhead(audioPlayer, endTime) {
     const playhead = document.getElementById('playhead');
@@ -299,41 +324,19 @@ function playTimeRange(startTime, endTime) {
     }
 }
 
-// function playTimeRange(startTime, endTime) {
-//     var file = document.getElementById("audioFile").files[0];
-//     if (file) {
-//         var audioPlayer = document.getElementById("audioPlayer");
-//         audioPlayer.src = URL.createObjectURL(file);
-//         audioPlayer.style.display = "block";
-//         audioPlayer.addEventListener('loadedmetadata', function () {
-//             audioDuration = audioPlayer.duration; // Set the duration once metadata is loaded
-//             console.log("Audio Duration: " + audioDuration + " seconds"); // Optional: Log duration to console
-//             audioPlayer.currentTime = startTime;
-//             // movePlayhead(audioPlayer);
-//         });
-//         audioPlayer.play();
-//     }
-//     // const audioPlayer = document.getElementById('audioPlayer');
-//     // audioPlayer.currentTime = startTime;
-//     // audioPlayer.play();
-
-//     const interval = setInterval(() => {
-//         if (audioPlayer.currentTime >= endTime || audioPlayer.paused) {
-//             audioPlayer.pause();
-//             clearInterval(interval);
-//         }
-//     }, 100);
-// }
-
 function finalizeTimestamps(name) {
     const timestampsContainer = document.getElementById('timestampsContainer');
     timestampsContainer.innerHTML = ''; // Clear previous timestamps
 
-    significantPoints.forEach(time => {
+    
+    newsigPoints.forEach(time => {
         const timestampElement = document.createElement('div');
         timestampElement.textContent = `Time: ${time.toFixed(2)} seconds`;
         timestampsContainer.appendChild(timestampElement);
     });
+    
+        
+
 
     const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
@@ -398,9 +401,9 @@ function finalizeTimestamps(name) {
         const inputContainer = document.createElement('div');
         inputContainer.className = 'input-container';
         const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-        const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing'];
-        const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
-        const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
+        const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular', 'rubbed graphite on paper', ];
+        const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "Jackson Pollock abstrct expressionism"];
+        const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles', 'whirling lines', 'vibrant kaleidoscope of colors', 'interstellar light trails','abstract fractal patterns','dissolving geometric shards','diffused cosmic mists', 'translucent ripple effects'];
         const colorOptions = ['black/white', 'pale blue', 'full color'];
         const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
         const strengths = ['weak', 'normal', 'strong', 'vstrong'];
@@ -956,7 +959,28 @@ function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, d
 }
 
 
+// function drawBeats(beats, beatContainer, duration, color, hidden = false) {
+//     beats.forEach((beat, index) => {
+//         const beatLine = document.createElement('div');
+//         beatLine.className = 'beat';
+//         beatLine.style.left = `${(beat / duration) * beatContainer.offsetWidth}px`;
+//         beatLine.style.height = '100%';
+//         beatLine.style.width = '2px';
+//         beatLine.style.position = 'absolute';
+//         beatLine.style.backgroundColor = color;
+//         if (hidden) {
+//             beatLine.style.display = 'none';
+//             beatLine.classList.add('hidden-beat');
+//         }
+//         beatContainer.appendChild(beatLine);
+//     });
+// }
+
+
 function drawBeats(beats, beatContainer, duration, color, hidden = false) {
+    clearPreviousTimestamps();
+    newsigPoints = [...beats];
+
     beats.forEach((beat, index) => {
         const beatLine = document.createElement('div');
         beatLine.className = 'beat';
@@ -968,11 +992,68 @@ function drawBeats(beats, beatContainer, duration, color, hidden = false) {
         if (hidden) {
             beatLine.style.display = 'none';
             beatLine.classList.add('hidden-beat');
+            const timeLabel = document.createElement('input');
+            timeLabel.type = 'text';
+            timeLabel.className = 'time-label';
+            timeLabel.value = beat.toFixed(2);
+            timeLabel.style.position = 'absolute';
+            timeLabel.style.top = '0';
+            timeLabel.style.left = `${(beat / duration) * beatContainer.offsetWidth}px`;
+            timeLabel.style.transform = 'translateX(-50%)';
+            timeLabel.addEventListener('input', function () {
+                const newTime = parseFloat(timeLabel.value);
+                if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
+                    beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+                    timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+                    console.log("input");
+                    console.log(timeLabel);
+                    console.log(newTime);
+                    newsigPoints[index] = newTime;
+                }
+            });
+    
+            // Handle dragging of the beat line
+            beatLine.addEventListener('mousedown', function () {
+                timeLabel.style.backgroundColor = 'green';
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
+    
+            function onMouseMove(event) {
+                var rect = beatContainer.getBoundingClientRect();
+                var offsetX = event.clientX - rect.left;
+                var percentage = offsetX / rect.width;
+                var newTime = percentage * duration;
+                if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
+                    beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+                    timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+                    timeLabel.value = newTime.toFixed(2);
+                    console.log("move");
+                    console.log(timeLabel);
+                    console.log(newTime);
+                    newsigPoints[index] = newTime;
+    
+                }
+            }
+    
+            function onMouseUp() {
+                timeLabel.style.backgroundColor = '';
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            }
+    
+            
+            beatContainer.appendChild(timeLabel);
         }
         beatContainer.appendChild(beatLine);
+        
+        // Create time label as an input field
+        
+        
+        // Update the beatLine position and timeLabel on input change
+        
     });
 }
-
 
 
 function detectBeats(data, sampleRate, threshold) {
