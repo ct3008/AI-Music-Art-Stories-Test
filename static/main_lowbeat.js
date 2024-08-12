@@ -116,36 +116,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-
-
-    // beatContainer.addEventListener('mousedown', function (event) {
-    //     if (event.target.classList.contains('beat')) {
-    //         draggingBeat = event.target;
-    //         draggingBeat.classList.add('dragging');
-    //         draggingBeat.style.backgroundColor = 'green';
-    //     }
-    // });
-
-    // document.addEventListener('mousemove', function (event) {
-    //     if (draggingBeat) {
-    //         var rect = beatContainer.getBoundingClientRect();
-    //         var offsetX = event.clientX - rect.left;
-
-    //         if (offsetX < 0) offsetX = 0;
-    //         if (offsetX > beatContainer.offsetWidth) offsetX = beatContainer.offsetWidth;
-
-    //         draggingBeat.style.left = `${offsetX}px`;
-    //     }
-    // });
-
-    // document.addEventListener('mouseup', function () {
-    //     if (draggingBeat) {
-    //         draggingBeat.classList.remove('dragging');
-    //         draggingBeat.style.backgroundColor = ''; // Reset to the original color
-    //         draggingBeat = null;
-    //     }
-    // });
-
     beatLines.forEach(beatLine => {
         makeLineDraggable(beatLine, beatContainer, audioPlayer);
     });
@@ -231,28 +201,6 @@ document.addEventListener('DOMContentLoaded', function () {
         clearInterval(playheadInterval);
         playhead.style.left = '0px'; // Optionally reset the playhead
     });
-    // var playheadInterval;
-
-    // beatContainer.addEventListener('click', function (event) {
-    //     var rect = beatContainer.getBoundingClientRect();
-    //     var offsetX = event.clientX - rect.left;
-    //     var percentage = offsetX / rect.width;
-    //     var newTime = percentage * audioPlayer.duration;
-    //     audioPlayer.currentTime = newTime;
-    //     movePlayhead(audioPlayer); // Update the playhead position immediately
-    //     if (audioPlayer.paused) {
-    //         audioPlayer.play();
-    //     }
-    // });
-    // audioPlayer.addEventListener('timeupdate', function () {
-    //     movePlayhead(audioPlayer);
-    // });
-
-    // audioPlayer.addEventListener('ended', function () {
-    //     console.log("ended")
-    //     clearInterval(playheadInterval);
-    //     playhead.style.left = '0px'; // Optionally reset the playhead
-    // });
     
 });
 
@@ -335,10 +283,10 @@ function finalizeTimestamps(name) {
         
 
 
-    const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
+    const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
 
-    const sectionsCount = significantPoints.length; // Define sectionsCount based on the timestamps array length
+    const sectionsCount = newsigPoints.length; // Define sectionsCount based on the timestamps array length
     let container;
     let labels = [];
     if (name === 'time') {
@@ -989,11 +937,17 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
 
         // Event listener for clicking on the time label
         timeLabel.addEventListener('click', function () {
+            if (lastClickedLabel === timeLabel) { 
+                lastClickedLabel.style.borderColor = '';
+                timeLabel.style.borderColor = 'red';
+                lastClickedLabel = timeLabel;
+            }
+            timeLabel.style.zIndex = '1000';
             if (lastClickedLabel) {
                 lastClickedLabel.style.borderColor = ''; // Deselect previous label
             }
-            lastClickedLabel = timeLabel; // Update lastClickedLabel
-            timeLabel.style.borderColor = 'red'; // Highlight selected label
+            // lastClickedLabel = timeLabel; // Update lastClickedLabel
+            // timeLabel.style.borderColor = 'red'; // Highlight selected label
         });
 
         timeLabel.addEventListener('input', function () {
@@ -1016,13 +970,15 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
             }
             lastClickedLabel = beatLine.timeLabel; // Update lastClickedLabel to the hidden beat's time label
             beatLine.timeLabel.style.borderColor = 'red'; // Highlight selected label
+            beatLine.timeLabel.style.zIndex = '1000';
         });
 
         // Handle dragging of the beat line
         beatLine.addEventListener('mousedown', function () {
             timeLabel.style.backgroundColor = ''; // Remove green background on drag
-            beatLine.style.backgroundColor = 'black'; // Return to normal color
+            beatLine.style.backgroundColor = 'green'; // Return to normal color
             beatLine.style.width = '2px'; // Return to normal thickness
+            beatLine.timeLabel.style.zIndex = '1000';
 
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
@@ -1038,6 +994,7 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
                 beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
                 timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
                 timeLabel.value = newTime.toFixed(2);
+                timeLabel.style.backgroundColor = 'green';
             }
         }
 
