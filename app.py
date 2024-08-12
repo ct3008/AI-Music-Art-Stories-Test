@@ -582,10 +582,10 @@ def process_data():
     print(motion_strings)
     deforum_prompt = create_deforum_prompt(motion_strings, final_anim_frames, motion_mode, prompts)
     print(deforum_prompt)
-    # output = replicate.run(
-    #     "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
-    #     input=deforum_prompt)
-    output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"
+    output = replicate.run(
+        "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
+        input=deforum_prompt)
+    # output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"
     print("OUTPUT", output)
     response = {
         'timestamps_scenes': timestamps_scenes,

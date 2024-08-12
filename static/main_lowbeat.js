@@ -912,6 +912,7 @@ function updateNewsigPoints() {
     });
     newsigPoints.sort((a, b) => a - b); // Sort the points in ascending order
 }
+
 function createBeat(beatTime, beatContainer, duration, color, isHidden = false, isNew = false) {
     const beatLine = document.createElement('div');
     beatLine.className = 'beat';
@@ -955,6 +956,7 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
             if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
                 beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
                 timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+                timeLabel.style.zIndex = '1000';
                 // console.log("input");
                 // console.log(timeLabel);
                 // console.log(newTime);
