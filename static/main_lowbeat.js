@@ -504,8 +504,14 @@ function fillTransitionDefaults() {
 }
 
 function gatherFormData() { // Example significant points; replace with your actual significantPoints array
-    const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
+    // const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
+    let roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
 
+    // Add the final timestamp if it's not already included
+    const finalTimeStamp = audioDuration.toFixed(2);
+    if (!roundedSignificantPoints.includes(finalTimeStamp)) {
+        roundedSignificantPoints.push(finalTimeStamp);
+    }
     // Prepare form data dictionary
     const formData = {};
     roundedSignificantPoints.forEach((timestamp, index) => {
@@ -521,12 +527,15 @@ function gatherFormData() { // Example significant points; replace with your act
         };
     });
 
+    console.log("GATHER FORM DATA");
+    console.log(formData);
+    console.log(formData.length);
     return formData;
 }
 
 // Function to gather transition data
 function gatherTransitionData(formData) {
-    const roundedSignificantPoints = significantPoints.map(point => point.toFixed(2));
+    const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
 
     const transitionsData = {};
@@ -566,7 +575,9 @@ function processTable(){
         song_len: audioDuration,
         motion_mode: motion_mode
     };
+    document.getElementById('processing').style = "display: block;"
     console.log(data);
+    
 
     fetch('/process-data', {
         method: 'POST',

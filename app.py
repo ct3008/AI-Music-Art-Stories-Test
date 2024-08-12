@@ -194,6 +194,8 @@ def get_motion_data(form_data, trans_data, time_intervals):
 def get_closest_form_data(time, form_data):
     closest_time = min((float(t) for t in form_data.keys() if float(t) >= time), default=None)
     if closest_time is not None:
+        print(closest_time)
+        print(form_data)
         return form_data[f"{closest_time:.2f}"]
     else:
         closest_time = min((float(t) for t in form_data.keys() if float(t) <= time), default=None)
@@ -400,7 +402,7 @@ def generate_image_prompts(form_data, final_anim_frames):
         "pale blue": "Pale blue",
         "full color": "Vibrant, full color"
     }
-
+    print("GENERATE PROMPTS")
     # Generate prompts
     for timestamp, data in form_data.items():
         prompt_parts = [
@@ -410,11 +412,17 @@ def generate_image_prompts(form_data, final_anim_frames):
             detail_dict.get(data['imagery'], data['imagery']),
             detail_dict.get(data['vibe'], data['vibe'])
         ]
+        print(data)
         
         prompt = f"{prompt_parts[0]} color scheme, {prompt_parts[1]} style in {prompt_parts[2]} texture, beautiful, simple abstract, 4k. {prompt_parts[3]} imagery evoking the feeling of {prompt_parts[4]} vibe."
         prompts.append(prompt)
+    print("ALL PROMPTS")
+    print(prompts)
 
+    
     combined_prompts = " | ".join([f"{final_anim_frames[i]}: {prompts[i]}" for i in range(len(prompts))])
+    print("combo: ", combined_prompts)
+    # combined_prompts += " | ".join([f"{final_anim_frames[i]}"])
 
     return combined_prompts
     # def create_prompt(data):
@@ -578,14 +586,17 @@ def process_data():
     print(animation_prompts)
     # For demonstration, we'll just return the received data
     prompts = generate_image_prompts(form_data, final_anim_frames)
+    print("PROMPTS")
     print(prompts)
+    print("MOTIONS")
     print(motion_strings)
     deforum_prompt = create_deforum_prompt(motion_strings, final_anim_frames, motion_mode, prompts)
+    print("DEFORUM PROMPTS")
     print(deforum_prompt)
-    output = replicate.run(
-        "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
-        input=deforum_prompt)
-    # output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"
+    # output = replicate.run(
+    #     "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
+    #     input=deforum_prompt)
+    output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"
     print("OUTPUT", output)
     response = {
         'timestamps_scenes': timestamps_scenes,
