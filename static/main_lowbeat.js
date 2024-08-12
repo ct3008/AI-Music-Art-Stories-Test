@@ -16,6 +16,8 @@ let motion_mode = "3D";
 
 let newsigPoints = [];
 
+let lastClickedLabel = null; 
+
 function movePlayheadOG() {
     const containerWidth = beatContainer.offsetWidth; // Width of the container
     const duration = audioPlayer.duration; // Duration of the audio in seconds
@@ -147,9 +149,6 @@ document.addEventListener('DOMContentLoaded', function () {
     beatLines.forEach(beatLine => {
         makeLineDraggable(beatLine, beatContainer, audioPlayer);
     });
-    beatContainer.addEventListener('click', function (event) {
-        console.log("click");
-    });
 
     // Add event listener for beat line drag
     document.addEventListener('mousedown', function (event) {
@@ -221,8 +220,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (audioPlayer.paused) {
                 audioPlayer.play();
             }
-        } else {
-            console.error("Audio is not loaded or not playing.");
         }
     });
 
@@ -958,8 +955,162 @@ function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, d
     return [...new Set(newPoints)].slice(0, desiredCount);
 }
 
+function updateNewsigPoints() {
+    // Clear newsigPoints and update based on current label values
+    newsigPoints = [];
+    const labels = document.querySelectorAll('.time-label');
+    labels.forEach(label => {
+        newsigPoints.push(parseFloat(label.value));
+    });
+    newsigPoints.sort((a, b) => a - b); // Sort the points in ascending order
+}
+function createBeat(beatTime, beatContainer, duration, color, isHidden = false, isNew = false) {
+    const beatLine = document.createElement('div');
+    beatLine.className = 'beat';
+    beatLine.style.left = `${(beatTime / duration) * beatContainer.offsetWidth}px`;
+    beatLine.style.height = '100%';
+    beatLine.style.width = isNew ? '4px' : '2px'; // Thicker line for new intervals
+    beatLine.style.position = 'absolute';
+    beatLine.style.backgroundColor = isNew ? 'red' : color;
+    if (isHidden) {
+        beatLine.style.display = 'none';
+        beatLine.classList.add('hidden-beat');
+        const timeLabel = document.createElement('input');
+        timeLabel.type = 'text';
+        timeLabel.className = 'time-label';
+        timeLabel.value = beatTime.toFixed(2);
+        timeLabel.style.position = 'absolute';
+        timeLabel.style.top = '0';
+        timeLabel.style.left = `${(beatTime / duration) * beatContainer.offsetWidth}px`;
+        timeLabel.style.transform = 'translateX(-50%)';
+        timeLabel.style.backgroundColor = isNew ? 'green' : '';
+        
+        beatLine.timeLabel = timeLabel;
+
+        // Event listener for clicking on the time label
+        timeLabel.addEventListener('click', function () {
+            if (lastClickedLabel) {
+                lastClickedLabel.style.borderColor = ''; // Deselect previous label
+            }
+            lastClickedLabel = timeLabel; // Update lastClickedLabel
+            timeLabel.style.borderColor = 'red'; // Highlight selected label
+        });
+
+        timeLabel.addEventListener('input', function () {
+            const newTime = parseFloat(timeLabel.value);
+            if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
+                beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+                timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+                // console.log("input");
+                // console.log(timeLabel);
+                // console.log(newTime);
+                updateNewsigPoints();
+                // newsigPoints[index] = newTime;
+            }
+        });
+
+        // Attach the click event listener directly to the hidden beat
+        beatLine.addEventListener('click', function () {
+            if (lastClickedLabel) {
+                lastClickedLabel.style.borderColor = ''; // Deselect previous label
+            }
+            lastClickedLabel = beatLine.timeLabel; // Update lastClickedLabel to the hidden beat's time label
+            beatLine.timeLabel.style.borderColor = 'red'; // Highlight selected label
+        });
+
+        // Handle dragging of the beat line
+        beatLine.addEventListener('mousedown', function () {
+            timeLabel.style.backgroundColor = ''; // Remove green background on drag
+            beatLine.style.backgroundColor = 'black'; // Return to normal color
+            beatLine.style.width = '2px'; // Return to normal thickness
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(event) {
+            const rect = beatContainer.getBoundingClientRect();
+            const offsetX = event.clientX - rect.left;
+            const percentage = offsetX / rect.width;
+            const newTime = percentage * duration;
+
+            if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
+                beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+                timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+                timeLabel.value = newTime.toFixed(2);
+            }
+        }
+
+        function onMouseUp() {
+            timeLabel.style.backgroundColor = ''; // Reset background color
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            updateNewsigPoints(); // Update newsigPoints after drag is completed
+        }
+
+        // Append the elements to the container
+        
+        beatContainer.appendChild(timeLabel);
+
+        // Initially show the hidden beat if new interval
+        if (isNew) {
+            beatLine.style.display = 'block';
+            newsigPoints.push(beatTime);
+            updateNewsigPoints(); // Ensure newsigPoints is updated with new beat
+        }
+
+        document.getElementById('deleteButton').addEventListener('click', function () {
+            console.log("DELETE");
+            console.log(lastClickedLabel);
+            if (lastClickedLabel) {
+                const index = Array.from(beatContainer.children).indexOf(lastClickedLabel);
+                if (index !== -1) {
+                    newsigPoints.splice(index, 1); // Remove the corresponding time from newsigPoints
+                    lastClickedLabel.remove(); // Remove the label from the DOM
+                    beatContainer.children[index].remove(); // Remove the corresponding beat line
+                    lastClickedLabel = null; // Reset lastClickedLabel
+                    updateNewsigPoints();
+                }
+            }
+            
+            
+        });
+    }
+
+    beatContainer.appendChild(beatLine);
+}
+function drawBeats(beats, beatContainer, duration, color, hidden = false) {
+    clearPreviousTimestamps();
+    newsigPoints = [...beats];
+    
+    beats.forEach((beat) => {
+        createBeat(beat, beatContainer, duration, color, hidden);
+    });
+
+    // Remove any orphan time labels not associated with the beats
+    // const allLabels = document.querySelectorAll('.time-label');
+    // allLabels.forEach(label => {
+    //     const labelTime = parseFloat(label.value);
+    //     if (!newsigPoints.includes(labelTime)) {
+    //         label.remove(); // Remove orphan time labels
+    //     }
+    // });
+}
+
+function addNewInterval() {
+    const beatContainer = document.getElementById('beatContainer');
+    const duration = audioDuration;
+    const middleTime = duration / 2;
+
+    createBeat(middleTime, beatContainer, duration, 'red', true, true);
+}
+
+
 
 // function drawBeats(beats, beatContainer, duration, color, hidden = false) {
+//     clearPreviousTimestamps();
+//     newsigPoints = [...beats];
+
 //     beats.forEach((beat, index) => {
 //         const beatLine = document.createElement('div');
 //         beatLine.className = 'beat';
@@ -971,89 +1122,209 @@ function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, d
 //         if (hidden) {
 //             beatLine.style.display = 'none';
 //             beatLine.classList.add('hidden-beat');
+//             const timeLabel = document.createElement('input');
+//             timeLabel.type = 'text';
+//             timeLabel.className = 'time-label';
+//             timeLabel.value = beat.toFixed(2);
+//             timeLabel.style.position = 'absolute';
+//             timeLabel.style.top = '0';
+//             timeLabel.style.left = `${(beat / duration) * beatContainer.offsetWidth}px`;
+//             timeLabel.style.transform = 'translateX(-50%)';
+//             timeLabel.addEventListener('click', function () {
+//                 console.log('label click');
+//                 if (lastClickedLabel) {
+//                     lastClickedLabel.style.borderColor = ''; // Deselect previous label
+//                 }
+//                 console.log(timeLabel);
+//                 lastClickedLabel = timeLabel; // Update lastClickedLabel
+//                 timeLabel.style.borderColor = 'red'; // Highlight selected label
+//             });
+
+//             beatLine.timeLabel = timeLabel;
+
+//             // Attach the click event listener directly to the hidden beat
+//             beatLine.addEventListener('click', function () {
+//                 console.log("real click");
+
+//                 if (lastClickedLabel) {
+//                     lastClickedLabel.style.borderColor = ''; // Deselect previous label
+//                 }
+//                 lastClickedLabel = beatLine.timeLabel; // Update lastClickedLabel to the hidden beat's time label
+//                 beatLine.timeLabel.style.borderColor = 'red'; // Highlight selected label
+//             });
+//             timeLabel.addEventListener('input', function () {
+//                 const newTime = parseFloat(timeLabel.value);
+//                 if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
+//                     beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+//                     timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+//                     console.log("input");
+//                     console.log(timeLabel);
+//                     console.log(newTime);
+//                     newsigPoints[index] = newTime;
+//                 }
+//             });
+    
+//             // Handle dragging of the beat line
+//             beatLine.addEventListener('mousedown', function () {
+//                 timeLabel.style.backgroundColor = 'green';
+//                 document.addEventListener('mousemove', onMouseMove);
+//                 document.addEventListener('mouseup', onMouseUp);
+//             });
+    
+//             function onMouseMove(event) {
+//                 var rect = beatContainer.getBoundingClientRect();
+//                 var offsetX = event.clientX - rect.left;
+//                 var percentage = offsetX / rect.width;
+//                 var newTime = percentage * duration;
+//                 if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
+//                     beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+//                     timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+//                     timeLabel.value = newTime.toFixed(2);
+//                     newsigPoints[index] = newTime;
+    
+//                 }
+//             }
+    
+//             function onMouseUp() {
+//                 timeLabel.style.backgroundColor = '';
+//                 document.removeEventListener('mousemove', onMouseMove);
+//                 document.removeEventListener('mouseup', onMouseUp);
+//             }
+    
+            
+//             beatContainer.appendChild(timeLabel);
+//             document.getElementById('deleteButton').addEventListener('click', function () {
+//                 console.log("DELETE");
+//                 console.log(lastClickedLabel);
+//                 if (lastClickedLabel) {
+//                     const index = Array.from(beatContainer.children).indexOf(lastClickedLabel);
+//                     if (index !== -1) {
+//                         newsigPoints.splice(index, 1); // Remove the corresponding time from newsigPoints
+//                         lastClickedLabel.remove(); // Remove the label from the DOM
+//                         beatContainer.children[index].remove(); // Remove the corresponding beat line
+//                         lastClickedLabel = null; // Reset lastClickedLabel
+//                     }
+//                 }
+//             });
 //         }
 //         beatContainer.appendChild(beatLine);
+        
+//         // Create time label as an input field
+        
+        
+//         // Update the beatLine position and timeLabel on input change
+        
 //     });
 // }
 
+// function addNewInterval() {
+//     console.log("add");
 
-function drawBeats(beats, beatContainer, duration, color, hidden = false) {
-    clearPreviousTimestamps();
-    newsigPoints = [...beats];
+//     // Calculate the middle time for the new interval
+//     const beatContainer = document.getElementById('beatContainer');
+//     const duration = audioDuration;
+//     const middleTime = duration / 2;
+//     console.log(middleTime);
 
-    beats.forEach((beat, index) => {
-        const beatLine = document.createElement('div');
-        beatLine.className = 'beat';
-        beatLine.style.left = `${(beat / duration) * beatContainer.offsetWidth}px`;
-        beatLine.style.height = '100%';
-        beatLine.style.width = '2px';
-        beatLine.style.position = 'absolute';
-        beatLine.style.backgroundColor = color;
-        if (hidden) {
-            beatLine.style.display = 'none';
-            beatLine.classList.add('hidden-beat');
-            const timeLabel = document.createElement('input');
-            timeLabel.type = 'text';
-            timeLabel.className = 'time-label';
-            timeLabel.value = beat.toFixed(2);
-            timeLabel.style.position = 'absolute';
-            timeLabel.style.top = '0';
-            timeLabel.style.left = `${(beat / duration) * beatContainer.offsetWidth}px`;
-            timeLabel.style.transform = 'translateX(-50%)';
-            timeLabel.addEventListener('input', function () {
-                const newTime = parseFloat(timeLabel.value);
-                if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
-                    beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-                    timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-                    console.log("input");
-                    console.log(timeLabel);
-                    console.log(newTime);
-                    newsigPoints[index] = newTime;
-                }
-            });
-    
-            // Handle dragging of the beat line
-            beatLine.addEventListener('mousedown', function () {
-                timeLabel.style.backgroundColor = 'green';
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-            });
-    
-            function onMouseMove(event) {
-                var rect = beatContainer.getBoundingClientRect();
-                var offsetX = event.clientX - rect.left;
-                var percentage = offsetX / rect.width;
-                var newTime = percentage * duration;
-                if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
-                    beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-                    timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-                    timeLabel.value = newTime.toFixed(2);
-                    console.log("move");
-                    console.log(timeLabel);
-                    console.log(newTime);
-                    newsigPoints[index] = newTime;
-    
-                }
-            }
-    
-            function onMouseUp() {
-                timeLabel.style.backgroundColor = '';
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            }
-    
-            
-            beatContainer.appendChild(timeLabel);
-        }
-        beatContainer.appendChild(beatLine);
-        
-        // Create time label as an input field
-        
-        
-        // Update the beatLine position and timeLabel on input change
-        
-    });
-}
+//     // Create the beat line
+//     const beatLine = document.createElement('div');
+//     beatLine.className = 'beat hidden-beat'; // Ensure the beat has the required classes
+//     beatLine.style.left = `${(middleTime / duration) * beatContainer.offsetWidth}px`;
+//     beatLine.style.height = '100%';
+//     beatLine.style.width = '4px'; // Start with a thicker line
+//     beatLine.style.position = 'absolute';
+//     beatLine.style.backgroundColor = 'red'; // Highlight the line in red
+//     beatLine.style.display = 'none'; // Keep it hidden initially
+
+//     // Create the time label
+//     const timeLabel = document.createElement('input');
+//     timeLabel.type = 'text';
+//     timeLabel.className = 'time-label';
+//     timeLabel.value = middleTime.toFixed(2);
+//     timeLabel.style.position = 'absolute';
+//     timeLabel.style.top = '0';
+//     timeLabel.style.left = `${(middleTime / duration) * beatContainer.offsetWidth}px`;
+//     timeLabel.style.transform = 'translateX(-50%)';
+//     timeLabel.style.backgroundColor = 'green'; // Highlight the label with a green background
+
+//     // Store reference to the time label in the beat line
+//     beatLine.timeLabel = timeLabel;
+
+//     // Push the middle time into the array
+//     newsigPoints.push(middleTime);
+
+//     // Attach the click event listener directly to the hidden beat
+//     beatLine.addEventListener('click', function () {
+//         if (lastClickedLabel) {
+//             lastClickedLabel.style.borderColor = ''; // Deselect previous label
+//         }
+//         lastClickedLabel = beatLine.timeLabel; // Update lastClickedLabel to the hidden beat's time label
+//         beatLine.timeLabel.style.borderColor = 'red'; // Highlight selected label
+//     });
+
+//     // Event listener for clicking on the time label
+//     timeLabel.addEventListener('click', function () {
+//         if (lastClickedLabel) {
+//             lastClickedLabel.style.borderColor = ''; // Deselect previous label
+//         }
+//         lastClickedLabel = timeLabel; // Update lastClickedLabel
+//         timeLabel.style.borderColor = 'red'; // Highlight selected label
+//     });
+
+//     // Handle dragging of the beat line
+//     beatLine.addEventListener('mousedown', function () {
+//         timeLabel.style.backgroundColor = ''; // Remove green background on drag
+//         beatLine.style.backgroundColor = 'black'; // Return to normal color
+//         beatLine.style.width = '2px'; // Return to normal thickness
+
+//         // Update newsigPoints based on current label values
+//         updateNewsigPoints();
+
+//         document.addEventListener('mousemove', onMouseMove);
+//         document.addEventListener('mouseup', onMouseUp);
+//     });
+
+//     function onMouseMove(event) {
+//         const rect = beatContainer.getBoundingClientRect();
+//         const offsetX = event.clientX - rect.left;
+//         const percentage = offsetX / rect.width;
+//         const newTime = percentage * duration;
+
+//         if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
+//             beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+//             timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
+//             timeLabel.value = newTime.toFixed(2);
+//         }
+//     }
+
+//     function onMouseUp() {
+//         updateNewsigPoints(); // Update newsigPoints after drag is completed
+//         newsigPoints.sort((a, b) => a - b); // Sort after updating
+//         document.removeEventListener('mousemove', onMouseMove);
+//         document.removeEventListener('mouseup', onMouseUp);
+//     }
+
+//     function updateNewsigPoints() {
+//         // Clear newsigPoints and update based on current label values
+//         newsigPoints = [];
+//         const labels = document.querySelectorAll('.time-label');
+//         labels.forEach(label => {
+//             newsigPoints.push(parseFloat(label.value));
+//         });
+//     }
+
+//     // Append the elements to the container
+//     beatContainer.appendChild(beatLine);
+//     beatContainer.appendChild(timeLabel);
+
+//     // Initially show the hidden beat
+//     beatLine.style.display = 'block';
+// }
+
+
+
+
+
 
 
 function detectBeats(data, sampleRate, threshold) {
@@ -1130,6 +1401,7 @@ function clearBeats() {
 }
 
 function showSignificantPoints() {
+    newsigPoints = [...significantPoints]
     document.querySelectorAll('.hidden-beat').forEach(beat => {
         beat.style.display = 'block';
     });
@@ -1139,6 +1411,7 @@ function showSignificantPoints() {
         }
     });
 }
+
 
 function hideAllBeats() {
     document.querySelectorAll('.beat').forEach(beat => beat.style.display = 'none');

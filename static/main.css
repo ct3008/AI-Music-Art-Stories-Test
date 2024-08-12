@@ -8,22 +8,20 @@
 }
 
 #waveformCanvas {
-
     overflow-x: scroll;
-
 }
 
 .beat {
     height: 100%;
     width: 2px;
-    background-color: rgba(255, 0, 0, 0.5);
+    background-color: green;
     position: absolute;
 }
 
 
 .beat:hover {
     cursor: grab; /* Changes the cursor to a grab hand when hovered */
-    background-color: green; /* Changes the color to green when hovered */
+    background-color: greenyellow; /* Changes the color to green when hovered */
 }
 
 canvas {
