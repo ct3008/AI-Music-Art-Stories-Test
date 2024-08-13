@@ -18,6 +18,9 @@ let newsigPoints = [];
 
 let lastClickedLabel = null; 
 
+let transitionsAdded = false;
+
+
 function movePlayheadOG() {
     const containerWidth = beatContainer.offsetWidth; // Width of the container
     const duration = audioPlayer.duration; // Duration of the audio in seconds
@@ -201,8 +204,10 @@ document.addEventListener('DOMContentLoaded', function () {
         clearInterval(playheadInterval);
         playhead.style.left = '0px'; // Optionally reset the playhead
     });
-    
+
+
 });
+
 
 
 function playAudio() {
@@ -267,6 +272,28 @@ function playTimeRange(startTime, endTime) {
             }
         }, 100);
     }
+}
+
+function makeTimestamp(isTrans){
+    // finalizeTimestamps('time');
+    // finalizeTimestamps('transition');
+    // console.log("enter");
+
+    if (isTrans){
+        console.log("trans");
+        transitionsAdded = true;
+        finalizeTimestamps('time');
+        finalizeTimestamps('transition');
+    } else{
+        console.log("other")
+        finalizeTimestamps('time');
+        if (transitionsAdded) {
+            console.log("bool");
+            finalizeTimestamps('transition');
+        }
+    }
+    
+    
 }
 
 function finalizeTimestamps(name) {
@@ -410,6 +437,7 @@ function finalizeTimestamps(name) {
         section.appendChild(inputContainer);
         container.appendChild(section);
     }
+    
 }
 
 
@@ -492,11 +520,11 @@ function fillTransitionDefaults() {
                 }
             } else if (input.id.includes('strength_trans')) {
                 if (!input.value) {
-                    input.value = index === transitionSections.length - 1 ? 'strong' : 'normal';
+                    input.value = index === transitionSections.length - 1 ? 'vstrong' : 'strong';
                 }
             } else if (input.id.includes('speed_trans')) {
                 if (!input.value) {
-                    input.value = 'fast';
+                    input.value = 'normal';
                 }
             }
         });

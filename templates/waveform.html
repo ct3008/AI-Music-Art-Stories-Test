@@ -12,7 +12,7 @@
 <button onclick="showSignificantPoints()" id="findIdealIntervals">Find Ideal Intervals</button>
 <button id="deleteButton">Delete Selected Label</button>
 <button id="addNewInterval" onclick="addNewInterval()">Add Interval</button>
-<button onclick="finalizeTimestamps('time')">Finalize Time Stamps</button>
+<button id="finalize-timestamps" onclick="makeTimestamp(false)">Finalize Time Stamps</button>
 
 
 <div id="beatContainer">
@@ -35,7 +35,7 @@
 <div class="form-container" id="trash"> Trash</div>
 
 <!-- Dropdown Button -->
-<button id="add-transition" onclick="finalizeTimestamps('transition')">Add Transitions</button>
+<button id="add-transition" onclick="makeTimestamp(true)">Add Transitions</button>
 <button id="fillTransitionsDefaults" onclick="fillTransitionDefaults()">Fill Transitions Defaults</button>
 
 <!-- Dropdown Container -->

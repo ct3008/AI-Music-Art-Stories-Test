@@ -343,6 +343,9 @@ def build_transition_strings(frame_data):
     for motion, frames in frame_data.items():
         previous_end_frame = None
         for (start_frame, end_frame, duration, value) in frames:
+            print("START: ", start_frame)
+            print("END: ", end_frame)
+            print("VALUE: ", value)
             pre_frame = start_frame - 1
             post_frame = end_frame + 1
 
@@ -402,7 +405,7 @@ def generate_image_prompts(form_data, final_anim_frames):
         "pale blue": "Pale blue",
         "full color": "Vibrant, full color"
     }
-    print("GENERATE PROMPTS")
+    # print("GENERATE PROMPTS")
     # Generate prompts
     for timestamp, data in form_data.items():
         prompt_parts = [
@@ -412,16 +415,16 @@ def generate_image_prompts(form_data, final_anim_frames):
             detail_dict.get(data['imagery'], data['imagery']),
             detail_dict.get(data['vibe'], data['vibe'])
         ]
-        print(data)
+        # print(data)
         
         prompt = f"{prompt_parts[0]} color scheme, {prompt_parts[1]} style in {prompt_parts[2]} texture, beautiful, simple abstract, 4k. {prompt_parts[3]} imagery evoking the feeling of {prompt_parts[4]} vibe."
         prompts.append(prompt)
-    print("ALL PROMPTS")
-    print(prompts)
+    # print("ALL PROMPTS")
+    # print(prompts)
 
     
     combined_prompts = " | ".join([f"{final_anim_frames[i]}: {prompts[i]}" for i in range(len(prompts))])
-    print("combo: ", combined_prompts)
+    # print("combo: ", combined_prompts)
     # combined_prompts += " | ".join([f"{final_anim_frames[i]}"])
 
     return combined_prompts
@@ -459,8 +462,8 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
         "fov": 40,
         "fps": 15,
         "seed": 868591112,
-        "zoom": ', '.join(motion_data['zoom']),
-        "angle":', '.join(motion_data['angle']),
+        "zoom": ", ".join(motion_data['zoom']),
+        "angle": ", ".join(motion_data['angle']),
         "width": 512,
         "border": "replicate",
         "height": 512,
@@ -470,19 +473,19 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
         "clip_name": "ViT-L/14",
         "far_plane": 10000,
         "init_image": "https://raw.githubusercontent.com/ct3008/ct3008.github.io/main/images/isee1.jpeg",
-        "max_frames": final_anim_frames[-1],
+        "max_frames": 125,
         "near_plane": 200,
         "invert_mask": False,
         "midas_weight": 0.3,
         "padding_mode": "border",
-        "rotation_3d_x": ', '.join(motion_data['rotation_3d_x']),
-        "rotation_3d_y": ', '.join(motion_data['rotation_3d_y']),
-        "rotation_3d_z": ', '.join(motion_data['rotation_3d_z']),
+        "rotation_3d_x": ", ".join(motion_data['rotation_3d_x']),
+        "rotation_3d_y": ", ".join(motion_data['rotation_3d_y']),
+        "rotation_3d_z": ", ".join(motion_data['rotation_3d_z']),
         "sampling_mode": "bicubic",
-        "translation_x": ', '.join(motion_data['translation_x']),
-        "translation_y": ', '.join(motion_data['translation_y']),
-        "translation_z": "0:(0)",
-        "animation_mode": motion_mode,
+        "translation_x": ", ".join(motion_data['translation_x']),
+        "translation_y": ", ".join(motion_data['translation_y']),
+        "translation_z": "0:(10)",
+        "animation_mode": "3D",
         "guidance_scale": 7,
         "noise_schedule": "0: (0.02)",
         "sigma_schedule": "0: (1.0)",
@@ -491,7 +494,7 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
         "color_coherence": "Match Frame 0 RGB",
         "kernel_schedule": "0: (5)",
         "model_checkpoint": "Protogen_V2.2.ckpt",
-        "animation_prompts": prompts,
+        "animation_prompts": "0: Black and white, intricate abstract recursive line art in watercolor texture, beautiful, 4k. Slow hypnotic piano key patterns flowing like gentle waves, merging and separating gracefully. Evoking a serene and introspective atmosphere, with an epic undertone.| 45: Black and white color scheme, contemporary style in pencil drawing texture, beautiful, simple abstract, 4k. dynamic abstract gradient line art with jagged edges, evoking a sense of chaos and dissonance imagery evoking the feeling of encouraging and inspiring energy, evoking a sense of hope and motivation vibe.",
         "contrast_schedule": "0: (1.0)",
         "diffusion_cadence": "1",
         "extract_nth_frame": 1,
@@ -527,6 +530,79 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
         "hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule": "0:(0)",
         "hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule": "0:(100)"
     }
+    
+    # input={
+    #     "fov": 40,
+    #     "fps": 15,
+    #     "seed": 868591112,
+    #     "zoom": ', '.join(motion_data['zoom']),
+    #     "angle":', '.join(motion_data['angle']),
+    #     "width": 512,
+    #     "border": "replicate",
+    #     "height": 512,
+    #     "sampler": "dpmpp_2m",
+    #     "use_init": True,
+    #     "use_mask": False,
+    #     "clip_name": "ViT-L/14",
+    #     "far_plane": 10000,
+    #     "init_image": "https://raw.githubusercontent.com/ct3008/ct3008.github.io/main/images/isee1.jpeg",
+    #     "max_frames": final_anim_frames[-1],
+    #     "near_plane": 200,
+    #     "invert_mask": False,
+    #     "midas_weight": 0.3,
+    #     "padding_mode": "border",
+    #     "rotation_3d_x": ', '.join(motion_data['rotation_3d_x']),
+    #     "rotation_3d_y": ', '.join(motion_data['rotation_3d_y']),
+    #     "rotation_3d_z": ', '.join(motion_data['rotation_3d_z']),
+    #     "sampling_mode": "bicubic",
+    #     "translation_x": ', '.join(motion_data['translation_x']),
+    #     "translation_y": ', '.join(motion_data['translation_y']),
+    #     "translation_z": "0:(0)",
+    #     "animation_mode": motion_mode,
+    #     "guidance_scale": 7,
+    #     "noise_schedule": "0: (0.02)",
+    #     "sigma_schedule": "0: (1.0)",
+    #     "use_mask_video": False,
+    #     "amount_schedule": "0: (0.2)",
+    #     "color_coherence": "Match Frame 0 RGB",
+    #     "kernel_schedule": "0: (5)",
+    #     "model_checkpoint": "Protogen_V2.2.ckpt",
+    #     "animation_prompts": prompts,
+    #     "contrast_schedule": "0: (1.0)",
+    #     "diffusion_cadence": "1",
+    #     "extract_nth_frame": 1,
+    #     "resume_timestring": "",
+    #     "strength_schedule": "0: (0.65)",
+    #     "use_depth_warping": True,
+    #     "threshold_schedule": "0: (0.0)",
+    #     "flip_2d_perspective": False,
+    #     "hybrid_video_motion": "None",
+    #     "num_inference_steps": 50,
+    #     "perspective_flip_fv": "0:(53)",
+    #     "interpolate_x_frames": 4,
+    #     "perspective_flip_phi": "0:(t%15)",
+    #     "hybrid_video_composite": False,
+    #     "interpolate_key_frames": False,
+    #     "perspective_flip_gamma": "0:(0)",
+    #     "perspective_flip_theta": "0:(0)",
+    #     "resume_from_timestring": False,
+    #     "hybrid_video_flow_method": "Farneback",
+    #     "overwrite_extracted_frames": True,
+    #     "hybrid_video_comp_mask_type": "None",
+    #     "hybrid_video_comp_mask_inverse": False,
+    #     "hybrid_video_comp_mask_equalize": "None",
+    #     "hybrid_video_comp_alpha_schedule": "0:(1)",
+    #     "hybrid_video_generate_inputframes": False,
+    #     "hybrid_video_comp_save_extra_frames": False,
+    #     "hybrid_video_use_video_as_mse_image": False,
+    #     "color_coherence_video_every_N_frames": 1,
+    #     "hybrid_video_comp_mask_auto_contrast": False,
+    #     "hybrid_video_comp_mask_contrast_schedule": "0:(1)",
+    #     "hybrid_video_use_first_frame_as_init_image": True,
+    #     "hybrid_video_comp_mask_blend_alpha_schedule": "0:(0.5)",
+    #     "hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule": "0:(0)",
+    #     "hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule": "0:(100)"
+    # }
     return input
 
 @app.route('/process-data', methods=['POST'])
@@ -554,6 +630,7 @@ def process_data():
     # Calculate frames and generate prompts
     frame_data, animation_prompts = calculate_frames(scene_change_times, interval_strings, motion_data, song_duration, final_anim_frames)
     motion_strings = build_transition_strings(frame_data)
+    
 
     print("FRAME")
     print(frame_data)
@@ -593,10 +670,10 @@ def process_data():
     deforum_prompt = create_deforum_prompt(motion_strings, final_anim_frames, motion_mode, prompts)
     print("DEFORUM PROMPTS")
     print(deforum_prompt)
-    # output = replicate.run(
-    #     "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
-    #     input=deforum_prompt)
-    output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"
+    output = replicate.run(
+        "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
+        input=deforum_prompt)
+    # output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"
     print("OUTPUT", output)
     response = {
         'timestamps_scenes': timestamps_scenes,
