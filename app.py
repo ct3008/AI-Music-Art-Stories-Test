@@ -230,7 +230,10 @@ def parse_input_data(form_data, trans_data, song_duration):
     transition_times = list(map(float, [time.split('-')[0] for time in trans_data.keys()] + [time.split('-')[1] for time in trans_data.keys()] + list(form_data.keys())))
     print(transition_times)
     time_intervals = sorted(set(scene_change_times + transition_times))
-    time_intervals = [0] + [float(i) for i in time_intervals] + [float(round(song_duration + 0.5, 2))]
+    time_intervals = [0] + [float(i) for i in time_intervals] + [float(round(song_duration, 2))]
+    time_intervals = set(time_intervals)
+    time_intervals = list(sorted(time_intervals))
+    print("HERE TIME: ", time_intervals)
     interval_strings = [f"{time_intervals[i]}-{time_intervals[i+1]}" for i in range(len(time_intervals) - 1)]
     motion_data = get_motion_data(form_data, trans_data, time_intervals)
     interval_strings = [f"{time_intervals[i]}-{time_intervals[i+1]}" for i in range(len(time_intervals) - 1)]
@@ -274,11 +277,10 @@ def calculate_frames(scene_change_times, time_intervals, motion_data, total_song
     for interval, motions in zip(time_intervals, motion_data):
         _, strength, speed = motions[0]
         start_time, end_time = map(float, interval.split('-'))
-        if tmp_times:
-            print(int(tmp_times[0]))
+        
         print("TMP TIME: ", tmp_times)
         if tmp_times != [] and int(tmp_times[0]) <= end_time and int(tmp_times[0]) >= start_time:
-            new_frame = round(current_frame + (int(tmp_times[0]) - start_time) * 15 * speed_multiplier[speed])
+            new_frame = round(current_frame + ((tmp_times[0]) - start_time) * 15 * speed_multiplier[speed])
             print("----------------END FRAME:---------------", new_frame)
             if new_frame not in final_anim_frames:
 				
@@ -530,79 +532,7 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
         "hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule": "0:(0)",
         "hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule": "0:(100)"
     }
-    
-    # input={
-    #     "fov": 40,
-    #     "fps": 15,
-    #     "seed": 868591112,
-    #     "zoom": ', '.join(motion_data['zoom']),
-    #     "angle":', '.join(motion_data['angle']),
-    #     "width": 512,
-    #     "border": "replicate",
-    #     "height": 512,
-    #     "sampler": "dpmpp_2m",
-    #     "use_init": True,
-    #     "use_mask": False,
-    #     "clip_name": "ViT-L/14",
-    #     "far_plane": 10000,
-    #     "init_image": "https://raw.githubusercontent.com/ct3008/ct3008.github.io/main/images/isee1.jpeg",
-    #     "max_frames": final_anim_frames[-1],
-    #     "near_plane": 200,
-    #     "invert_mask": False,
-    #     "midas_weight": 0.3,
-    #     "padding_mode": "border",
-    #     "rotation_3d_x": ', '.join(motion_data['rotation_3d_x']),
-    #     "rotation_3d_y": ', '.join(motion_data['rotation_3d_y']),
-    #     "rotation_3d_z": ', '.join(motion_data['rotation_3d_z']),
-    #     "sampling_mode": "bicubic",
-    #     "translation_x": ', '.join(motion_data['translation_x']),
-    #     "translation_y": ', '.join(motion_data['translation_y']),
-    #     "translation_z": "0:(0)",
-    #     "animation_mode": motion_mode,
-    #     "guidance_scale": 7,
-    #     "noise_schedule": "0: (0.02)",
-    #     "sigma_schedule": "0: (1.0)",
-    #     "use_mask_video": False,
-    #     "amount_schedule": "0: (0.2)",
-    #     "color_coherence": "Match Frame 0 RGB",
-    #     "kernel_schedule": "0: (5)",
-    #     "model_checkpoint": "Protogen_V2.2.ckpt",
-    #     "animation_prompts": prompts,
-    #     "contrast_schedule": "0: (1.0)",
-    #     "diffusion_cadence": "1",
-    #     "extract_nth_frame": 1,
-    #     "resume_timestring": "",
-    #     "strength_schedule": "0: (0.65)",
-    #     "use_depth_warping": True,
-    #     "threshold_schedule": "0: (0.0)",
-    #     "flip_2d_perspective": False,
-    #     "hybrid_video_motion": "None",
-    #     "num_inference_steps": 50,
-    #     "perspective_flip_fv": "0:(53)",
-    #     "interpolate_x_frames": 4,
-    #     "perspective_flip_phi": "0:(t%15)",
-    #     "hybrid_video_composite": False,
-    #     "interpolate_key_frames": False,
-    #     "perspective_flip_gamma": "0:(0)",
-    #     "perspective_flip_theta": "0:(0)",
-    #     "resume_from_timestring": False,
-    #     "hybrid_video_flow_method": "Farneback",
-    #     "overwrite_extracted_frames": True,
-    #     "hybrid_video_comp_mask_type": "None",
-    #     "hybrid_video_comp_mask_inverse": False,
-    #     "hybrid_video_comp_mask_equalize": "None",
-    #     "hybrid_video_comp_alpha_schedule": "0:(1)",
-    #     "hybrid_video_generate_inputframes": False,
-    #     "hybrid_video_comp_save_extra_frames": False,
-    #     "hybrid_video_use_video_as_mse_image": False,
-    #     "color_coherence_video_every_N_frames": 1,
-    #     "hybrid_video_comp_mask_auto_contrast": False,
-    #     "hybrid_video_comp_mask_contrast_schedule": "0:(1)",
-    #     "hybrid_video_use_first_frame_as_init_image": True,
-    #     "hybrid_video_comp_mask_blend_alpha_schedule": "0:(0.5)",
-    #     "hybrid_video_comp_mask_auto_contrast_cutoff_low_schedule": "0:(0)",
-    #     "hybrid_video_comp_mask_auto_contrast_cutoff_high_schedule": "0:(100)"
-    # }
+
     return input
 
 @app.route('/process-data', methods=['POST'])
@@ -625,7 +555,7 @@ def process_data():
     song_duration, scene_change_times, transition_times, time_intervals, interval_strings, motion_data = parse_input_data(form_data, transitions_data, song_len)
     final_anim_frames = []
     final_anim_frames.append(0)
-    if str(round(song_len,2)) not in scene_change_times:
+    if round(song_len,2) not in scene_change_times:
         scene_change_times.append(round(song_len,2))
     # Calculate frames and generate prompts
     frame_data, animation_prompts = calculate_frames(scene_change_times, interval_strings, motion_data, song_duration, final_anim_frames)
@@ -647,6 +577,8 @@ def process_data():
     final_scene_times = scene_change_times
     final_scene_times.insert(0, '0')
     final_scene_times.append(round(song_duration,2))
+    final_scene_times = set(final_scene_times)
+    final_scene_times = list(final_scene_times)
     print(final_anim_frames)
     print(final_scene_times)
     # Print the animation prompts
@@ -670,10 +602,10 @@ def process_data():
     deforum_prompt = create_deforum_prompt(motion_strings, final_anim_frames, motion_mode, prompts)
     print("DEFORUM PROMPTS")
     print(deforum_prompt)
-    output = replicate.run(
-        "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
-        input=deforum_prompt)
-    # output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"
+    # output = replicate.run(
+    #     "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
+    #     input=deforum_prompt)
+    output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"
     print("OUTPUT", output)
     response = {
         'timestamps_scenes': timestamps_scenes,

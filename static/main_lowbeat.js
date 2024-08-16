@@ -278,18 +278,22 @@ function makeTimestamp(isTrans){
     // finalizeTimestamps('time');
     // finalizeTimestamps('transition');
     // console.log("enter");
-
+    // finalizeTimestamps('time');
+    
     if (isTrans){
         console.log("trans");
         transitionsAdded = true;
         finalizeTimestamps('time');
-        finalizeTimestamps('transition');
+        // finalizeTimestamps('transition');
+        createTransitionLines();
     } else{
         console.log("other")
         finalizeTimestamps('time');
+        
         if (transitionsAdded) {
+            // createTransitionLines();
             console.log("bool");
-            finalizeTimestamps('transition');
+            // finalizeTimestamps('transition');
         }
     }
     
@@ -507,7 +511,7 @@ function finalizeTimestamps(name) {
         container = document.getElementById('transitionsContainer');
         container.style.border = '2px solid black';
         const button = document.getElementById('add-transition');
-        if (button) button.style.display = 'none'; // Hide button if it exists
+        // if (button) button.style.display = 'none'; // Hide button if it exists
         labels = ['Motion', 'Strength', 'Speed'];
     }
 
@@ -636,6 +640,8 @@ function finalizeTimestamps(name) {
         addTransitions(transitionStartTime, transitionEndTime);
         
     }
+
+    addTransitions((audioDuration-0.5).toFixed(2), audioDuration.toFixed(2));
     // addTransitions(0.5, 1.2);
     // addTransitions(0.2, 0.3);
     // addTransitions(5, 7);
@@ -668,61 +674,107 @@ function addTransitions(startTime, endTime) {
             form.insertAdjacentElement('afterend', transitionContainer);
         }
     });
+}  
+
+
+function createTransitionLines() {
+    const beatContainer = document.getElementById('beatContainer');
+    const duration = audioDuration;
+
+    // Create draggable left and right lines
+    const leftLine = document.createElement('div');
+    const rightLine = document.createElement('div');
+    leftLine.className = 'draggable-line left-line';
+    rightLine.className = 'draggable-line right-line';
+
+    // Create the highlight area between the lines
+    const highlight = document.createElement('div');
+    highlight.className = 'highlight-area';
+
+    beatContainer.appendChild(leftLine);
+    beatContainer.appendChild(rightLine);
+    beatContainer.appendChild(highlight);
+
+    function updateHighlightPosition() {
+        const leftPos = parseFloat(leftLine.style.left);
+        const rightPos = parseFloat(rightLine.style.left);
+        highlight.style.left = `${leftPos}px`;
+        highlight.style.width = `${rightPos - leftPos}px`;
+    }
+
+    // Make the lines draggable
+    // function makeDraggable(line, onDrag) {
+    //     let isDragging = false;
+
+    //     line.addEventListener('mousedown', function (event) {
+    //         event.preventDefault();
+    //         isDragging = true;
+    //         document.addEventListener('mousemove', onDrag);
+    //         document.addEventListener('mouseup', function () {
+    //             isDragging = false;
+    //             document.removeEventListener('mousemove', onDrag);
+    //         });
+    //     });
+    // }
+
+    function makeDraggable(line, onDrag) {
+        console.log(line);
+        let isDragging = false;
+
+        line.addEventListener('mousedown', function (event) {
+            event.preventDefault();
+            isDragging = true;
+            line.style.cursor = 'ew-resize'; // Change cursor on drag start
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', function () {
+                isDragging = false;
+                line.style.cursor = ''; // Reset cursor after drag
+                document.removeEventListener('mousemove', onDrag);
+            });
+        });
+
+        line.addEventListener('mouseenter', function () {
+            line.style.cursor = 'ew-resize'; // Change cursor on hover
+        });
+
+        line.addEventListener('mouseleave', function () {
+            line.style.cursor = ''; // Reset cursor when not hovering
+        });
+    }
+
+    makeDraggable(leftLine, (event) => {
+        if (!event.buttons) return;
+        
+        const rect = beatContainer.getBoundingClientRect();
+        const offsetX = event.clientX - rect.left;
+        const newLeft = Math.max(0, Math.min(offsetX, parseFloat(rightLine.style.left) - 10)); // Prevent crossing right line
+        leftLine.style.left = `${newLeft}px`;
+        updateHighlightPosition();
+    });
+
+    makeDraggable(rightLine, (event) => {
+        if (!event.buttons) return;
+        const rect = beatContainer.getBoundingClientRect();
+        const offsetX = event.clientX - rect.left;
+        const newRight = Math.max(parseFloat(leftLine.style.left) + 10, Math.min(offsetX, beatContainer.offsetWidth)); // Prevent crossing left line
+        rightLine.style.left = `${newRight}px`;
+        updateHighlightPosition();
+    });
+
+    // Set initial positions
+    leftLine.style.left = '100px';
+    rightLine.style.left = '300px';
+    updateHighlightPosition();
+
+    // Finalize transition when button is clicked
+    document.getElementById('finalizeTransitionButton').addEventListener('click', () => {
+        const leftTime = (parseFloat(leftLine.style.left) / beatContainer.offsetWidth) * duration;
+        const rightTime = (parseFloat(rightLine.style.left) / beatContainer.offsetWidth) * duration;
+        addTransitions(leftTime.toFixed(2), rightTime.toFixed(2));
+    });
 }
 
 
-//WORKS OKAY
-// function addTransitions(startTime, endTime) {
-//     const formContainers = document.querySelectorAll('.time-range');
-//     console.log(startTime, endTime);
-  
-//     // Find the correct section based on the startTime
-//     formContainers.forEach((form) => {
-//         console.log(form);
-
-//         const formStartTime = parseFloat(form.innerHTML.split('-')[0]);
-//         const formEndTime = parseFloat(form.innerHTML.split('-')[1]);
-//         console.log(formStartTime, formEndTime);
-
-//         if (startTime >= formStartTime && startTime < formEndTime) {
-//             // Create the transition container
-//             const transitionContainer = document.createElement('div');
-//             transitionContainer.className = 'transition-container';
-//             transitionContainer.id = `transition_${startTime}_${endTime}`;
-            
-//             // Create input container (for vertical stacking of labels and inputs)
-//             const inputContainer = document.createElement('div');
-//             inputContainer.className = 'input-container';
-
-//             // Define the labels
-//             const labels = ['Vibe', 'Imagery', 'Texture', 'Color', 'Motion', 'Strength', 'Speed', 'Style'];
-
-//             labels.forEach((label) => {
-//                 const labelElement = document.createElement('label');
-//                 labelElement.setAttribute('for', `${label.toLowerCase()}_trans_${startTime}_${endTime}`);
-//                 labelElement.textContent = `${label}:`;
-
-//                 const inputElement = document.createElement('input');
-//                 inputElement.type = 'text';
-//                 inputElement.id = `${label.toLowerCase()}_trans_${startTime}_${endTime}`;
-//                 inputElement.name = `${label.toLowerCase()}_trans_${startTime}_${endTime}`;
-//                 inputElement.className = 'dropdown-input'; // Ensure consistent width
-
-//                 // Append label and input to the container
-//                 inputContainer.appendChild(labelElement);
-//                 inputContainer.appendChild(inputElement);
-//             });
-
-//             // Append the label and input container to the transition container
-//             transitionContainer.appendChild(inputContainer);
-
-//             // Insert the transition container into the form section
-//             form.parentNode.insertBefore(transitionContainer, form.nextSibling);
-//         }
-//     });
-// }
-
-  
 
 // function finalizeTimestamps(name) {
 //     const timestampsContainer = document.getElementById('timestampsContainer');
@@ -944,17 +996,15 @@ function fillDefaults() {
             }
         });
     });
-}
 
-
-
-function fillTransitionDefaults() {
-    const transitionSections = document.querySelectorAll('#transitionsContainer .section');
-
+    const transitionSections = document.querySelectorAll('.section.transition-section');
+    console.log("TRANSITION SECTION: ", transitionSections);
     transitionSections.forEach((section, index) => {
         const inputs = section.querySelectorAll('input');
 
         inputs.forEach(input => {
+            console.log("input: ");
+            console.log(input);
             if (input.id.includes('motion_trans')) {
                 if (!input.value) {
                     input.value = index === transitionSections.length - 1 ? 'rotate_cw' : 'rotate_right';
@@ -971,6 +1021,33 @@ function fillTransitionDefaults() {
         });
     });
 }
+
+
+
+// function fillTransitionDefaults() {
+//     const transitionSections = document.querySelectorAll('#transitionsContainer .section');
+
+//     transitionSections.forEach((section, index) => {
+//         const inputs = section.querySelectorAll('input');
+
+//         inputs.forEach(input => {
+//             if (input.id.includes('motion_trans')) {
+//                 if (!input.value) {
+//                     input.value = index === transitionSections.length - 1 ? 'rotate_cw' : 'rotate_right';
+//                 }
+//             } else if (input.id.includes('strength_trans')) {
+//                 if (!input.value) {
+//                     input.value = index === transitionSections.length - 1 ? 'vstrong' : 'strong';
+//                 }
+//             } else if (input.id.includes('speed_trans')) {
+//                 if (!input.value) {
+//                     input.value = 'normal';
+//                 }
+//             }
+//         });
+//     });
+    
+// }
 
 function gatherFormData() { // Example significant points; replace with your actual significantPoints array
     // const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
@@ -1002,37 +1079,88 @@ function gatherFormData() { // Example significant points; replace with your act
     return formData;
 }
 
-// Function to gather transition data
 function gatherTransitionData(formData) {
-    const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
-    const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
-
     const transitionsData = {};
-    for (let i = 0; i < timestamps.length - 1; i++) {
-        const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
-        const end = (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
-        const timeRange = `${start}-${end}`;
- 
-        transitionsData[timeRange] = {
-            "vibe": document.getElementById(`vibe_form_${i + 1}`).value,
-            "imagery": document.getElementById(`imagery_form_${i + 1}`).value,
-            "texture": document.getElementById(`texture_form_${i + 1}`).value,
-            "style":  document.getElementById(`style_form_${i + 1}`).value,
-            "color": document.getElementById(`color_form_${i + 1}`).value,
-            "motion": document.getElementById(`motion_trans_${i + 1}`).value || document.getElementById(`motion_form_${i + 1}`).value,
-            "strength": document.getElementById(`strength_trans_${i + 1}`).value || document.getElementById(`strength_form_${i + 1}`).value,
-            "speed": document.getElementById(`speed_trans_${i + 1}`).value || document.getElementById(`speed_form_${i + 1}`).value
-        };
-        if(document.getElementById(`motion_trans_${i + 1}`).value && document.getElementById(`strength_trans_${i + 1}`).value && document.getElementById(`speed_trans_${i + 1}`).value) {
-            transitionsData[timeRange]["transition"] = true;
-        }else {
-            transitionsData[timeRange]["transition"] = false;
-        }
-        console.log(transitionsData);
-    }
+    
+    // Extract the valid transition sections
+    const transitionSections = document.querySelectorAll('.section.transition-section');
 
+    transitionSections.forEach((section) => {
+        // Extract the time-range div within this section
+        const timeRangeDiv = section.querySelector('.time-range');
+        console.log(timeRangeDiv)
+
+        // Extract the IDs for motion, strength, and speed inputs
+        const motionInput = section.querySelector('input[id^="motion_trans_"]');
+        const strengthInput = section.querySelector('input[id^="strength_trans_"]');
+        const speedInput = section.querySelector('input[id^="speed_trans_"]');
+        console.log(motionInput, strengthInput, speedInput);
+
+        // Check if all three inputs are present
+        if (motionInput && strengthInput && speedInput) {
+            // Extract the startTime and endTime from the time-range text
+            const timeRangeText = timeRangeDiv.innerText;
+            console.log(timeRangeText);
+            const matches = timeRangeText.match(/Transition \((\d+(\.\d+)?)s to (\d+(\.\d+)?)s\)/);
+            console.log(matches);
+            if (matches) {
+                console.log("MATCHES: ");
+                console.log(matches);
+                const startTime = parseFloat(matches[1]).toFixed(2);
+                const endTime = parseFloat(matches[3]).toFixed(2);
+                const timeRange = `${startTime}-${endTime}`;
+                console.log(timeRange);
+
+                transitionsData[timeRange] = {
+                    // "vibe": document.getElementById(`vibe_form_${startTime}_${endTime}`).value,
+                    // "imagery": document.getElementById(`imagery_form_${startTime}_${endTime}`).value,
+                    // "texture": document.getElementById(`texture_form_${startTime}_${endTime}`).value,
+                    // "style": document.getElementById(`style_form_${startTime}_${endTime}`).value,
+                    // "color": document.getElementById(`color_form_${startTime}_${endTime}`).value,
+                    "motion": motionInput.value,
+                    "strength": strengthInput.value,
+                    "speed": speedInput.value,
+                    "transition": true // Since all inputs are present, it's a valid transition
+                };
+            }
+        }
+    });
+
+    console.log(transitionsData);
     return transitionsData;
 }
+
+// function gatherTransitionData(formData) {
+//     // const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
+//     // const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
+
+//     const transitionsData = {};
+
+//     for (let i = 0; i < timestamps.length - 1; i++) {
+//         const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
+//         const end = (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
+//         const timeRange = `${start}-${end}`;
+ 
+//         transitionsData[timeRange] = {
+//             "vibe": document.getElementById(`vibe_form_${i + 1}`).value,
+//             "imagery": document.getElementById(`imagery_form_${i + 1}`).value,
+//             "texture": document.getElementById(`texture_form_${i + 1}`).value,
+//             "style":  document.getElementById(`style_form_${i + 1}`).value,
+//             "color": document.getElementById(`color_form_${i + 1}`).value,
+//             "motion": document.getElementById(`motion_trans_${i + 1}`).value || document.getElementById(`motion_form_${i + 1}`).value,
+//             "strength": document.getElementById(`strength_trans_${i + 1}`).value || document.getElementById(`strength_form_${i + 1}`).value,
+//             "speed": document.getElementById(`speed_trans_${i + 1}`).value || document.getElementById(`speed_form_${i + 1}`).value
+//         };
+//         if(document.getElementById(`motion_trans_${i + 1}`).value && document.getElementById(`strength_trans_${i + 1}`).value && document.getElementById(`speed_trans_${i + 1}`).value) {
+//             transitionsData[timeRange]["transition"] = true;
+//         }else {
+//             transitionsData[timeRange]["transition"] = false;
+//         }
+//         console.log(transitionsData);
+//     }
+
+//     return transitionsData;
+// }
 
 function processTable(){
     const formData = gatherFormData();
@@ -1518,6 +1646,7 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
 
     beatContainer.appendChild(beatLine);
 }
+
 function drawBeats(beats, beatContainer, duration, color, hidden = false) {
     clearPreviousTimestamps();
     newsigPoints = [...beats];
@@ -1543,227 +1672,6 @@ function addNewInterval() {
 
     createBeat(middleTime, beatContainer, duration, 'red', true, true);
 }
-
-
-
-// function drawBeats(beats, beatContainer, duration, color, hidden = false) {
-//     clearPreviousTimestamps();
-//     newsigPoints = [...beats];
-
-//     beats.forEach((beat, index) => {
-//         const beatLine = document.createElement('div');
-//         beatLine.className = 'beat';
-//         beatLine.style.left = `${(beat / duration) * beatContainer.offsetWidth}px`;
-//         beatLine.style.height = '100%';
-//         beatLine.style.width = '2px';
-//         beatLine.style.position = 'absolute';
-//         beatLine.style.backgroundColor = color;
-//         if (hidden) {
-//             beatLine.style.display = 'none';
-//             beatLine.classList.add('hidden-beat');
-//             const timeLabel = document.createElement('input');
-//             timeLabel.type = 'text';
-//             timeLabel.className = 'time-label';
-//             timeLabel.value = beat.toFixed(2);
-//             timeLabel.style.position = 'absolute';
-//             timeLabel.style.top = '0';
-//             timeLabel.style.left = `${(beat / duration) * beatContainer.offsetWidth}px`;
-//             timeLabel.style.transform = 'translateX(-50%)';
-//             timeLabel.addEventListener('click', function () {
-//                 console.log('label click');
-//                 if (lastClickedLabel) {
-//                     lastClickedLabel.style.borderColor = ''; // Deselect previous label
-//                 }
-//                 console.log(timeLabel);
-//                 lastClickedLabel = timeLabel; // Update lastClickedLabel
-//                 timeLabel.style.borderColor = 'red'; // Highlight selected label
-//             });
-
-//             beatLine.timeLabel = timeLabel;
-
-//             // Attach the click event listener directly to the hidden beat
-//             beatLine.addEventListener('click', function () {
-//                 console.log("real click");
-
-//                 if (lastClickedLabel) {
-//                     lastClickedLabel.style.borderColor = ''; // Deselect previous label
-//                 }
-//                 lastClickedLabel = beatLine.timeLabel; // Update lastClickedLabel to the hidden beat's time label
-//                 beatLine.timeLabel.style.borderColor = 'red'; // Highlight selected label
-//             });
-//             timeLabel.addEventListener('input', function () {
-//                 const newTime = parseFloat(timeLabel.value);
-//                 if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
-//                     beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-//                     timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-//                     console.log("input");
-//                     console.log(timeLabel);
-//                     console.log(newTime);
-//                     newsigPoints[index] = newTime;
-//                 }
-//             });
-    
-//             // Handle dragging of the beat line
-//             beatLine.addEventListener('mousedown', function () {
-//                 timeLabel.style.backgroundColor = 'green';
-//                 document.addEventListener('mousemove', onMouseMove);
-//                 document.addEventListener('mouseup', onMouseUp);
-//             });
-    
-//             function onMouseMove(event) {
-//                 var rect = beatContainer.getBoundingClientRect();
-//                 var offsetX = event.clientX - rect.left;
-//                 var percentage = offsetX / rect.width;
-//                 var newTime = percentage * duration;
-//                 if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
-//                     beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-//                     timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-//                     timeLabel.value = newTime.toFixed(2);
-//                     newsigPoints[index] = newTime;
-    
-//                 }
-//             }
-    
-//             function onMouseUp() {
-//                 timeLabel.style.backgroundColor = '';
-//                 document.removeEventListener('mousemove', onMouseMove);
-//                 document.removeEventListener('mouseup', onMouseUp);
-//             }
-    
-            
-//             beatContainer.appendChild(timeLabel);
-//             document.getElementById('deleteButton').addEventListener('click', function () {
-//                 console.log("DELETE");
-//                 console.log(lastClickedLabel);
-//                 if (lastClickedLabel) {
-//                     const index = Array.from(beatContainer.children).indexOf(lastClickedLabel);
-//                     if (index !== -1) {
-//                         newsigPoints.splice(index, 1); // Remove the corresponding time from newsigPoints
-//                         lastClickedLabel.remove(); // Remove the label from the DOM
-//                         beatContainer.children[index].remove(); // Remove the corresponding beat line
-//                         lastClickedLabel = null; // Reset lastClickedLabel
-//                     }
-//                 }
-//             });
-//         }
-//         beatContainer.appendChild(beatLine);
-        
-//         // Create time label as an input field
-        
-        
-//         // Update the beatLine position and timeLabel on input change
-        
-//     });
-// }
-
-// function addNewInterval() {
-//     console.log("add");
-
-//     // Calculate the middle time for the new interval
-//     const beatContainer = document.getElementById('beatContainer');
-//     const duration = audioDuration;
-//     const middleTime = duration / 2;
-//     console.log(middleTime);
-
-//     // Create the beat line
-//     const beatLine = document.createElement('div');
-//     beatLine.className = 'beat hidden-beat'; // Ensure the beat has the required classes
-//     beatLine.style.left = `${(middleTime / duration) * beatContainer.offsetWidth}px`;
-//     beatLine.style.height = '100%';
-//     beatLine.style.width = '4px'; // Start with a thicker line
-//     beatLine.style.position = 'absolute';
-//     beatLine.style.backgroundColor = 'red'; // Highlight the line in red
-//     beatLine.style.display = 'none'; // Keep it hidden initially
-
-//     // Create the time label
-//     const timeLabel = document.createElement('input');
-//     timeLabel.type = 'text';
-//     timeLabel.className = 'time-label';
-//     timeLabel.value = middleTime.toFixed(2);
-//     timeLabel.style.position = 'absolute';
-//     timeLabel.style.top = '0';
-//     timeLabel.style.left = `${(middleTime / duration) * beatContainer.offsetWidth}px`;
-//     timeLabel.style.transform = 'translateX(-50%)';
-//     timeLabel.style.backgroundColor = 'green'; // Highlight the label with a green background
-
-//     // Store reference to the time label in the beat line
-//     beatLine.timeLabel = timeLabel;
-
-//     // Push the middle time into the array
-//     newsigPoints.push(middleTime);
-
-//     // Attach the click event listener directly to the hidden beat
-//     beatLine.addEventListener('click', function () {
-//         if (lastClickedLabel) {
-//             lastClickedLabel.style.borderColor = ''; // Deselect previous label
-//         }
-//         lastClickedLabel = beatLine.timeLabel; // Update lastClickedLabel to the hidden beat's time label
-//         beatLine.timeLabel.style.borderColor = 'red'; // Highlight selected label
-//     });
-
-//     // Event listener for clicking on the time label
-//     timeLabel.addEventListener('click', function () {
-//         if (lastClickedLabel) {
-//             lastClickedLabel.style.borderColor = ''; // Deselect previous label
-//         }
-//         lastClickedLabel = timeLabel; // Update lastClickedLabel
-//         timeLabel.style.borderColor = 'red'; // Highlight selected label
-//     });
-
-//     // Handle dragging of the beat line
-//     beatLine.addEventListener('mousedown', function () {
-//         timeLabel.style.backgroundColor = ''; // Remove green background on drag
-//         beatLine.style.backgroundColor = 'black'; // Return to normal color
-//         beatLine.style.width = '2px'; // Return to normal thickness
-
-//         // Update newsigPoints based on current label values
-//         updateNewsigPoints();
-
-//         document.addEventListener('mousemove', onMouseMove);
-//         document.addEventListener('mouseup', onMouseUp);
-//     });
-
-//     function onMouseMove(event) {
-//         const rect = beatContainer.getBoundingClientRect();
-//         const offsetX = event.clientX - rect.left;
-//         const percentage = offsetX / rect.width;
-//         const newTime = percentage * duration;
-
-//         if (!isNaN(newTime) && newTime >= 0 && newTime <= duration) {
-//             beatLine.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-//             timeLabel.style.left = `${(newTime / duration) * beatContainer.offsetWidth}px`;
-//             timeLabel.value = newTime.toFixed(2);
-//         }
-//     }
-
-//     function onMouseUp() {
-//         updateNewsigPoints(); // Update newsigPoints after drag is completed
-//         newsigPoints.sort((a, b) => a - b); // Sort after updating
-//         document.removeEventListener('mousemove', onMouseMove);
-//         document.removeEventListener('mouseup', onMouseUp);
-//     }
-
-//     function updateNewsigPoints() {
-//         // Clear newsigPoints and update based on current label values
-//         newsigPoints = [];
-//         const labels = document.querySelectorAll('.time-label');
-//         labels.forEach(label => {
-//             newsigPoints.push(parseFloat(label.value));
-//         });
-//     }
-
-//     // Append the elements to the container
-//     beatContainer.appendChild(beatLine);
-//     beatContainer.appendChild(timeLabel);
-
-//     // Initially show the hidden beat
-//     beatLine.style.display = 'block';
-// }
-
-
-
-
-
 
 
 function detectBeats(data, sampleRate, threshold) {

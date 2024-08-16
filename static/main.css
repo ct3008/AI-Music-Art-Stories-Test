@@ -209,3 +209,24 @@ audio {
     border: 1px dashed gray; /* Optional: Different style for transition containers */
     padding: 10px;
 }
+
+/* Draggable Transitions */
+.draggable-line {
+    position: absolute;
+    height: 100%;
+    width: 3px;
+    background-color: red;
+    cursor: ew-resize;
+    z-index: 10;
+}
+
+.highlight-area {
+    position: absolute;
+    height: 100%;
+    background-color: rgba(0, 255, 0, 0.3); /* Green highlight */
+    z-index: 1;
+}
+
+#finalizeTransitionButton {
+    margin-top: 10px;
+}
