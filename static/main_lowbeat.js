@@ -111,6 +111,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var draggingBeat = null;
     var playheadInterval;
 
+    deleteSection();
+
     function updateCurrentTime(line, time) {
         const timeLabel = document.querySelector('.current-time-label');
         if (timeLabel) {  // Check if the element exists
@@ -204,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
         clearInterval(playheadInterval);
         playhead.style.left = '0px'; // Optionally reset the playhead
     });
+    
 
 
 });
@@ -300,19 +303,16 @@ function makeTimestamp(isTrans){
     
 }
 
+
 // function finalizeTimestamps(name) {
 //     const timestampsContainer = document.getElementById('timestampsContainer');
 //     timestampsContainer.innerHTML = ''; // Clear previous timestamps
 
-    
 //     newsigPoints.forEach(time => {
 //         const timestampElement = document.createElement('div');
 //         timestampElement.textContent = `Time: ${time.toFixed(2)} seconds`;
 //         timestampsContainer.appendChild(timestampElement);
 //     });
-    
-        
-
 
 //     const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
 //     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
@@ -325,9 +325,9 @@ function makeTimestamp(isTrans){
 //         labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
 //     } else if (name === 'transition') {
 //         container = document.getElementById('transitionsContainer');
-//         container.style.border = '2px solid black'; // Corrected styling syntax
+//         container.style.border = '2px solid black';
 //         const button = document.getElementById('add-transition');
-//         if (button) button.style.display = 'none'; // Hide button if it exists
+//         // if (button) button.style.display = 'none'; // Hide button if it exists
 //         labels = ['Motion', 'Strength', 'Speed'];
 //     }
 
@@ -345,8 +345,8 @@ function makeTimestamp(isTrans){
 //     });
 //     container.appendChild(labelsContainer);
 
-//     // Create sections with time range and input boxes
-//     for (let i = 0; i < sectionsCount + 1; i++) { // Adjust loop to include all sections
+//     let sceneTimes = [];
+//     for (let i = 0; i < sectionsCount + 1; i++) {
 //         const section = document.createElement('div');
 //         section.className = 'section';
 
@@ -355,6 +355,7 @@ function makeTimestamp(isTrans){
 //         timeRange.className = 'time-range';
 //         if (name === 'time') {
 //             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
+//             sceneTimes.push({ 'start': timestamps[i], 'end': timestamps[i + 1] });
 //         } else if (name === 'transition') {
 //             if (i === sectionsCount) {
 //                 const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
@@ -373,21 +374,23 @@ function makeTimestamp(isTrans){
 //         playButton.addEventListener('click', () => playTimeRange(timestamps[i], timestamps[i + 1]));
 //         section.appendChild(playButton);
 
-//         // Add input boxes with unique ids and datalists for dropdowns
+//         // Add input boxes
 //         const inputContainer = document.createElement('div');
 //         inputContainer.className = 'input-container';
+
 //         const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-//         const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular', 'rubbed graphite on paper', ];
-//         const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "Jackson Pollock abstrct expressionism"];
-//         const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles', 'whirling lines', 'vibrant kaleidoscope of colors', 'interstellar light trails','abstract fractal patterns','dissolving geometric shards','diffused cosmic mists', 'translucent ripple effects'];
+//         const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular', 'rubbed graphite on paper'];
+//         const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "Jackson Pollock abstract expressionism"];
+//         const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles', 'whirling lines', 'vibrant kaleidoscope of colors', 'interstellar light trails', 'abstract fractal patterns', 'dissolving geometric shards', 'diffused cosmic mists', 'translucent ripple effects'];
 //         const colorOptions = ['black/white', 'pale blue', 'full color'];
 //         const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
 //         const strengths = ['weak', 'normal', 'strong', 'vstrong'];
 //         const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
-//         labels.forEach((label, index) => {
+
+//         labels.forEach((label) => {
 //             const input = document.createElement('input');
 //             input.type = 'text';
-//             input.className = 'dropdown-input'; // Add class for consistent width
+//             input.className = 'dropdown-input';
 
 //             if (name === 'time') {
 //                 input.id = `${label.toLowerCase()}_form_${i + 1}`;
@@ -441,51 +444,75 @@ function makeTimestamp(isTrans){
 //         section.appendChild(inputContainer);
 //         container.appendChild(section);
 //     }
-    
-// }
-// function addTransitions(startTime, endTime) {
-//     const formContainers = document.querySelectorAll('.time-range');
-//     console.log(startTime, endTime);
-  
-//     // Find the correct section based on the startTime
-//     formContainers.forEach((form) => {
-//         console.log(form);
+
+//     // Insert transition sections
+//     console.log(sceneTimes);
+//     for (let i = 0; i < sceneTimes.length - 1; i++) {
+//         const currentScene = parseFloat(sceneTimes[i]['end']).toFixed(2);
+//         const nextScene = parseFloat(sceneTimes[i + 1]['start']).toFixed(2);
+//         // console.log(currentScene,nextScene);
+
+//         const transitionStartTime = parseFloat(parseFloat(currentScene) - parseFloat(0.5));
+//         const transitionEndTime = (parseFloat(nextScene) + parseFloat(0.5));
+//         // console.log(transitionStartTime,transitionEndTime);
+
+//         addTransitions(transitionStartTime, transitionEndTime);
         
+//     }
 
-//         const formStartTime = parseFloat(form.innerHTML.split('-')[0]);
-//         const formEndTime = parseFloat(form.innerHTML.split('-')[1]);
-//         console.log(formStartTime, formEndTime);
+//     addTransitions((audioDuration-0.5).toFixed(2), audioDuration.toFixed(2));
 
-//         if (startTime >= formStartTime && startTime < formEndTime) {
-//         // Create the transition container
-//         const transitionContainer = document.createElement('div');
-//         transitionContainer.className = 'transition-container';
-//         transitionContainer.id = `transition_${startTime}_${endTime}`;
-        
-//         transitionContainer.innerHTML = `
-//             <div class="transition-label">Transition (${startTime}s to ${endTime}s)</div>
-//             <label for="vibe_trans_${startTime}_${endTime}">Vibe:</label>
-//             <input type="text" id="vibe_trans_${startTime}_${endTime}" name="vibe_trans_${startTime}_${endTime}">
-//             <label for="imagery_trans_${startTime}_${endTime}">Imagery:</label>
-//             <input type="text" id="imagery_trans_${startTime}_${endTime}" name="imagery_trans_${startTime}_${endTime}">
-//             <label for="texture_trans_${startTime}_${endTime}">Texture:</label>
-//             <input type="text" id="texture_trans_${startTime}_${endTime}" name="texture_trans_${startTime}_${endTime}">
-//             <label for="color_trans_${startTime}_${endTime}">Color:</label>
-//             <input type="text" id="color_trans_${startTime}_${endTime}" name="color_trans_${startTime}_${endTime}">
-//             <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
-//             <input type="text" id="motion_trans_${startTime}_${endTime}" name="motion_trans_${startTime}_${endTime}">
-//             <label for="strength_trans_${startTime}_${endTime}">Strength:</label>
-//             <input type="text" id="strength_trans_${startTime}_${endTime}" name="strength_trans_${startTime}_${endTime}">
-//             <label for="speed_trans_${startTime}_${endTime}">Speed:</label>
-//             <input type="text" id="speed_trans_${startTime}_${endTime}" name="speed_trans_${startTime}_${endTime}">
-//             <label for="style_trans_${startTime}_${endTime}">Style:</label>
-//             <input type="text" id="style_trans_${startTime}_${endTime}" name="style_trans_${startTime}_${endTime}">
-//         `;
+//     const sections = document.querySelectorAll('.section');
 
-//         // Append the transition container to the right of the current content in this section
-//         form.appendChild(transitionContainer);
-//         }
+//     let copiedData = null; // Variable to store copied data
+//     let copiedSectionIndex = null; // Variable to store the index of the copied section
+
+//     sections.forEach((section, index) => {
+//         // Add a "Copy" button to each section
+//         const copyButton = document.createElement('button');
+//         copyButton.innerText = 'Copy All';
+//         section.appendChild(copyButton);
+
+//         // Add a "Paste" button to each section
+//         const pasteButton = document.createElement('button');
+//         pasteButton.innerText = 'Paste All';
+//         section.appendChild(pasteButton);
+
+//         copyButton.addEventListener('click', () => {
+//             // Gather all input values from the current section
+//             const inputs = section.querySelectorAll('input');
+//             copiedData = Array.from(inputs).map(input => input.value);
+//             copiedSectionIndex = index; // Store the section index for tracking
+
+//             // Indicate that data was copied
+//             copyButton.innerText = 'Copied!';
+//             setTimeout(() => (copyButton.innerText = 'Copy All'), 1000);
+//         });
+
+//         pasteButton.addEventListener('click', () => {
+//             if (copiedData && copiedSectionIndex !== null) {
+//                 // Make sure the paste is happening only in a different section
+//                 if (index !== copiedSectionIndex) {
+//                     const inputs = section.querySelectorAll('input');
+                    
+//                     // Paste the copied data into the current section's inputs
+//                     inputs.forEach((input, i) => {
+//                         if (copiedData[i] !== undefined) {
+//                             input.value = copiedData[i];
+//                         }
+//                     });
+
+//                     // Indicate that data was pasted
+//                     pasteButton.innerText = 'Pasted!';
+//                     setTimeout(() => (pasteButton.innerText = 'Paste All'), 1000);
+//                 } else {
+//                     pasteButton.innerText = 'Cannot paste in the same section!';
+//                     setTimeout(() => (pasteButton.innerText = 'Paste All'), 1000);
+//                 }
+//             }
+//         });
 //     });
+
 // }
 
 function finalizeTimestamps(name) {
@@ -532,7 +559,7 @@ function finalizeTimestamps(name) {
     let sceneTimes = [];
     for (let i = 0; i < sectionsCount + 1; i++) {
         const section = document.createElement('div');
-        section.className = 'section';
+        section.className = 'section form-section'; // Add the "form-section" class to distinguish it
 
         // Add time range or transition label
         const timeRange = document.createElement('div');
@@ -630,22 +657,117 @@ function finalizeTimestamps(name) {
     }
 
     // Insert transition sections
+    console.log(sceneTimes);
     for (let i = 0; i < sceneTimes.length - 1; i++) {
         const currentScene = parseFloat(sceneTimes[i]['end']).toFixed(2);
         const nextScene = parseFloat(sceneTimes[i + 1]['start']).toFixed(2);
+        // console.log(currentScene,nextScene);
 
-        const transitionStartTime = parseFloat(currentScene - 0.5).toFixed(2);
-        const transitionEndTime = parseFloat(nextScene + 0.5).toFixed(2);
+        const transitionStartTime = parseFloat(parseFloat(currentScene) - parseFloat(0.5));
+        const transitionEndTime = (parseFloat(nextScene) + parseFloat(0.5));
+        // console.log(transitionStartTime,transitionEndTime);
 
         addTransitions(transitionStartTime, transitionEndTime);
         
     }
 
     addTransitions((audioDuration-0.5).toFixed(2), audioDuration.toFixed(2));
-    // addTransitions(0.5, 1.2);
-    // addTransitions(0.2, 0.3);
-    // addTransitions(5, 7);
+
+    // Add copy-paste functionality to only form sections
+    const formSections = document.querySelectorAll('.form-section'); // Target only sections with the "form-section" class
+
+    let copiedData = null; // Variable to store copied data
+    let copiedSectionIndex = null; // Variable to store the index of the copied section
+
+    formSections.forEach((section, index) => {
+        // Add a "Copy" button to each form section
+        const copyButton = document.createElement('button');
+        copyButton.innerText = 'Copy All';
+        section.appendChild(copyButton);
+
+        // Add a "Paste" button to each form section
+        const pasteButton = document.createElement('button');
+        pasteButton.innerText = 'Paste All';
+        section.appendChild(pasteButton);
+
+        copyButton.addEventListener('click', () => {
+            // Gather all input values from the current section
+            const inputs = section.querySelectorAll('input');
+            copiedData = Array.from(inputs).map(input => input.value);
+            copiedSectionIndex = index; // Store the section index for tracking
+
+            // Indicate that data was copied
+            copyButton.innerText = 'Copied!';
+            setTimeout(() => (copyButton.innerText = 'Copy All'), 1000);
+        });
+
+        pasteButton.addEventListener('click', () => {
+            if (copiedData && copiedSectionIndex !== null) {
+                // Make sure the paste is happening only in a different section
+                if (index !== copiedSectionIndex) {
+                    const inputs = section.querySelectorAll('input');
+                    
+                    // Paste the copied data into the current section's inputs
+                    inputs.forEach((input, i) => {
+                        if (copiedData[i] !== undefined) {
+                            input.value = copiedData[i];
+                        }
+                    });
+
+                    // Indicate that data was pasted
+                    pasteButton.innerText = 'Pasted!';
+                    setTimeout(() => (pasteButton.innerText = 'Paste All'), 1000);
+                } else {
+                    pasteButton.innerText = 'Cannot paste in the same section!';
+                    setTimeout(() => (pasteButton.innerText = 'Paste All'), 1000);
+                }
+            }
+        });
+    });
 }
+
+function deleteSection() {
+    const deleteButton = document.getElementById('delete-section');
+    let deleteMode = false;
+
+    deleteButton.addEventListener('click', () => {
+        deleteMode = !deleteMode;
+        console.log(deleteMode);
+        deleteButton.innerText = deleteMode ? 'Exit Delete Mode' : 'Delete Section';
+
+        if (deleteMode) {
+            console.log('Delete Mode');
+            document.querySelectorAll('.section').forEach(section => {
+                // Highlight sections for deletion
+                section.style.border = '2px dashed red';
+
+                // Add click event listener for deletion
+                section.addEventListener('click', handleSectionDeletion);
+            });
+        } else {
+            // Exit delete mode and remove highlights
+            console.log("not delete mode?");
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.border = ''; // Remove the highlight
+                section.removeEventListener('click', handleSectionDeletion); // Remove event listener to avoid issues
+            });
+        }
+    });
+
+    function handleSectionDeletion(event) {
+        if (deleteMode) {
+            const section = event.currentTarget;
+
+            // Confirm deletion with the user
+            const confirmed = confirm('Are you sure you want to delete this section?');
+            if (confirmed) {
+                // Remove the section from the DOM
+                section.remove();
+            }
+        }
+    }
+}
+
 
 function addTransitions(startTime, endTime) {
     const formContainers = document.querySelectorAll('.section');
@@ -670,11 +792,26 @@ function addTransitions(startTime, endTime) {
                 </div>
             `;
 
+            // Add the play button to preview the transition
+            const playButton = document.createElement('button');
+            playButton.innerText = 'Play';
+            playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
+            transitionContainer.appendChild(playButton);
+
+            // Add the delete button to remove the transition
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.style.marginLeft = '10px';
+            deleteButton.addEventListener('click', () => {
+                transitionContainer.remove();
+            });
+            transitionContainer.appendChild(deleteButton);
+
             // Insert the transition container in the appropriate position
             form.insertAdjacentElement('afterend', transitionContainer);
         }
     });
-}  
+} 
 
 
 function createTransitionLines() {
@@ -1763,9 +1900,6 @@ function showSignificantPoints() {
 function hideAllBeats() {
     document.querySelectorAll('.beat').forEach(beat => beat.style.display = 'none');
 }
-
-// document.getElementById('findIdealIntervals').addEventListener('click', showSignificantPoints);
-document.getElementById('hideBeats').addEventListener('click', hideAllBeats);
 
 
 function getLyrics() {
