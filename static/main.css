@@ -156,3 +156,56 @@ audio {
     margin-top: 5px;
     
 }
+
+/* Other */
+/* .transition-container, .input-container {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    gap: 5px; 
+}
+
+.label-container, .transition-container label {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.transition-container input {
+    width: 200px; 
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.section .time-range, .section .play-button {
+    margin-bottom: 10px;
+}
+
+.section .input-container, .transition-container .input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+} */
+.form-container, .transition-container {
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 20px; /* Space between sections */
+}
+
+.input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px; /* Space between labels and inputs */
+}
+
+.label-container, .transition-container label {
+    font-weight: bold;
+}
+
+.transition-container {
+    border: 1px dashed gray; /* Optional: Different style for transition containers */
+    padding: 10px;
+}
