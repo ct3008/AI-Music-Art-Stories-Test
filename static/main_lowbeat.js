@@ -286,7 +286,7 @@ function makeTimestamp(isTrans){
     if (isTrans){
         console.log("trans");
         transitionsAdded = true;
-        finalizeTimestamps('time');
+        // finalizeTimestamps('time');
         // finalizeTimestamps('transition');
         createTransitionLines();
     } else{
@@ -299,7 +299,6 @@ function makeTimestamp(isTrans){
             // finalizeTimestamps('transition');
         }
     }
-    
     
 }
 
@@ -663,15 +662,15 @@ function finalizeTimestamps(name) {
         const nextScene = parseFloat(sceneTimes[i + 1]['start']).toFixed(2);
         // console.log(currentScene,nextScene);
 
-        const transitionStartTime = parseFloat(parseFloat(currentScene) - parseFloat(0.5));
-        const transitionEndTime = (parseFloat(nextScene) + parseFloat(0.5));
+        const transitionStartTime = parseFloat(parseFloat(currentScene) - parseFloat(0.5)).toFixed(2);
+        const transitionEndTime = (parseFloat(nextScene) + parseFloat(0.5)).toFixed(2);
         // console.log(transitionStartTime,transitionEndTime);
 
-        addTransitions(transitionStartTime, transitionEndTime);
+        addTransitions(i+1000, transitionStartTime, transitionEndTime);
         
     }
 
-    addTransitions((audioDuration-0.5).toFixed(2), audioDuration.toFixed(2));
+    addTransitions(3000,(audioDuration-0.5).toFixed(2), audioDuration.toFixed(2));
 
     // Add copy-paste functionality to only form sections
     const formSections = document.querySelectorAll('.form-section'); // Target only sections with the "form-section" class
@@ -814,15 +813,326 @@ function addTransitions(startTime, endTime) {
 } 
 
 
+// function createTransitionLines() {
+//     const beatContainer = document.getElementById('beatContainer');
+//     const duration = audioDuration;
+
+//     // Create draggable left and right lines
+//     const leftLine = document.createElement('div');
+//     const rightLine = document.createElement('div');
+//     leftLine.className = 'draggable-line left-line';
+//     rightLine.className = 'draggable-line right-line';
+
+//     // Create the highlight area between the lines
+//     const highlight = document.createElement('div');
+//     highlight.className = 'highlight-area';
+
+//     beatContainer.appendChild(leftLine);
+//     beatContainer.appendChild(rightLine);
+//     beatContainer.appendChild(highlight);
+
+//     function updateHighlightPosition() {
+//         const leftPos = parseFloat(leftLine.style.left);
+//         const rightPos = parseFloat(rightLine.style.left);
+//         highlight.style.left = `${leftPos}px`;
+//         highlight.style.width = `${rightPos - leftPos}px`;
+//     }
+
+//     // Make the lines draggable
+//     // function makeDraggable(line, onDrag) {
+//     //     let isDragging = false;
+
+//     //     line.addEventListener('mousedown', function (event) {
+//     //         event.preventDefault();
+//     //         isDragging = true;
+//     //         document.addEventListener('mousemove', onDrag);
+//     //         document.addEventListener('mouseup', function () {
+//     //             isDragging = false;
+//     //             document.removeEventListener('mousemove', onDrag);
+//     //         });
+//     //     });
+//     // }
+
+//     function makeDraggable(line, onDrag) {
+//         console.log(line);
+//         let isDragging = false;
+
+//         line.addEventListener('mousedown', function (event) {
+//             event.preventDefault();
+//             isDragging = true;
+//             line.style.cursor = 'ew-resize'; // Change cursor on drag start
+//             document.addEventListener('mousemove', onDrag);
+//             document.addEventListener('mouseup', function () {
+//                 isDragging = false;
+//                 line.style.cursor = ''; // Reset cursor after drag
+//                 document.removeEventListener('mousemove', onDrag);
+//             });
+//         });
+
+//         line.addEventListener('mouseenter', function () {
+//             line.style.cursor = 'ew-resize'; // Change cursor on hover
+//         });
+
+//         line.addEventListener('mouseleave', function () {
+//             line.style.cursor = ''; // Reset cursor when not hovering
+//         });
+//     }
+
+//     makeDraggable(leftLine, (event) => {
+//         if (!event.buttons) return;
+        
+//         const rect = beatContainer.getBoundingClientRect();
+//         const offsetX = event.clientX - rect.left;
+//         const newLeft = Math.max(0, Math.min(offsetX, parseFloat(rightLine.style.left) - 10)); // Prevent crossing right line
+//         leftLine.style.left = `${newLeft}px`;
+//         updateHighlightPosition();
+//     });
+
+//     makeDraggable(rightLine, (event) => {
+//         if (!event.buttons) return;
+//         const rect = beatContainer.getBoundingClientRect();
+//         const offsetX = event.clientX - rect.left;
+//         const newRight = Math.max(parseFloat(leftLine.style.left) + 10, Math.min(offsetX, beatContainer.offsetWidth)); // Prevent crossing left line
+//         rightLine.style.left = `${newRight}px`;
+//         updateHighlightPosition();
+//     });
+
+//     // Set initial positions
+//     leftLine.style.left = '100px';
+//     rightLine.style.left = '300px';
+//     updateHighlightPosition();
+
+//     // Finalize transition when button is clicked
+//     document.getElementById('finalizeTransitionButton').addEventListener('click', () => {
+//         const leftTime = (parseFloat(leftLine.style.left) / beatContainer.offsetWidth) * duration;
+//         const rightTime = (parseFloat(rightLine.style.left) / beatContainer.offsetWidth) * duration;
+//         addTransitions(leftTime.toFixed(2), rightTime.toFixed(2));
+//     });
+// }
+
+//ALMOST WORKED
+// let existingTransitions = []; // Track all transitions globally
+
+// function createTransitionLines() {
+//     const beatContainer = document.getElementById('beatContainer');
+//     const duration = audioDuration;
+
+//     // Create draggable left and right lines with unique identifiers
+//     const leftLine = document.createElement('div');
+//     const rightLine = document.createElement('div');
+//     leftLine.className = 'draggable-line left-line';
+//     rightLine.className = 'draggable-line right-line';
+
+//     // Generate a unique ID for this transition
+//     const transitionId = `transition-${Date.now()}`;
+//     console.log("TRANS ID: " + transitionId);
+//     leftLine.dataset.transitionId = transitionId;
+//     rightLine.dataset.transitionId = transitionId;
+
+//     // Create the highlight area between the lines
+//     const highlight = document.createElement('div');
+//     highlight.className = 'highlight-area';
+
+//     beatContainer.appendChild(leftLine);
+//     beatContainer.appendChild(rightLine);
+//     beatContainer.appendChild(highlight);
+
+//     function updateHighlightPosition() {
+//         const leftPos = parseFloat(leftLine.style.left);
+//         const rightPos = parseFloat(rightLine.style.left);
+//         highlight.style.left = `${leftPos}px`;
+//         highlight.style.width = `${rightPos - leftPos}px`;
+//     }
+
+//     function makeDraggable(line, onDrag) {
+//         let isDragging = false;
+
+//         line.addEventListener('mousedown', function (event) {
+//             event.preventDefault();
+//             isDragging = true;
+//             line.style.cursor = 'ew-resize'; // Change cursor on drag start
+//             document.addEventListener('mousemove', onDrag);
+//             document.addEventListener('mouseup', function () {
+//                 isDragging = false;
+//                 line.style.cursor = ''; // Reset cursor after drag
+//                 document.removeEventListener('mousemove', onDrag);
+//                 console.log("IMplicit id accessed: ", line.dataset.transitionId);
+//                 updateTransitionTimes(line.dataset.transitionId); // Update transition times on drag end
+//             });
+//         });
+
+//         line.addEventListener('mouseenter', function () {
+//             line.style.cursor = 'ew-resize'; // Change cursor on hover
+//         });
+
+//         line.addEventListener('mouseleave', function () {
+//             line.style.cursor = ''; // Reset cursor when not hovering
+//         });
+//     }
+
+//     makeDraggable(leftLine, (event) => {
+//         if (!event.buttons) return;
+
+//         const rect = beatContainer.getBoundingClientRect();
+//         const offsetX = event.clientX - rect.left;
+//         const newLeft = Math.max(0, Math.min(offsetX, parseFloat(rightLine.style.left) - 10)); // Prevent crossing right line
+//         leftLine.style.left = `${newLeft}px`;
+//         updateHighlightPosition();
+//     });
+
+//     makeDraggable(rightLine, (event) => {
+//         if (!event.buttons) return;
+//         const rect = beatContainer.getBoundingClientRect();
+//         const offsetX = event.clientX - rect.left;
+//         const newRight = Math.max(parseFloat(leftLine.style.left) + 10, Math.min(offsetX, beatContainer.offsetWidth)); // Prevent crossing left line
+//         rightLine.style.left = `${newRight}px`;
+//         updateHighlightPosition();
+//     });
+
+//     // Set initial positions
+//     leftLine.style.left = '100px';
+//     rightLine.style.left = '300px';
+//     updateHighlightPosition();
+
+//     // Finalize transition when button is clicked
+//     document.getElementById('finalizeTransitionButton').addEventListener('click', () => {
+//         const leftTime = (parseFloat(leftLine.style.left) / beatContainer.offsetWidth) * duration;
+//         const rightTime = (parseFloat(rightLine.style.left) / beatContainer.offsetWidth) * duration;
+//         const startTime = leftTime.toFixed(2);
+//         const endTime = rightTime.toFixed(2);
+
+//         // Check if this transition already exists by its unique ID
+//         const existingTransition = existingTransitions.find(
+//             transition => transition.id === transitionId
+//         );
+//         console.log(existingTransition);
+
+//         if (existingTransition) {
+//             // Update the existing transition in the UI
+//             updateExistingTransition(transitionId, startTime, endTime);
+//         } else {
+//             // Add a new transition
+//             addTransitions(transitionId, startTime, endTime);
+//             existingTransitions.push({ id: transitionId, startTime, endTime });
+//         }
+//     });
+// }
+
+// // Function to update an existing transition's UI
+// function updateExistingTransition(id, startTime, endTime) {
+//     const formContainers = document.querySelectorAll('.section');
+
+//     formContainers.forEach((form) => {
+//         const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
+//         const formEndTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[1]);
+
+//         if (startTime >= formStartTime && startTime < formEndTime) {
+//             const transitionSections = form.nextElementSibling.querySelectorAll('.transition-section');
+//             transitionSections.forEach(transitionSection => {
+//                 if (transitionSection.dataset.transitionId === id) {
+//                     transitionSection.querySelector('.time-range').innerText = `Transition (${startTime}s to ${endTime}s)`;
+//                     // Update any other inputs or settings here if necessary
+//                 }
+//             });
+//         }
+//     });
+// }
+
+// // Your existing addTransitions function with a unique ID parameter
+// function addTransitions(id, startTime, endTime) {
+//     const formContainers = document.querySelectorAll('.section');
+    
+//     formContainers.forEach((form) => {
+//         const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
+//         const formEndTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[1]);
+
+//         if (startTime >= formStartTime && startTime < formEndTime) {
+//             // Create the transition container
+//             const transitionContainer = document.createElement('div');
+//             transitionContainer.className = 'section transition-section';
+//             transitionContainer.dataset.transitionId = id; // Store the transition ID for updates
+//             transitionContainer.innerHTML = `
+//                 <div class="time-range">Transition (${startTime}s to ${endTime}s)</div>
+//                 <div class="input-container">
+//                     <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
+//                     <input type="text" id="motion_trans_${startTime}_${endTime}">
+//                     <label for="strength_trans_${startTime}_${endTime}">Strength:</label>
+//                     <input type="text" id="strength_trans_${startTime}_${endTime}">
+//                     <label for="speed_trans_${startTime}_${endTime}">Speed:</label>
+//                     <input type="text" id="speed_trans_${startTime}_${endTime}">
+//                 </div>
+//             `;
+
+//             // Add the play button to preview the transition
+//             const playButton = document.createElement('button');
+//             playButton.innerText = 'Play';
+//             playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
+//             transitionContainer.appendChild(playButton);
+
+//             // Add the delete button to remove the transition
+//             const deleteButton = document.createElement('button');
+//             deleteButton.innerText = 'Delete';
+//             deleteButton.style.marginLeft = '10px';
+//             deleteButton.addEventListener('click', () => {
+//                 transitionContainer.remove();
+//                 // Remove from existingTransitions list
+//                 existingTransitions = existingTransitions.filter(
+//                     t => t.id !== id
+//                 );
+//             });
+//             transitionContainer.appendChild(deleteButton);
+
+//             // Insert the transition container in the appropriate position
+//             form.insertAdjacentElement('afterend', transitionContainer);
+//         }
+//     });
+// }
+
+// // Update transition times based on dragging
+// function updateTransitionTimes(transitionId) {
+//     const duration = audioDuration;
+//     const leftLine = document.querySelector(`.left-line[data-transition-id='${transitionId}']`);
+//     const rightLine = document.querySelector(`.right-line[data-transition-id='${transitionId}']`);
+//     const beatContainer = document.getElementById('beatContainer');
+
+//     if (leftLine && rightLine) {
+//         const leftTime = (parseFloat(leftLine.style.left) / beatContainer.offsetWidth) * duration;
+//         const rightTime = (parseFloat(rightLine.style.left) / beatContainer.offsetWidth) * duration;
+//         const startTime = leftTime.toFixed(2);
+//         const endTime = rightTime.toFixed(2);
+
+//         // Update the existing transition
+//         updateExistingTransition(transitionId, startTime, endTime);
+
+//         // Update the stored transition data
+//         console.log(existingTransitions);
+//         const transition = existingTransitions.find(t => t.id === transitionId);
+//         if (transition) {
+//             console.log(transition);
+//             transition.startTime = startTime;
+//             transition.endTime = endTime;
+//         }
+//     }
+// }
+
+
+//WORKING
+let existingTransitions = []; // Track all transitions globally
+
 function createTransitionLines() {
     const beatContainer = document.getElementById('beatContainer');
     const duration = audioDuration;
 
-    // Create draggable left and right lines
+    // Create draggable left and right lines with unique identifiers
     const leftLine = document.createElement('div');
     const rightLine = document.createElement('div');
     leftLine.className = 'draggable-line left-line';
     rightLine.className = 'draggable-line right-line';
+
+    // Generate a unique ID for this transition
+    const transitionId = `transition-${Date.now()}`;
+    leftLine.dataset.transitionId = transitionId;
+    rightLine.dataset.transitionId = transitionId;
 
     // Create the highlight area between the lines
     const highlight = document.createElement('div');
@@ -839,23 +1149,7 @@ function createTransitionLines() {
         highlight.style.width = `${rightPos - leftPos}px`;
     }
 
-    // Make the lines draggable
-    // function makeDraggable(line, onDrag) {
-    //     let isDragging = false;
-
-    //     line.addEventListener('mousedown', function (event) {
-    //         event.preventDefault();
-    //         isDragging = true;
-    //         document.addEventListener('mousemove', onDrag);
-    //         document.addEventListener('mouseup', function () {
-    //             isDragging = false;
-    //             document.removeEventListener('mousemove', onDrag);
-    //         });
-    //     });
-    // }
-
     function makeDraggable(line, onDrag) {
-        console.log(line);
         let isDragging = false;
 
         line.addEventListener('mousedown', function (event) {
@@ -867,6 +1161,7 @@ function createTransitionLines() {
                 isDragging = false;
                 line.style.cursor = ''; // Reset cursor after drag
                 document.removeEventListener('mousemove', onDrag);
+                updateTransitionTimes(line.dataset.transitionId); // Update transition times on drag end
             });
         });
 
@@ -881,7 +1176,7 @@ function createTransitionLines() {
 
     makeDraggable(leftLine, (event) => {
         if (!event.buttons) return;
-        
+
         const rect = beatContainer.getBoundingClientRect();
         const offsetX = event.clientX - rect.left;
         const newLeft = Math.max(0, Math.min(offsetX, parseFloat(rightLine.style.left) - 10)); // Prevent crossing right line
@@ -907,8 +1202,121 @@ function createTransitionLines() {
     document.getElementById('finalizeTransitionButton').addEventListener('click', () => {
         const leftTime = (parseFloat(leftLine.style.left) / beatContainer.offsetWidth) * duration;
         const rightTime = (parseFloat(rightLine.style.left) / beatContainer.offsetWidth) * duration;
-        addTransitions(leftTime.toFixed(2), rightTime.toFixed(2));
+        const startTime = leftTime.toFixed(2);
+        const endTime = rightTime.toFixed(2);
+
+        // Check if this transition already exists by its unique ID
+        const existingTransition = existingTransitions.find(
+            transition => transition.id === transitionId
+        );
+
+        if (existingTransition) {
+            // Update the existing transition in the UI
+            updateExistingTransition(transitionId, startTime, endTime);
+        } else {
+            // Add a new transition
+            addTransitions(transitionId, startTime, endTime);
+            existingTransitions.push({ id: transitionId, startTime, endTime });
+        }
     });
+}
+
+// Function to update an existing transition's UI
+function updateExistingTransition(id, startTime, endTime) {
+    console.log("UPDATE ID" + id + " START TIME: " + startTime + " END TIME: " + endTime);
+    const timeRangeElement = document.querySelector(`#time-range-${id}`);
+    if (timeRangeElement) {
+        timeRangeElement.innerText = `Transition (${startTime}s to ${endTime}s)`;
+    }
+    // const playButton = document.querySelector(`.transition-section[data-transition-id="${id}"] button.play-button`);
+    // const playButton2 = document.querySelector(`.transition-section[data-transition-id="${id}"]`);
+    // console.log(playButton2.innerHTML);
+    // if (playButton) {
+    //     console.log("START: " + startTime + "END: " + endTime);
+    //     playButton.onclick = () => playTimeRange(startTime, endTime);
+    // }
+    const transitionContainer = document.querySelector(`.transition-section[data-transition-id="${id}"]`);
+    if (transitionContainer) {
+        const playButton = transitionContainer.querySelector('button'); // Select the first button (Play button)
+        if (playButton) {
+            playButton.onclick = () => playTimeRange(startTime, endTime);
+        }
+    }
+}
+
+// Your existing addTransitions function with a unique ID parameter
+function addTransitions(id, startTime, endTime) {
+    const formContainers = document.querySelectorAll('.section');
+
+    formContainers.forEach((form) => {
+        const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
+        const formEndTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[1]);
+
+        if (startTime >= formStartTime && startTime < formEndTime) {
+            // Create the transition container
+            const transitionContainer = document.createElement('div');
+            transitionContainer.className = 'section transition-section';
+            transitionContainer.dataset.transitionId = id; // Store the transition ID for updates
+            transitionContainer.innerHTML = `
+                <div id="time-range-${id}" class="time-range">Transition (${startTime}s to ${endTime}s)</div>
+                <div class="input-container">
+                    <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
+                    <input type="text" id="motion_trans_${startTime}_${endTime}">
+                    <label for="strength_trans_${startTime}_${endTime}">Strength:</label>
+                    <input type="text" id="strength_trans_${startTime}_${endTime}">
+                    <label for="speed_trans_${startTime}_${endTime}">Speed:</label>
+                    <input type="text" id="speed_trans_${startTime}_${endTime}">
+                </div>
+            `;
+
+            // Add the play button to preview the transition
+            const playButton = document.createElement('button');
+            playButton.innerText = 'Play';
+            playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
+            transitionContainer.appendChild(playButton);
+
+            // Add the delete button to remove the transition
+            const deleteButton = document.createElement('button');
+            deleteButton.innerText = 'Delete';
+            deleteButton.style.marginLeft = '10px';
+            deleteButton.addEventListener('click', () => {
+                transitionContainer.remove();
+                // Remove from existingTransitions list
+                existingTransitions = existingTransitions.filter(
+                    t => t.id !== id
+                );
+            });
+            transitionContainer.appendChild(deleteButton);
+
+            // Insert the transition container in the appropriate position
+            form.insertAdjacentElement('afterend', transitionContainer);
+        }
+    });
+}
+
+// Update transition times based on dragging
+function updateTransitionTimes(transitionId) {
+    const duration = audioDuration;
+    const leftLine = document.querySelector(`.left-line[data-transition-id='${transitionId}']`);
+    const rightLine = document.querySelector(`.right-line[data-transition-id='${transitionId}']`);
+    const beatContainer = document.getElementById('beatContainer');
+
+    if (leftLine && rightLine) {
+        const leftTime = (parseFloat(leftLine.style.left) / beatContainer.offsetWidth) * duration;
+        const rightTime = (parseFloat(rightLine.style.left) / beatContainer.offsetWidth) * duration;
+        const startTime = leftTime.toFixed(2);
+        const endTime = rightTime.toFixed(2);
+
+        // Update the existing transition
+        updateExistingTransition(transitionId, startTime, endTime);
+
+        // Update the stored transition data
+        const transition = existingTransitions.find(t => t.id === transitionId);
+        if (transition) {
+            transition.startTime = startTime;
+            transition.endTime = endTime;
+        }
+    }
 }
 
 
