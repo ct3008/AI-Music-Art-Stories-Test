@@ -1,0 +1,57 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<h1>BEAT & LYRICS TEST</h1>
+<input type="file" id="audioFile" accept=".mp3, .wav">
+<input type="number" id="threshold" placeholder="Threshold (0-100)" min="0" max="100" value="70">
+
+<button onclick="processAudio()">Process Audio</button>
+<button onclick="playAudio()">Play</button>
+<button onclick="clearBeats()" id="clearButton">Clear Beats</button>
+<button onclick="showSignificantPoints()" id="findIdealIntervals">Find Ideal Intervals</button>
+<button id="deleteButton">Delete Selected Label</button>
+<button id="addNewInterval" onclick="addNewInterval()">Add Interval</button>
+<button id="finalize-timestamps" onclick="makeTimestamp(false)">Finalize Time Stamps</button>
+
+
+<div id="beatContainer">
+    <div id="playhead" style="position: absolute; height: 100%; width: 2px; background-color: blue; left: 0px;"></div>
+    <canvas id="waveformCanvas"></canvas>
+</div>
+
+<audio id="audioPlayer" controls hidden></audio>
+
+<button id="toggleMotionButton" onclick="toggleMotion()">3D Motion</button>
+
+<div id="outputContainer"></div>
+<div id="timestampsContainer"></div>
+
+
+<!-- <button onclick="fillDefaults()">Fill with Defaults</button> -->
+<button id="fill-defaults" onclick="fillDefaults()">Fill With Defaults</button>
+
+
+<div class="form-container" id="trash"> Trash</div>
+<button id="delete-section">Delete Sections</button>
+
+<!-- Dropdown Button -->
+<button id="add-transition" onclick="makeTimestamp(true)">Add Transitions</button>
+<button id="finalizeTransitionButton">Done Transition</button>
+<!-- <button id="fillTransitionsDefaults" onclick="fillTransitionDefaults()">Fill Transitions Defaults</button> -->
+
+<!-- Dropdown Container -->
+<div id="transitionsContainer"></div>
+
+<button id="process-table" onclick="processTable()">Process Table</button>
+<div id="processing" style="display: none; color: red;">
+    PROCESSING
+</div>
+<!-- Add a condition later so that this only appears after everything is filled out -->
+<div id="processedDataContainer"></div>
+
+{% endblock %}
+
+
+
+
