@@ -476,7 +476,7 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
         "far_plane": 10000,
         #"init_image":"https://github.com/ct3008/ct3008.github.io/blob/main/images/rainbow.webp",
         "init_image": "https://raw.githubusercontent.com/ct3008/ct3008.github.io/main/images/isee1.jpeg",
-        "max_frames": 125,
+        "max_frames": final_anim_frames[-1],
         "near_plane": 200,
         "invert_mask": False,
         "midas_weight": 0.3,
