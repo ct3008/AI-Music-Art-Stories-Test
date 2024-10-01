@@ -33,7 +33,7 @@ def upload_audio():
         top_onset_times = [time for time, strength in top_onsets]
 
         # Detect low-energy periods
-        threshold = np.percentile(smoothed_rms, 10)  # 10th percentile as threshold
+        threshold = np.percentile(smoothed_rms, 5)  # 10th percentile as threshold
         low_energy_before_onset = []
         for i in range(1, len(onset_frames)):
             start = onset_frames[i-1]
@@ -72,58 +72,60 @@ def upload_audio():
         threshold=request.form.get('threshold', default=0.7, type=float)
         print("THRESH: ", threshold/100)
         beats = detect_beats(data, sample_rate, threshold=threshold/100)  # Adjust threshold as needed
+        beat_strengths = [{'time': beat_time, 'strength': abs(data[int(beat_time * sample_rate)])} for beat_time in beats]
+        print("BEAT STRENGTH: ", beat_strengths[:5])
 
         os.remove(file_path)  # Clean up the audio file
-        print(low_energy_before_onset[:5], beats[:5])
+        print(low_energy_before_onset[:5], beats[:15])
 
         return jsonify({
             "success": True,
             'waveformData': waveform_data,
             "low_energy_timestamps": low_energy_before_onset,
-            "top_onset_times": top_onset_times,
-            "detectedBeats": beats,
+            # "top_onset_times": top_onset_times,
+            "detectedBeats": beat_strengths,
             "duration": duration
         })
     
     return jsonify({"success": False, "error": "No file provided"}), 400
 
-@app.route('/process_audio', methods=['POST'])
-def process_audio():
-    if 'audioFile' not in request.files:
-        return jsonify({'error': 'No audio file provided'}), 400
+# @app.route('/process_audio', methods=['POST'])
+# def process_audio():
+#     if 'audioFile' not in request.files:
+#         return jsonify({'error': 'No audio file provided'}), 400
 
-    audio_file = request.files['audioFile']
-    threshold = float(request.form.get('threshold', 70)) / 100
+#     audio_file = request.files['audioFile']
+#     threshold = float(request.form.get('threshold', 70)) / 100
 
-    # Convert MP3 to WAV
-    audio = AudioSegment.from_mp3(audio_file)
-    wav_io = io.BytesIO()
-    audio.export(wav_io, format="wav")
-    wav_io.seek(0)
+#     # Convert MP3 to WAV
+#     audio = AudioSegment.from_mp3(audio_file)
+#     wav_io = io.BytesIO()
+#     audio.export(wav_io, format="wav")
+#     wav_io.seek(0)
 
-    # Read WAV file
-    sample_rate, data = wavfile.read(wav_io)
+#     # Read WAV file
+#     sample_rate, data = wavfile.read(wav_io)
     
-    # Convert to mono if stereo
-    if len(data.shape) > 1:
-        data = np.mean(data, axis=1)
+#     # Convert to mono if stereo
+#     if len(data.shape) > 1:
+#         data = np.mean(data, axis=1)
 
-    # Normalize data
-    data = data / np.max(np.abs(data))
+#     # Normalize data
+#     data = data / np.max(np.abs(data))
 
-    # Detect beats
-    beats = detect_beats(data, sample_rate, threshold)
+#     # Detect beats
+#     beats = detect_beats(data, sample_rate, threshold)
 
-    # Generate waveform data (downsampled for efficiency)
-    waveform_data = data[::100].tolist()
-    print("---------------HELLO--------------")
-    print(waveform_data[:5], beats[:5])
+#     # Generate waveform data (downsampled for efficiency)
+#     waveform_data = data[::80].tolist()
+#     print("---------------HELLO--------------")
+#     print(waveform_data[:5], beats[:20])
 
-    return jsonify({
-        'waveformData': waveform_data,
-        'detectedBeats': beats,
-        'duration': len(data) / sample_rate
-    })
+#     return jsonify({
+#         'waveformData': waveform_data,
+#         'detectedBeats': beats,
+#         'duration': len(data) / sample_rate
+#     })
 
 def detect_beats(data, sample_rate, threshold):
     beats = []
