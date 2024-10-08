@@ -2,6 +2,7 @@ const player = document.getElementById('audioPlayer');
 
 const textContainer = document.querySelector('.textContainer');
 
+
 var playheadInterval;
 let audioDuration;
 let lowEnergyBeats = {};
@@ -10,6 +11,11 @@ let motion_mode = "3D";
 let newsigPoints = [];
 let lastClickedLabel = null; 
 let transitionsAdded = false;
+let draggingRegionId = null; 
+let originalStartTime = null;
+let waveform;
+let deleteMode=false;
+let isDeleteTransitionMode = false;
 
 function movePlayheadOG() {
     const containerWidth = beatContainer.offsetWidth; // Width of the container
@@ -251,16 +257,10 @@ function playTimeRange(startTime, endTime) {
 }
 
 function makeTimestamp(isTrans){
-    // finalizeTimestamps('time');
-    // finalizeTimestamps('transition');
-    // console.log("enter");
-    // finalizeTimestamps('time');
     
     if (isTrans){
         console.log("trans");
         transitionsAdded = true;
-        // finalizeTimestamps('time');
-        // finalizeTimestamps('transition');
         createTransitionLines();
     } else{
         console.log("other")
@@ -279,6 +279,7 @@ function finalizeTimestamps(name) {
     const timestampsContainer = document.getElementById('timestampsContainer');
     timestampsContainer.innerHTML = ''; // Clear previous timestamps
 
+    newsigPoints = newsigPoints.sort((a, b) => a - b);
     newsigPoints.forEach(time => {
         const timestampElement = document.createElement('div');
         timestampElement.textContent = `Time: ${time.toFixed(2)} seconds`;
@@ -954,6 +955,7 @@ function processTable(){
     };
     document.getElementById('processing').style = "display: block;"
     console.log(data);
+    console.log("RUNNING PROCESS TABLE");
     
 
     fetch('/process-data', {
@@ -1007,6 +1009,237 @@ function processTable(){
 
 function processAudio() {
     const fileInput = document.getElementById('audioFile');
+    // const clearButton = document.getElementById('clearButton');
+
+    // clearButton.click(); // Ensure clear button is clicked before processing
+    if (fileInput.files.length === 0) {
+        alert("Please select an audio file first.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('audioFile', fileInput.files[0]);
+
+    fetch('/upload_audio', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const audioUrl = URL.createObjectURL(fileInput.files[0]);
+
+            if (waveform) {
+                // If there's already a waveform
+                if (waveform.regions) {
+                    waveform.clearRegions(); 
+                }
+
+                waveform.unAll(); 
+
+                waveform.load(audioUrl);
+                
+            } else {
+                // Create a new WaveSurfer instance
+                waveform = WaveSurfer.create({
+                    container: '#waveform',
+                    height: 256,
+                    waveColor: 'rgb(200, 0, 200)',
+                    progressColor: 'rgb(100, 0, 100)',
+                    plugins: [
+                        WaveSurfer.regions.create() // Initialize the Regions plugin
+                    ],
+                });
+
+                // Load the audio URL
+                waveform.load(audioUrl);
+                console.log("New WaveSurfer instance created and audio loaded: ", audioUrl);
+            }
+
+            waveform.on('error', (error) => {
+                console.error('WaveSurfer Error: ', error);
+            });
+
+            let beats_time = [];
+
+            data.top_onset_times.forEach(beat => {
+                beats_time.push(beat.time);
+            });
+
+            // Draw the fetched lowEnergyBeats
+            let lowEnergyBeatTimes = [];
+            data.low_energy_timestamps.forEach(beats => {
+                lowEnergyBeatTimes.push(beats.time);
+            });
+
+            // Set up regions and markers after the waveform is ready
+            waveform.on('ready', () => {
+                console.log("Waveform is ready.");
+                setupRegions(waveform, lowEnergyBeatTimes, 'Low Energy Beat', 'red', 0.01, false);
+                setupRegions(waveform, beats_time, 'Beats', 'blue', 0.01, false);
+                // Event listener for clicking a region
+                waveform.on('region-click', (region) => {
+                    const currentTime = waveform.getCurrentTime();
+                    if (currentTime >= region.start && currentTime <= region.end) {
+                        waveform.play(region.start); // Play from the marker start
+                    }
+                    console.log("TIME: ", currentTime);
+                });
+
+                
+
+                waveform.on('region-update-end', (region) => {
+                    console.log("Region dragging ended");
+                
+                    // Get all regions from the waveform
+                    const allRegions = Object.values(waveform.regions.list); // Fetch all regions as an array
+                
+                    // Filter for regions that are green
+                    const greenRegions = allRegions.filter(r => r.color === 'green');
+                
+                    // Update newsigPoints based on green regions' start times
+                    newsigPoints = greenRegions.map(r => r.start);
+                
+                    console.log("Updated newsigPoints:", newsigPoints);
+                });
+                
+            });
+
+            // Zoom control
+            const zoomSlider = document.getElementById('zoomSlider');
+            zoomSlider.addEventListener('input', (e) => {
+                const zoomLevel = Number(e.target.value); // Get the value from the slider
+                waveform.zoom(zoomLevel); // Adjust the zoom level
+            });
+            
+            // Play/Pause control
+            const playPauseButton = document.getElementById('playPauseButton');
+            playPauseButton.addEventListener('click', () => {
+                if (waveform.isPlaying()) {
+                    waveform.pause();
+                } else {
+                    waveform.play();
+                }
+            });
+
+            document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+            lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+            audioDuration = data.duration;
+
+            console.log("sig pts: ", newsigPoints);
+            significantPoints = findSignificantPoints(data.aligned_onsets, lowEnergyBeats, audioDuration);
+            significantPoints.sort((a, b) => a - b);
+            if(newsigPoints.length == 0){
+                console.log("refresh new song");
+                //no sig pts have been identified yet
+                newsigPoints = [...significantPoints]
+                newsigPoints.sort((a, b) => a - b);
+                console.log("SIG POINTS: " + significantPoints);
+                
+            }
+            else if(significantPoints[0] != newsigPoints[0] || significantPoints.length != newsigPoints.length){
+                //new song loaded
+                console.log("new song when one loaded");
+                newsigPoints = [...significantPoints]
+                newsigPoints.sort((a, b) => a - b);
+                
+            } else{
+                console.log("same song");
+                //same song is loaded
+                newsigPoints.sort((a, b) => a - b);
+                
+            }
+            setupRegions(waveform, newsigPoints, 'Significant Points', 'green', 0.5, true);
+            waveform.on('region-drag', (region) => {
+                console.log('Region dragged to', region.start); // Log new start time
+            });
+            
+
+
+        } else {
+            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+    });
+}
+
+
+function setupRegions(waveform, data, content, color, size, drag, resize = false) {
+    data.forEach(beat => {
+        // Create a region with optional drag and resize capabilities
+        const region = waveform.addRegion({
+            start: beat,
+            end: beat + size,  // Duration of the region
+            color: color, // Color for the region
+            content: content, // Label content for the region
+            drag: drag, // Allow dragging
+            resize: resize, // Allow resizing from both sides
+        });
+
+        // Add labels for Significant Points regions (as before)
+        if (content === "Significant Points") {
+            const label = document.createElement('span');
+            label.className = 'region-label';
+            label.innerText = region.start.toFixed(2); // Display the start time rounded to 2 decimals
+            label.style.position = 'absolute';
+            label.style.color = 'black';
+            label.style.fontSize = '12px';
+            label.style.background = 'rgba(255, 255, 255, 0.7)';
+            label.style.padding = '2px';
+            label.style.borderRadius = '3px';
+
+            region.element.appendChild(label);
+
+            region.on('update', () => {
+                label.innerText = region.start.toFixed(2); // Update the label's text
+            });
+
+            region.on('update-end', () => {
+                label.style.left = `${region.element.getBoundingClientRect().width / 2 - label.clientWidth / 2}px`;
+                label.innerText = region.start.toFixed(2); // Update the label's text after dragging ends
+            });
+        }
+
+        // Special handling for transitions (make sure these are draggable and resizable)
+        if (content === "Transition") {
+            console.log("Transition region created at", region.start, "with size", size);
+
+            // Add an event listener to handle resizing (if needed)
+            region.on('resize', () => {
+                console.log("Region resized: Start =", region.start, "End =", region.end);
+            });
+
+            // Update visual representation during dragging or resizing
+            region.on('update-end', () => {
+                console.log("Region updated: Start =", region.start, "End =", region.end);
+            });
+        }
+    });
+}
+
+// function drawSignificantPointsAsMarkers(wavesurfer, points) {
+//     // Clear any existing markers or regions
+//     wavesurfer.clearMarkers();
+
+//     // Loop through significant points and add a thick marker at each point
+//     points.forEach((point, index) => {
+//         wavesurfer.addMarker({
+//             time: point,  // Position of the marker
+//             label: `${index + 1}`, // Label for the marker, can be removed or modified
+//             color: 'green', // Marker color (red in this case)
+//             lineWidth: 4, // Thickness of the marker
+//             position: 'top', // Marker position ('top' places the marker at the top of the waveform)
+//         });
+//     });
+// }
+
+
+
+function processAudioNormal() {
+    const fileInput = document.getElementById('audioFile');
     const thresholdInput = document.getElementById('threshold');
     const beatContainer = document.getElementById('beatContainer');
     const waveformCanvas = document.getElementById('waveformCanvas');
@@ -1048,6 +1281,7 @@ function processAudio() {
     });
 }
 
+
 function processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer) {
     const audioContext = new AudioContext();
     const reader = new FileReader();
@@ -1087,6 +1321,211 @@ function processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanv
     reader.readAsArrayBuffer(fileInput.files[0]);
 }
 
+// function filterClosePoints(points, maxGap) {
+//     const sortedPoints = points.slice().sort((a, b) => a - b);
+//     const filtered = [sortedPoints[0]]; // Start with the first point
+
+//     for (let i = 1; i < sortedPoints.length; i++) {
+//         if (sortedPoints[i] - filtered[filtered.length - 1] > maxGap) {
+//             filtered.push(sortedPoints[i]);
+//         }
+//     }
+
+//     return filtered;
+// }
+
+// function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
+//     // Step 1: Combine beats and lowEnergyBeats with metadata
+//     const combined = [];
+//     beats.forEach(point => combined.push({ time: point.time, source: 'beat', strength: point.strength }));
+//     lowEnergyBeats.forEach(point => combined.push({ time: point.time, source: 'lowEnergy', strength: point.strength }));
+
+//     // Step 2: Sort combined array by time
+//     combined.sort((a, b) => a.time - b.time);
+
+//     // Exclude points too close to the beginning or end
+//     const excludedPoints = combined.filter(point => 
+//         point.time > 3 && point.time < (songDuration - 4)
+//     );
+
+//     // Step 3: Clustering
+//     const clustered = [];
+//     let currentCluster = [];
+//     const minDistance = 1; // Minimum distance between points to be in the same cluster
+//     const maxLowEnergyDistance = 3; // Maximum distance for lowEnergyBeats to be clustered together
+
+//     for (let i = 0; i < excludedPoints.length; i++) {
+//         if (currentCluster.length === 0) {
+//             currentCluster.push(excludedPoints[i]);
+//         } else {
+//             const lastPoint = currentCluster[currentCluster.length - 1];
+//             const currentPoint = excludedPoints[i];
+
+//             if (currentPoint.source === 'lowEnergy' && (currentPoint.time - currentCluster[0].time) <= maxLowEnergyDistance) {
+//                 currentCluster.push(currentPoint);
+//             } else if ((currentPoint.time - lastPoint.time) < minDistance) {
+//                 currentCluster.push(currentPoint);
+//             } else {
+//                 clustered.push(currentCluster);
+//                 currentCluster = [currentPoint];
+//             }
+//         }
+//     }
+
+//     if (currentCluster.length > 0) {
+//         clustered.push(currentCluster);
+//     }
+
+//     // Step 4: Selecting points
+//     const finalPoints = [];
+//     clustered.forEach(cluster => {
+//         if (cluster.length > 0) {
+//             // Check for clusters with multiple lowEnergyBeats
+//             const lowEnergyPoints = cluster.filter(point => point.source === 'lowEnergy');
+//             if (lowEnergyPoints.length > 1) {
+//                 // Average the locations of lowEnergyBeats
+//                 const lowEnergySum = lowEnergyPoints.reduce((sum, point) => sum + point.time, 0);
+//                 const averageLowEnergy = lowEnergySum / lowEnergyPoints.length;
+//                 finalPoints.push(averageLowEnergy);
+//             } else {
+//                 // Select the most significant point in each cluster
+//                 const significantPoint = cluster.reduce((prev, curr) => {
+//                     // Prefer points with higher strength
+//                     if (curr.source === 'beat' && (prev.source !== 'beat' || curr.strength > prev.strength)) return curr;
+//                     return prev;
+//                 }, cluster[0]);
+
+//                 finalPoints.push(significantPoint.time);
+//             }
+//         }
+//     });
+
+//     // Ensure we have roughly 10 points
+//     const desiredCount = Math.floor(songDuration / 4);
+
+//     // Combine or average points within 2.5 seconds of each other
+//     const combinedFinalPoints = [];
+//     for (let i = 0; i < finalPoints.length; i++) {
+//         if (combinedFinalPoints.length === 0) {
+//             combinedFinalPoints.push(finalPoints[i]);
+//         } else {
+//             const lastPoint = combinedFinalPoints[combinedFinalPoints.length - 1];
+//             const currentPoint = finalPoints[i];
+//             if (currentPoint - lastPoint <= 2.5) {
+//                 // Average the points
+//                 combinedFinalPoints[combinedFinalPoints.length - 1] = (lastPoint + currentPoint) / 2;
+//             } else {
+//                 combinedFinalPoints.push(currentPoint);
+//             }
+//         }
+//     }
+
+//     if (combinedFinalPoints.length > desiredCount) {
+//         return combinedFinalPoints.slice(0, desiredCount);
+//     } else {
+//         return insertAdditionalPoints(combinedFinalPoints, combined, beats, lowEnergyBeats, desiredCount, songDuration);
+//     }
+// }
+
+// function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, desiredCount, songDuration) {
+//     const newPoints = [...finalPoints];
+//     newPoints.sort((a, b) => a - b);
+
+//     const minGap = 2.5;
+//     let loopCounter = 0;
+//     const maxLoops = 5;
+//     let lastNewPointLength = -1;
+
+//     while (newPoints.length < desiredCount) {
+//         const gaps = [];
+
+//         // Include the start of the song as a gap
+//         if (newPoints.length === 0 || newPoints[0] > 0) {
+//             gaps.push({ start: 0, end: newPoints[0] || songDuration, gap: newPoints[0] || songDuration });
+//         }
+
+//         for (let i = 0; i < newPoints.length - 1; i++) {
+//             const start = newPoints[i];
+//             const end = newPoints[i + 1];
+//             gaps.push({ start, end, gap: end - start });
+//         }
+
+//         // Include the end of the song as a gap
+//         if (newPoints.length === 0 || newPoints[newPoints.length - 1] < songDuration) {
+//             gaps.push({ start: newPoints[newPoints.length - 1] || 0, end: songDuration, gap: songDuration - (newPoints[newPoints.length - 1] || 0) });
+//         }
+
+//         const maxGapObj = gaps.reduce((max, gap) => gap.gap > max.gap ? gap : max, { gap: 0 });
+
+//         if (maxGapObj.gap >= minGap) {
+//             const midPoint = (maxGapObj.start + maxGapObj.end) / 2;
+//             const nearbyPoints = allPoints.filter(p => p.time >= maxGapObj.start && p.time <= maxGapObj.end);
+
+//             const lowEnergyCandidates = nearbyPoints.filter(p => p.source === 'lowEnergy' && Math.abs(p.time - midPoint) <= 2);
+//             if (lowEnergyCandidates.length > 0) {
+//                 const centerPoint = lowEnergyCandidates.reduce((sum, point) => sum + point.time, 0) / lowEnergyCandidates.length;
+//                 if (!newPoints.some(p => Math.abs(p - centerPoint) <= minGap) && centerPoint > 3 && centerPoint < (songDuration - 3)) {
+//                     newPoints.push(centerPoint);
+//                 }
+//             } else {
+//                 const beatCandidates = nearbyPoints.filter(p => p.source === 'beat' && Math.abs(p.time - midPoint) <= 2);
+//                 if (beatCandidates.length > 0) {
+//                     const chosenPoint = beatCandidates[0].time;
+//                     if (!newPoints.some(p => Math.abs(p - chosenPoint) <= minGap) && chosenPoint > 3 && chosenPoint < (songDuration - 3)) {
+//                         newPoints.push(chosenPoint);
+//                     }
+//                 } else {
+//                     if (!newPoints.some(p => Math.abs(p - midPoint) <= minGap) && midPoint > 3 && midPoint < (songDuration - 3)) {
+//                         newPoints.push(midPoint);
+//                     }
+//                 }
+//             }
+//         } else {
+//             // Add directly from beats and lowEnergyBeats if necessary
+//             let addedPoints = false;
+
+//             for (let i = 0; i < lowEnergyBeats.length && newPoints.length < desiredCount; i++) {
+//                 if (!newPoints.includes(lowEnergyBeats[i].time) && (newPoints.length === 0 || lowEnergyBeats[i].time - newPoints[newPoints.length - 1] >= minGap) && lowEnergyBeats[i].time > 3 && lowEnergyBeats[i].time < (songDuration - 3)) {
+//                     newPoints.push(lowEnergyBeats[i].time);
+//                     addedPoints = true;
+//                 }
+//             }
+//             for (let i = 0; i < beats.length && newPoints.length < desiredCount; i++) {
+//                 if (!newPoints.includes(beats[i].time) && (newPoints.length === 0 || beats[i].time - newPoints[newPoints.length - 1] >= minGap) && beats[i].time > 3 && beats[i].time < (songDuration - 3)) {
+//                     newPoints.push(beats[i].time);
+//                     addedPoints = true;
+//                 }
+//             }
+
+//             if (!addedPoints) {
+//                 loopCounter++;
+//                 if (loopCounter > maxLoops) {
+//                     break; // Exit if too many iterations
+//                 }
+//             }
+//         }
+
+//         // Sort again to find new gaps
+//         newPoints.sort((a, b) => a - b);
+
+//         // Check if the length of newPoints is within 2 of the desiredCount
+//         if (desiredCount - newPoints.length <= 2) {
+//             break; // Exit if close to desired count
+//         }
+
+//         // Break if no new points are added to prevent infinite loops
+//         if (newPoints.length === lastNewPointLength) {
+//             break;
+//         } else {
+//             lastNewPointLength = newPoints.length;
+//         }
+//     }
+
+//     // Ensure no duplicates and the exact desired count
+//     return [...new Set(newPoints)].slice(0, desiredCount);
+// }
+
+
 function filterClosePoints(points, maxGap) {
     const sortedPoints = points.slice().sort((a, b) => a - b);
     const filtered = [sortedPoints[0]]; // Start with the first point
@@ -1101,8 +1540,12 @@ function filterClosePoints(points, maxGap) {
 }
 
 function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
+    console.log("find sig");
+
     // Step 1: Combine beats and lowEnergyBeats with metadata
     const combined = [];
+    console.log("beats: ", beats);
+    console.log("lowenergy: ", lowEnergyBeats);
     beats.forEach(point => combined.push({ time: point.time, source: 'beat', strength: point.strength }));
     lowEnergyBeats.forEach(point => combined.push({ time: point.time, source: 'lowEnergy', strength: point.strength }));
 
@@ -1111,98 +1554,76 @@ function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
 
     // Exclude points too close to the beginning or end
     const excludedPoints = combined.filter(point => 
-        point.time > 3 && point.time < (songDuration - 4)
+        point.time > 3 && point.time < (songDuration - 3)
     );
 
-    // Step 3: Clustering
-    const clustered = [];
-    let currentCluster = [];
-    const minDistance = 1; // Minimum distance between points to be in the same cluster
-    const maxLowEnergyDistance = 3; // Maximum distance for lowEnergyBeats to be clustered together
-
-    for (let i = 0; i < excludedPoints.length; i++) {
-        if (currentCluster.length === 0) {
-            currentCluster.push(excludedPoints[i]);
-        } else {
-            const lastPoint = currentCluster[currentCluster.length - 1];
-            const currentPoint = excludedPoints[i];
-
-            if (currentPoint.source === 'lowEnergy' && (currentPoint.time - currentCluster[0].time) <= maxLowEnergyDistance) {
-                currentCluster.push(currentPoint);
-            } else if ((currentPoint.time - lastPoint.time) < minDistance) {
-                currentCluster.push(currentPoint);
-            } else {
-                clustered.push(currentCluster);
-                currentCluster = [currentPoint];
-            }
-        }
-    }
-
-    if (currentCluster.length > 0) {
-        clustered.push(currentCluster);
-    }
-
-    // Step 4: Selecting points
+    // Step 3: Selecting points
     const finalPoints = [];
-    clustered.forEach(cluster => {
-        if (cluster.length > 0) {
-            // Check for clusters with multiple lowEnergyBeats
-            const lowEnergyPoints = cluster.filter(point => point.source === 'lowEnergy');
-            if (lowEnergyPoints.length > 1) {
-                // Average the locations of lowEnergyBeats
-                const lowEnergySum = lowEnergyPoints.reduce((sum, point) => sum + point.time, 0);
-                const averageLowEnergy = lowEnergySum / lowEnergyPoints.length;
-                finalPoints.push(averageLowEnergy);
-            } else {
-                // Select the most significant point in each cluster
-                const significantPoint = cluster.reduce((prev, curr) => {
-                    // Prefer points with higher strength
-                    if (curr.source === 'beat' && (prev.source !== 'beat' || curr.strength > prev.strength)) return curr;
-                    return prev;
-                }, cluster[0]);
+    const desiredCount = Math.ceil(songDuration / 4);
+    const minGap = 4; // Minimum gap between selected points
 
-                finalPoints.push(significantPoint.time);
+    let lastSelectedTime = -minGap; // Initialize to a negative value
+
+    excludedPoints.forEach(point => {
+        if (point.time - lastSelectedTime >= minGap) {
+            // Check for strong nearby points (within 1.5 seconds)
+            const nearbyPoints = excludedPoints.filter(p => 
+                Math.abs(p.time - point.time) <= 1.5
+            );
+
+            if (nearbyPoints.length > 0) {
+                // Select the strongest point from nearby candidates
+                const strongestPoint = nearbyPoints.reduce((prev, curr) => {
+                    return (curr.strength > prev.strength) ? curr : prev;
+                });
+
+                // Add the strongest point's time
+                finalPoints.push(strongestPoint.time);
+                lastSelectedTime = strongestPoint.time; // Update the last selected time
             }
         }
     });
 
-    // Ensure we have roughly 10 points
-    const desiredCount = Math.floor(songDuration / 4);
+    // Ensure the final points are unique
+    let uniqueFinalPoints = [...new Set(finalPoints)];
+    console.log("unique: ", uniqueFinalPoints);
 
-    // Combine or average points within 2.5 seconds of each other
-    const combinedFinalPoints = [];
-    for (let i = 0; i < finalPoints.length; i++) {
-        if (combinedFinalPoints.length === 0) {
-            combinedFinalPoints.push(finalPoints[i]);
-        } else {
-            const lastPoint = combinedFinalPoints[combinedFinalPoints.length - 1];
-            const currentPoint = finalPoints[i];
-            if (currentPoint - lastPoint <= 2.5) {
-                // Average the points
-                combinedFinalPoints[combinedFinalPoints.length - 1] = (lastPoint + currentPoint) / 2;
-            } else {
-                combinedFinalPoints.push(currentPoint);
-            }
+    // Step 4: Remove any points where the gap between consecutive points is shorter than 3 seconds (except the final point)
+    uniqueFinalPoints = uniqueFinalPoints.filter((point, index, array) => {
+        if (index === array.length - 1) {
+            return true; // Always keep the final point
         }
-    }
+        return (array[index + 1] - point >= 3); // Keep if the gap to the next point is >= 3 seconds
+    });
 
-    if (combinedFinalPoints.length > desiredCount) {
-        return combinedFinalPoints.slice(0, desiredCount);
+    console.log("Filtered points (gap >= 3): ", uniqueFinalPoints);
+
+    // Step 5: If we have more than the desired count, slice to desired count
+    if (uniqueFinalPoints.length > desiredCount) {
+        console.log("more");
+        return uniqueFinalPoints.slice(0, desiredCount);
     } else {
-        return insertAdditionalPoints(combinedFinalPoints, combined, beats, lowEnergyBeats, desiredCount, songDuration);
+        console.log("less");
+        // Otherwise, insert additional points if needed
+        return insertAdditionalPoints(uniqueFinalPoints, combined, beats, lowEnergyBeats, desiredCount, songDuration);
     }
 }
 
+
+// Inserts additional points if there are fewer than the desired number of points
 function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, desiredCount, songDuration) {
+    console.log("insert");
+
     const newPoints = [...finalPoints];
     newPoints.sort((a, b) => a - b);
+    const minGap = 4;
 
-    const minGap = 2.5;
-    let loopCounter = 0;
-    const maxLoops = 5;
-    let lastNewPointLength = -1;
+    let loopCounter = 0; // Counter to prevent infinite loops
+    const maxLoops = 15; // Maximum number of iterations to prevent infinite loops
 
-    while (newPoints.length < desiredCount) {
+    while (newPoints.length < desiredCount && loopCounter < maxLoops) {
+        loopCounter++; // Increment the loop counter
+
         const gaps = [];
 
         // Include the start of the song as a gap
@@ -1227,69 +1648,31 @@ function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, d
             const midPoint = (maxGapObj.start + maxGapObj.end) / 2;
             const nearbyPoints = allPoints.filter(p => p.time >= maxGapObj.start && p.time <= maxGapObj.end);
 
-            const lowEnergyCandidates = nearbyPoints.filter(p => p.source === 'lowEnergy' && Math.abs(p.time - midPoint) <= 2);
-            if (lowEnergyCandidates.length > 0) {
-                const centerPoint = lowEnergyCandidates.reduce((sum, point) => sum + point.time, 0) / lowEnergyCandidates.length;
-                if (!newPoints.some(p => Math.abs(p - centerPoint) <= minGap) && centerPoint > 3 && centerPoint < (songDuration - 3)) {
-                    newPoints.push(centerPoint);
-                }
-            } else {
-                const beatCandidates = nearbyPoints.filter(p => p.source === 'beat' && Math.abs(p.time - midPoint) <= 2);
-                if (beatCandidates.length > 0) {
-                    const chosenPoint = beatCandidates[0].time;
-                    if (!newPoints.some(p => Math.abs(p - chosenPoint) <= minGap) && chosenPoint > 3 && chosenPoint < (songDuration - 3)) {
-                        newPoints.push(chosenPoint);
-                    }
-                } else {
-                    if (!newPoints.some(p => Math.abs(p - midPoint) <= minGap) && midPoint > 3 && midPoint < (songDuration - 3)) {
-                        newPoints.push(midPoint);
-                    }
+            // Try to align with lowEnergy or beat points
+            const candidates = nearbyPoints.filter(p => Math.abs(p.time - midPoint) <= 2);
+            if (candidates.length > 0) {
+                const chosenPoint = candidates.reduce((prev, curr) => {
+                    return (curr.strength > prev.strength) ? curr : prev;
+                });
+                if (!newPoints.includes(chosenPoint.time) && (newPoints.length === 0 || chosenPoint.time - newPoints[newPoints.length - 1] >= minGap)) {
+                    newPoints.push(chosenPoint.time);
                 }
             }
         } else {
-            // Add directly from beats and lowEnergyBeats if necessary
-            let addedPoints = false;
-
-            for (let i = 0; i < lowEnergyBeats.length && newPoints.length < desiredCount; i++) {
-                if (!newPoints.includes(lowEnergyBeats[i].time) && (newPoints.length === 0 || lowEnergyBeats[i].time - newPoints[newPoints.length - 1] >= minGap) && lowEnergyBeats[i].time > 3 && lowEnergyBeats[i].time < (songDuration - 3)) {
-                    newPoints.push(lowEnergyBeats[i].time);
-                    addedPoints = true;
-                }
-            }
-            for (let i = 0; i < beats.length && newPoints.length < desiredCount; i++) {
-                if (!newPoints.includes(beats[i].time) && (newPoints.length === 0 || beats[i].time - newPoints[newPoints.length - 1] >= minGap) && beats[i].time > 3 && beats[i].time < (songDuration - 3)) {
-                    newPoints.push(beats[i].time);
-                    addedPoints = true;
-                }
-            }
-
-            if (!addedPoints) {
-                loopCounter++;
-                if (loopCounter > maxLoops) {
-                    break; // Exit if too many iterations
-                }
-            }
+            // Break if there are no more gaps large enough to insert
+            break;
         }
-
+        // console.log("new pt: ", newPoints)
         // Sort again to find new gaps
         newPoints.sort((a, b) => a - b);
-
-        // Check if the length of newPoints is within 2 of the desiredCount
-        if (desiredCount - newPoints.length <= 2) {
-            break; // Exit if close to desired count
-        }
-
-        // Break if no new points are added to prevent infinite loops
-        if (newPoints.length === lastNewPointLength) {
-            break;
-        } else {
-            lastNewPointLength = newPoints.length;
-        }
     }
 
     // Ensure no duplicates and the exact desired count
+    console.log([...new Set(newPoints)].slice(0, desiredCount));
     return [...new Set(newPoints)].slice(0, desiredCount);
 }
+
+
 
 function updateNewsigPoints() {
     // Clear newsigPoints and update based on current label values
@@ -1437,12 +1820,124 @@ function drawBeats(beats, beatContainer, duration, color, hidden = false) {
 }
 
 function addNewInterval() {
-    const beatContainer = document.getElementById('beatContainer');
-    const duration = audioDuration;
-    const middleTime = duration / 2;
+    data = [audioDuration/2]
+    newsigPoints = [...data];
+    newsigPoints = newsigPoints.sort((a, b) => a - b);
+    console.log("AFTER ADD: ", newsigPoints)
+    setupRegions(waveform, data, "Significant Points", 'green', 0.5, true);
+    //OLD VERSION
+    // const beatContainer = document.getElementById('beatContainer');
+    // const duration = audioDuration;
+    // const middleTime = duration / 2;
 
-    createBeat(middleTime, beatContainer, duration, 'red', true, true);
+    // createBeat(middleTime, beatContainer, duration, 'red', true, true);
 }
+
+function delete_intervals() {
+    // Toggle delete mode on/off when the function is called
+    deleteMode = !deleteMode;
+    
+    const deleteButton = document.getElementById('deleteButton');
+    
+    if (deleteMode) {
+        console.log("Delete mode enabled. Click on a region to delete it.");
+        
+        // Update the button style to reflect the active delete mode
+        deleteButton.textContent = "Exit Delete Mode";
+        deleteButton.style.backgroundColor = "red";
+        deleteButton.style.color = "white";
+
+        // Add a hover effect and region click event listener
+        Object.values(waveform.regions.list).forEach(region => {
+            if (region.color === 'green') {
+                // Add hover effect to highlight in red
+                region.element.addEventListener('mouseenter', () => {
+                    if (deleteMode) {
+                        region.update({ color: 'red' });
+                    }
+                });
+                region.element.addEventListener('mouseleave', () => {
+                    if (deleteMode) {
+                        region.update({ color: 'green' });
+                    }
+                });
+            }
+        });
+
+        // Add the event listener for region click
+        waveform.on('region-click', (region, e) => {
+            e.stopPropagation(); // Prevent any other action from triggering
+
+            // Only delete if the region is a green significant point
+            if (region.color === 'red') { // After hover, region will be red
+                // Remove the region from the waveform
+                region.remove();
+
+                // Update the newsigPoints array by filtering out the deleted region
+                newsigPoints = newsigPoints.filter(time => time !== region.start);
+
+                console.log("Deleted region and updated newsigPoints:", newsigPoints);
+            } else {
+                console.log("Clicked on a non-deletable region. No action taken.");
+            }
+        });
+    } else {
+        console.log("Delete mode disabled.");
+
+        // Restore the button to its original state
+        deleteButton.textContent = "Delete Intervals";
+        deleteButton.style.backgroundColor = "";
+        deleteButton.style.color = "";
+
+        // Remove the hover and click event listeners when delete mode is off
+        Object.values(waveform.regions.list).forEach(region => {
+            if (region.color === 'green' || region.color === 'red') {
+                region.element.removeEventListener('mouseenter', null);
+                region.element.removeEventListener('mouseleave', null);
+            }
+        });
+
+        waveform.un('region-click'); // Remove the region click listener when delete mode is off
+    }
+}
+
+function addTransitionRegions() {
+    const timeRangeDivs = document.querySelectorAll('div.time-range[id^="time-range"]');
+    let transitionRegions = [];
+    timeRangeDivs.forEach(div => {
+        const content = div.textContent;  // Get the content of the div
+        
+        // Regex to match 'Transition (X.XXs to Y.YYs)'
+        const regex = /Transition\s\(([\d.]+)s\sto\s([\d.]+)s\)/;
+        const match = content.match(regex);
+        
+        if (match) {
+            const startTime = parseFloat(match[1]);
+            const endTime = parseFloat(match[2]);
+            
+            // Push the extracted times to the array
+            transitionRegions.push({ start: startTime, end: endTime });
+        }
+    });
+
+    // Now add the regions to the waveform
+    if (transitionRegions.length > 0) {
+        transitionRegions.forEach((region, idx) => {
+            waveform.addRegion({
+                start: region.start,
+                end: region.end,
+                color: 'rgba(255, 165, 0, 0.5)',  // Use a different color for transitions
+                drag: true,
+                resize: true,
+            });
+        });
+        console.log("Added transitions:", transitionRegions);
+    } else {
+        console.log("No transitions found.");
+    }
+}
+
+
 
 
 function detectBeats(data, sampleRate, threshold) {
@@ -1512,11 +2007,11 @@ function drawWaveform(data, canvas, duration) {
     ctx.stroke();
 }
 
-function clearBeats() {
-    const beatContainer = document.getElementById('beatContainer');
-    const beats = document.querySelectorAll('.beat');
-    beats.forEach(beat => beatContainer.removeChild(beat));
-}
+// function clearBeats() {
+//     const beatContainer = document.getElementById('beatContainer');
+//     const beats = document.querySelectorAll('.beat');
+//     beats.forEach(beat => beatContainer.removeChild(beat));
+// }
 
 function showSignificantPoints() {
     newsigPoints = [...significantPoints]
@@ -1531,9 +2026,7 @@ function showSignificantPoints() {
 }
 
 
-function hideAllBeats() {
-    document.querySelectorAll('.beat').forEach(beat => beat.style.display = 'none');
-}
+
 
 
 function getLyrics() {

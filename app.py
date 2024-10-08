@@ -11,6 +11,11 @@ app = Flask(__name__, template_folder='./templates', static_folder='./static')
 api_key = os.getenv("OPENAI_DISCO_API_KEY")
 client = OpenAI(api_key=api_key)
 
+api_token = os.getenv("MY_REPLICATE_TOKEN")
+print("API TOKEN?: ", api_token)
+api = replicate.Client(api_token=api_token)
+
+
 motion_magnitudes = {
     "zoom_in": {"none": 1.00, "weak": 1.02, "normal": 1.04, "strong": 3, "vstrong": 6},
     "zoom_out": {"none": 1.00, "weak": 0.98, "normal": 0.96, "strong": 0.4, "vstrong": 0.1},
@@ -38,7 +43,6 @@ def homepage():
 def upload_audio():
     file = request.files['audioFile']
     if file:
-        # Save the audio file temporarily
         file_path = os.path.join('.', file.filename)
         file.save(file_path)
 
@@ -51,56 +55,65 @@ def upload_audio():
         # Smooth RMS energy to remove minor fluctuations
         smoothed_rms = np.convolve(rms, np.ones(10)/10, mode='same')
 
-        # Perform onset detection
+        # Perform onset detection with adjusted parameters
         onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-        onset_frames = librosa.onset.onset_detect(onset_envelope=onset_env, sr=sr)
-
-        # Map onset frames to onset strengths
-        onset_strengths = [onset_env[int(frame)] for frame in onset_frames if int(frame) < len(onset_env)]
-
-        # Pair onset times with their strengths
+        smoothed_onset_env = np.convolve(onset_env, np.ones(5)/5, mode='same')
+        onset_frames = librosa.onset.onset_detect(onset_envelope=smoothed_onset_env, sr=sr, hop_length=512, backtrack=True)
+        
         onset_times = librosa.frames_to_time(onset_frames, sr=sr)
+
+        # Perform beat detection
+        tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+        beat_times2 = librosa.frames_to_time(beat_frames, sr=sr)
+        beat_times = [{'time': beat} for beat in beat_times2]
+
+        onset_strengths = [onset_env[int(frame)] for frame in onset_frames if int(frame) < len(onset_env)]
         onset_strength_pairs = list(zip(onset_times, onset_strengths))
 
         # Sort by strength, largest to smallest
         sorted_onsets = sorted(onset_strength_pairs, key=lambda x: x[1], reverse=True)
+        top_onset_times = sorted_onsets  # Keep both time and strength pairs
 
-        # Keep only the top 30 values
-        top_onsets = sorted_onsets[:30]
+        # Align onsets with closest beats while keeping strength information
+        aligned_onsets = [
+            {
+                'time': min(beat_times2, key=lambda x: abs(x - time)),
+                'strength': float(strength),  # Convert to float
+            }
+            for time, strength in top_onset_times
+        ]
 
-        # Extract times from sorted onsets
-        top_onset_times = [time for time, strength in top_onsets]
-
-        # Determine a threshold for major dips
-        threshold = np.percentile(smoothed_rms, 10)  # 10th percentile as threshold
-
-        # Find major low-energy periods before onsets
+        # Find low-energy periods
+        threshold = np.percentile(smoothed_rms, 10)
         low_energy_before_onset = []
         for i in range(1, len(onset_frames)):
             start = onset_frames[i-1]
             end = onset_frames[i]
-            rms_segment = smoothed_rms[start:end]
-            min_rms = np.min(rms_segment)
-            if min_rms < threshold:
-                low_energy_before_onset.append({
-                    'time': librosa.frames_to_time(start, sr=sr),
-                    'strength': min_rms
-                })
-
-        # Sort low-energy periods by strength (smallest to largest)
-        low_energy_before_onset.sort(key=lambda x: x['strength'])
+            
+            # Ensure the segment is valid and non-empty
+            if start < end and end <= len(smoothed_rms):
+                rms_segment = smoothed_rms[start:end]
+                if len(rms_segment) > 0:  # Ensure the segment is non-empty
+                    min_rms = np.min(rms_segment)
+                    if min_rms < threshold:
+                        low_energy_before_onset.append({
+                            'time': float(librosa.frames_to_time(start, sr=sr)),  # Convert to float
+                            'strength': float(min_rms)  # Convert to float
+                        })
 
         duration = librosa.get_duration(y=y, sr=sr)
+        print("BEATS: ", beat_times[0:5])  # Change to beat_times2 for accurate print
+        print("ALIGNED: ", aligned_onsets[0:15])
 
-        os.remove(file_path)  # Clean up the audio file
-        print(low_energy_before_onset)
         return jsonify({
             "success": True,
             "low_energy_timestamps": low_energy_before_onset,
-            "top_onset_times": top_onset_times,
-            "duration": duration
+            "top_onset_times": beat_times,
+            "aligned_onsets": aligned_onsets, 
+            "duration": float(duration)
         })
     return jsonify({"success": False, "error": "No file provided"}), 400
+
 
 @app.route('/upload_audio_large', methods=['POST'])
 def upload_audio_large():
@@ -194,8 +207,8 @@ def get_motion_data(form_data, trans_data, time_intervals):
 def get_closest_form_data(time, form_data):
     closest_time = min((float(t) for t in form_data.keys() if float(t) >= time), default=None)
     if closest_time is not None:
-        print(closest_time)
-        print(form_data)
+        # print(closest_time)
+        # print(form_data)
         return form_data[f"{closest_time:.2f}"]
     else:
         closest_time = min((float(t) for t in form_data.keys() if float(t) <= time), default=None)
@@ -224,16 +237,16 @@ def get_motion_and_speed(time, form_data):
 def parse_input_data(form_data, trans_data, song_duration):
     trans_data = {k: v for k, v in trans_data.items() if v.get('transition', True)}
     scene_change_times = sorted(list(map(float,form_data.keys())))
-    print(scene_change_times)
+    # print(scene_change_times)
 
-    print(trans_data.keys())
+    # print(trans_data.keys())
     transition_times = list(map(float, [time.split('-')[0] for time in trans_data.keys()] + [time.split('-')[1] for time in trans_data.keys()] + list(form_data.keys())))
-    print(transition_times)
+    # print(transition_times)
     time_intervals = sorted(set(scene_change_times + transition_times))
     time_intervals = [0] + [float(i) for i in time_intervals] + [float(round(song_duration, 2))]
     time_intervals = set(time_intervals)
     time_intervals = list(sorted(time_intervals))
-    print("HERE TIME: ", time_intervals)
+    # print("HERE TIME: ", time_intervals)
     interval_strings = [f"{time_intervals[i]}-{time_intervals[i+1]}" for i in range(len(time_intervals) - 1)]
     motion_data = get_motion_data(form_data, trans_data, time_intervals)
     interval_strings = [f"{time_intervals[i]}-{time_intervals[i+1]}" for i in range(len(time_intervals) - 1)]
@@ -241,7 +254,7 @@ def parse_input_data(form_data, trans_data, song_duration):
     for interval, motions in zip(interval_strings, motion_data):
         print(f"Interval: {interval}, Motions: {motions}")
 
-    print("TIME INTERVAL", time_intervals)
+    # print("TIME INTERVAL", time_intervals)
 
     for key, value in form_data.items():
         time_intervals.append(float(key))
@@ -252,7 +265,7 @@ def parse_input_data(form_data, trans_data, song_duration):
     
     time_intervals = sorted(set(time_intervals))
     time_intervals = [str(i) for i in time_intervals]
-    print(time_intervals)
+    # print(time_intervals)
     
     return song_duration, scene_change_times, transition_times, time_intervals, interval_strings, motion_data
 
@@ -273,15 +286,15 @@ def calculate_frames(scene_change_times, time_intervals, motion_data, total_song
 
     current_frame = 0
     animation_prompts = []
-    print("INTERVAL: ", time_intervals)
+    # print("INTERVAL: ", time_intervals)
     for interval, motions in zip(time_intervals, motion_data):
         _, strength, speed = motions[0]
         start_time, end_time = map(float, interval.split('-'))
         
-        print("TMP TIME: ", tmp_times)
+        # print("TMP TIME: ", tmp_times)
         if tmp_times != [] and int(tmp_times[0]) <= end_time and int(tmp_times[0]) >= start_time:
             new_frame = round(current_frame + ((tmp_times[0]) - start_time) * 15 * speed_multiplier[speed])
-            print("----------------END FRAME:---------------", new_frame)
+            # print("----------------END FRAME:---------------", new_frame)
             if new_frame not in final_anim_frames:
 				
                 final_anim_frames.append(new_frame)
@@ -345,9 +358,9 @@ def build_transition_strings(frame_data):
     for motion, frames in frame_data.items():
         previous_end_frame = None
         for (start_frame, end_frame, duration, value) in frames:
-            print("START: ", start_frame)
-            print("END: ", end_frame)
-            print("VALUE: ", value)
+            # print("START: ", start_frame)
+            # print("END: ", end_frame)
+            # print("VALUE: ", value)
             pre_frame = start_frame - 1
             post_frame = end_frame + 1
 
@@ -474,7 +487,7 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
         "use_mask": False,
         "clip_name": "ViT-L/14",
         "far_plane": 10000,
-        #"init_image":"https://github.com/ct3008/ct3008.github.io/blob/main/images/rainbow.webp",
+        # "init_image":"https://github.com/ct3008/ct3008.github.io/blob/main/images/orchid.png?raw=true",
         "init_image": "https://raw.githubusercontent.com/ct3008/ct3008.github.io/main/images/isee1.jpeg",
         "max_frames": final_anim_frames[-1],
         "near_plane": 200,
@@ -538,6 +551,7 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
 
 @app.route('/process-data', methods=['POST'])
 def process_data():
+    print("PROCESS DATA")
     data = request.json
     timestamps_scenes = data['timestamps_scenes']
     form_data = data['form_data']
@@ -548,10 +562,10 @@ def process_data():
     # Here you can integrate your Python logic with the received data
     # Example: processed_data = your_function(timestamps_scenes, form_data, transitions_data)
 
-    print("FORM: ")
-    print(form_data)
-    print("TRANS: ")
-    print(transitions_data)
+    # print("FORM: ")
+    # print(form_data)
+    # print("TRANS: ")
+    # print(transitions_data)
 
     song_duration, scene_change_times, transition_times, time_intervals, interval_strings, motion_data = parse_input_data(form_data, transitions_data, song_len)
     final_anim_frames = []
@@ -563,10 +577,10 @@ def process_data():
     motion_strings = build_transition_strings(frame_data)
     
 
-    print("FRAME")
-    print(frame_data)
-    print("ANIM")
-    print(animation_prompts)
+    # print("FRAME")
+    # print(frame_data)
+    # print("ANIM")
+    # print(animation_prompts)
 
     motion_strings = build_transition_strings(frame_data)
 
@@ -580,8 +594,8 @@ def process_data():
     final_scene_times.append(round(song_duration,2))
     final_scene_times = set(final_scene_times)
     final_scene_times = list(final_scene_times)
-    print(final_anim_frames)
-    print(final_scene_times)
+    # print(final_anim_frames)
+    # print(final_scene_times)
     # Print the animation prompts
     print("\nAnimation Prompts:")
     animation_prompts = ""
@@ -593,17 +607,17 @@ def process_data():
         print(f"Start Time: {final_scene_times[i]}, End Time: {final_scene_times[i+1]}, Start Frame: {final_anim_frames[i]}, End Frame: {final_anim_frames[i+1]}")
 
     animation_prompts = animation_prompts[:-2]
-    print(animation_prompts)
+    # print(animation_prompts)
     # For demonstration, we'll just return the received data
     prompts = generate_image_prompts(form_data, final_anim_frames)
     print("PROMPTS")
     print(prompts)
-    print("MOTIONS")
-    print(motion_strings)
+    # print("MOTIONS")
+    # print(motion_strings)
     deforum_prompt = create_deforum_prompt(motion_strings, final_anim_frames, motion_mode, prompts)
     print("DEFORUM PROMPTS")
     print(deforum_prompt)
-    output = replicate.run(
+    output = api.run(
         "deforum-art/deforum-stable-diffusion:1a98303504c7d866d2b198bae0b03237eab82edc1491a5306895d12b0021d6f6",
         input=deforum_prompt)
     # output = "https://replicate.delivery/yhqm/u7FcIvDd32bjK5ccA5v0FmQ8LesqmftC6MrUbrRMTZECkyPTA/out.mp4"

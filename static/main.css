@@ -230,3 +230,31 @@ audio {
 #finalizeTransitionButton {
     margin-top: 10px;
 }
+
+#waveform {
+    width: 100%;
+    height: 256px; /* Set a height for the waveform */
+    border: 1px solid #ccc; /* Optional: To visually check the container */
+}
+
+/* button {
+    background-color: #5c67f2; 
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    margin: 10px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    width: calc(25% - 20px); 
+}
+
+button:hover {
+    background-color: #4b54d1;
+    transform: translateY(-1px);
+}
+
+button:active {
+    transform: translateY(1px);
+} */
