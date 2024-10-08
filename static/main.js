@@ -92,30 +92,30 @@ function processAudio() {
 
     const formData = new FormData();
     formData.append('audioFile', fileInput.files[0]);
-    
+
 
     fetch('/upload_audio', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-            lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-            audioDuration = data.duration;
-            console.log(lowEnergyBeats); // Log for debugging
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+                audioDuration = data.duration;
+                console.log(lowEnergyBeats); // Log for debugging
 
-            // Now process the audio after lowEnergyBeats are fetched
-            processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer);
-        } else {
-            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-    });
+                // Now process the audio after lowEnergyBeats are fetched
+                processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer);
+            } else {
+                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+        });
 }
 
 function processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer) {
@@ -137,7 +137,7 @@ function processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanv
             console.log("BEAT TIME: " + beats_time);
 
             // Draw the fetched lowEnergyBeats
-            
+
             drawBeats(lowEnergyBeats, beatContainer, buffer.duration, 'blue');
             drawBeats(beats_time, beatContainer, buffer.duration, 'red');
             // console.log(beats);
@@ -235,10 +235,10 @@ function filterClosePoints(points, maxGap) {
 
 // function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, desiredCount, songDuration) {
 //     const newPoints = [];
-    
+
 //     // Sort finalPoints to find gaps
 //     finalPoints.sort((a, b) => a - b);
-    
+
 //     // Calculate minimum distance to fill in gaps
 //     const minGap = songDuration / (desiredCount - 1);
 
@@ -273,7 +273,7 @@ function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
     combined.sort((a, b) => a.time - b.time);
 
     // Exclude points too close to the beginning or end
-    const excludedPoints = combined.filter(point => 
+    const excludedPoints = combined.filter(point =>
         point.time > 3 && point.time < (songDuration - 3)
     );
 
@@ -582,21 +582,21 @@ function getLyrics() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-            lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-            console.log(lowEnergyBeats); // Log for debugging
-            // Optionally call a function to update UI or handle lowEnergyBeats here
-            updateUIWithLowEnergyBeats(); // Example function call
-        } else {
-            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+                console.log(lowEnergyBeats); // Log for debugging
+                // Optionally call a function to update UI or handle lowEnergyBeats here
+                updateUIWithLowEnergyBeats(); // Example function call
+            } else {
+                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+        });
 }
 

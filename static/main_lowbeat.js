@@ -8,7 +8,7 @@ let lowEnergyBeats = {};
 let significantPoints = [];
 let motion_mode = "3D";
 let newsigPoints = [];
-let lastClickedLabel = null; 
+let lastClickedLabel = null;
 let transitionsAdded = false;
 
 function movePlayheadOG() {
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function () {
         clearInterval(playheadInterval);
         playhead.style.left = '0px'; // Optionally reset the playhead
     });
-    
+
 
 
 });
@@ -250,29 +250,29 @@ function playTimeRange(startTime, endTime) {
     }
 }
 
-function makeTimestamp(isTrans){
+function makeTimestamp(isTrans) {
     // finalizeTimestamps('time');
     // finalizeTimestamps('transition');
     // console.log("enter");
     // finalizeTimestamps('time');
-    
-    if (isTrans){
+
+    if (isTrans) {
         console.log("trans");
         transitionsAdded = true;
         // finalizeTimestamps('time');
         // finalizeTimestamps('transition');
         createTransitionLines();
-    } else{
+    } else {
         console.log("other")
         finalizeTimestamps('time');
-        
+
         if (transitionsAdded) {
             // createTransitionLines();
             console.log("bool");
             // finalizeTimestamps('transition');
         }
     }
-    
+
 }
 
 function finalizeTimestamps(name) {
@@ -308,12 +308,23 @@ function finalizeTimestamps(name) {
     // Create labels container
     const labelsContainer = document.createElement('div');
     labelsContainer.className = 'label-container';
+    // Add a blank space before the first label
+    const spacerBefore = document.createElement('div');
+    // spacerBefore.className = 'label spacer';
+    spacerBefore.style.flex = '0.2';
+    labelsContainer.appendChild(spacerBefore);
     labels.forEach(label => {
         const labelElement = document.createElement('div');
         labelElement.className = 'label';
         labelElement.innerText = label;
         labelsContainer.appendChild(labelElement);
     });
+
+    // Add a blank space after the last label
+    const spacerAfter = document.createElement('div');
+    // spacerAfter.className = 'label spacer';
+    spacerAfter.style.flex = '0.2';
+    labelsContainer.appendChild(spacerAfter);
     container.appendChild(labelsContainer);
 
     let sceneTimes = [];
@@ -427,11 +438,11 @@ function finalizeTimestamps(name) {
         const transitionEndTime = (parseFloat(nextScene) + parseFloat(0.5)).toFixed(2);
         // console.log(transitionStartTime,transitionEndTime);
 
-        addTransitions(i+1000, transitionStartTime, transitionEndTime);
-        
+        addTransitions(i + 1000, transitionStartTime, transitionEndTime);
+
     }
 
-    addTransitions(3000,(audioDuration-0.5).toFixed(2), audioDuration.toFixed(2));
+    addTransitions(3000, (audioDuration - 0.5).toFixed(2), audioDuration.toFixed(2));
 
     // Add copy-paste functionality to only form sections
     const formSections = document.querySelectorAll('.form-section'); // Target only sections with the "form-section" class
@@ -466,7 +477,7 @@ function finalizeTimestamps(name) {
                 // Make sure the paste is happening only in a different section
                 if (index !== copiedSectionIndex) {
                     const inputs = section.querySelectorAll('input');
-                    
+
                     // Paste the copied data into the current section's inputs
                     inputs.forEach((input, i) => {
                         if (copiedData[i] !== undefined) {
@@ -531,7 +542,7 @@ function deleteSection() {
 
 function addTransitions(startTime, endTime) {
     const formContainers = document.querySelectorAll('.section');
-    
+
     formContainers.forEach((form, index) => {
         const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
         const formEndTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[1]);
@@ -571,7 +582,7 @@ function addTransitions(startTime, endTime) {
             form.insertAdjacentElement('afterend', transitionContainer);
         }
     });
-} 
+}
 
 
 
@@ -893,7 +904,7 @@ function gatherFormData() { // Example significant points; replace with your act
 
 function gatherTransitionData(formData) {
     const transitionsData = {};
-    
+
     // Extract the valid transition sections
     const transitionSections = document.querySelectorAll('.section.transition-section');
 
@@ -942,7 +953,7 @@ function gatherTransitionData(formData) {
     return transitionsData;
 }
 
-function processTable(){
+function processTable() {
     const formData = gatherFormData();
     const transitionsData = gatherTransitionData(formData);
     const data = {
@@ -954,7 +965,7 @@ function processTable(){
     };
     document.getElementById('processing').style = "display: block;"
     console.log(data);
-    
+
 
     fetch('/process-data', {
         method: 'POST',
@@ -963,44 +974,44 @@ function processTable(){
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);
-        console.log("returned back");
-        for (const [key, value] of Object.entries(data)) {
-            console.log(`${key}: ${value}`);
-            if (key === 'output') {
-                console.log(value);
-                window.open(value, '_blank');
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            console.log("returned back");
+            for (const [key, value] of Object.entries(data)) {
+                console.log(`${key}: ${value}`);
+                if (key === 'output') {
+                    console.log(value);
+                    window.open(value, '_blank');
+                }
             }
-        }
-        let resultHTML = '';
+            let resultHTML = '';
 
-        // if (data.animation_prompts) {
-        //     resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
-        // }
+            // if (data.animation_prompts) {
+            //     resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
+            // }
 
-        if (data.motion_prompts) {
-            resultHTML += `<h3>Motion Strings:</h3>`;
-            for (const [motion, transitions] of Object.entries(data.motion_prompts)) {
-                resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
+            if (data.motion_prompts) {
+                resultHTML += `<h3>Motion Strings:</h3>`;
+                for (const [motion, transitions] of Object.entries(data.motion_prompts)) {
+                    resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
+                }
             }
-        }
 
-        if (data.prompts) {
-            resultHTML += `<h3>Prompts:</h3><p>${data.prompts}</p>`;
-        }
+            if (data.prompts) {
+                resultHTML += `<h3>Prompts:</h3><p>${data.prompts}</p>`;
+            }
 
-        if (data.output) {
-            resultHTML += `<h3>Output:</h3><p><a href="${data.output}" target="_blank">Click here to view the output</a></p>`;
-        }
+            if (data.output) {
+                resultHTML += `<h3>Output:</h3><p><a href="${data.output}" target="_blank">Click here to view the output</a></p>`;
+            }
 
-        document.getElementById('processedDataContainer').innerHTML = resultHTML;
-        document.getElementById('processedDataContainer').style = "border: 2px solid black;"
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+            document.getElementById('processedDataContainer').innerHTML = resultHTML;
+            document.getElementById('processedDataContainer').style = "border: 2px solid black;"
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 
@@ -1021,31 +1032,31 @@ function processAudio() {
 
     const formData = new FormData();
     formData.append('audioFile', fileInput.files[0]);
-    
+
 
     fetch('/upload_audio', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-            lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-            audioDuration = data.duration;
-            console.log("LOW ENERGY");
-            console.log(lowEnergyBeats); // Log for debugging
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+                audioDuration = data.duration;
+                console.log("LOW ENERGY");
+                console.log(lowEnergyBeats); // Log for debugging
 
-            // Now process the audio after lowEnergyBeats are fetched
-            processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer);
-        } else {
-            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-    });
+                // Now process the audio after lowEnergyBeats are fetched
+                processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer);
+            } else {
+                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+        });
 }
 
 function processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer) {
@@ -1110,7 +1121,7 @@ function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
     combined.sort((a, b) => a.time - b.time);
 
     // Exclude points too close to the beginning or end
-    const excludedPoints = combined.filter(point => 
+    const excludedPoints = combined.filter(point =>
         point.time > 3 && point.time < (songDuration - 4)
     );
 
@@ -1321,12 +1332,12 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
         timeLabel.style.left = `${(beatTime / duration) * beatContainer.offsetWidth}px`;
         timeLabel.style.transform = 'translateX(-50%)';
         timeLabel.style.backgroundColor = isNew ? 'green' : '';
-        
+
         beatLine.timeLabel = timeLabel;
 
         // Event listener for clicking on the time label
         timeLabel.addEventListener('click', function () {
-            if (lastClickedLabel === timeLabel) { 
+            if (lastClickedLabel === timeLabel) {
                 lastClickedLabel.style.borderColor = '';
                 timeLabel.style.borderColor = 'red';
                 lastClickedLabel = timeLabel;
@@ -1396,7 +1407,7 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
         }
 
         // Append the elements to the container
-        
+
         beatContainer.appendChild(timeLabel);
 
         // Initially show the hidden beat if new interval
@@ -1419,8 +1430,8 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
                     updateNewsigPoints();
                 }
             }
-            
-            
+
+
         });
     }
 
@@ -1430,7 +1441,7 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
 function drawBeats(beats, beatContainer, duration, color, hidden = false) {
     clearPreviousTimestamps();
     newsigPoints = [...beats];
-    
+
     beats.forEach((beat) => {
         createBeat(beat, beatContainer, duration, color, hidden);
     });
@@ -1550,21 +1561,21 @@ function getLyrics() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-            lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-            console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
-            updateUIWithLowEnergyBeats(); // Example function call
-        } else {
-            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+                console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
+                updateUIWithLowEnergyBeats(); // Example function call
+            } else {
+                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+        });
 }
 
 function toggleMotion() {
