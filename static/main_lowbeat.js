@@ -1107,11 +1107,34 @@ function processAudio() {
 
             // Zoom control
             const zoomSlider = document.getElementById('zoomSlider');
+            // zoomSlider.addEventListener('input', (e) => {
+            //     const zoomLevel = Number(e.target.value); // Get the value from the slider
+            //     waveform.zoom(zoomLevel); // Adjust the zoom level
+            // });
+            
             zoomSlider.addEventListener('input', (e) => {
                 const zoomLevel = Number(e.target.value); // Get the value from the slider
                 waveform.zoom(zoomLevel); // Adjust the zoom level
-            });
             
+                // Adjust the width of green bars based on the zoom level
+                const allRegions = Object.values(waveform.regions.list); // Get all regions
+            
+                allRegions.forEach(region => {
+                    if (region.color === 'green') {
+                        // Adjust thickness based on zoom level with a max size of 0.5
+                        let newWidth = 0.25 / (zoomLevel / 100);
+            
+                        // Ensure the width doesn't exceed 0.5 when zooming out
+                        if (newWidth > 0.25) {
+                            newWidth = 0.25;
+                        }
+            
+                        // Update the region width
+                        region.update({ start: region.start, end: region.start + newWidth });
+                    }
+                });
+            });
+
             // Play/Pause control
             const playPauseButton = document.getElementById('playPauseButton');
             playPauseButton.addEventListener('click', () => {
@@ -1149,7 +1172,7 @@ function processAudio() {
                 newsigPoints.sort((a, b) => a - b);
                 
             }
-            setupRegions(waveform, newsigPoints, 'Significant Points', 'green', 0.5, true);
+            setupRegions(waveform, newsigPoints, 'Significant Points', 'green', 0.25, true);
             waveform.on('region-drag', (region) => {
                 console.log('Region dragged to', region.start); // Log new start time
             });
@@ -1824,7 +1847,7 @@ function addNewInterval() {
     newsigPoints = [...data];
     newsigPoints = newsigPoints.sort((a, b) => a - b);
     console.log("AFTER ADD: ", newsigPoints)
-    setupRegions(waveform, data, "Significant Points", 'green', 0.5, true);
+    setupRegions(waveform, data, "Significant Points", 'green', 0.25, true);
     //OLD VERSION
     // const beatContainer = document.getElementById('beatContainer');
     // const duration = audioDuration;

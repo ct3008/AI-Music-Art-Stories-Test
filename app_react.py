@@ -33,7 +33,7 @@ def upload_audio():
         top_onset_times = [time for time, strength in top_onsets]
 
         # Detect low-energy periods
-        threshold = np.percentile(smoothed_rms, 5)  # 10th percentile as threshold
+        threshold = np.percentile(smoothed_rms, 5)  # 5th percentile as threshold
         low_energy_before_onset = []
         for i in range(1, len(onset_frames)):
             start = onset_frames[i-1]
