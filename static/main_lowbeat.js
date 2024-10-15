@@ -236,26 +236,29 @@ function movePlayhead(audioPlayer, endTime) {
 }
 
 function playTimeRange(startTime, endTime) {
-    const file = document.getElementById("audioFile").files[0];
-    if (file) {
-        const audioPlayer = document.getElementById("audioPlayer");
-        audioPlayer.src = URL.createObjectURL(file);
-        audioPlayer.style.display = "block";
+    // Ensure WaveSurfer is available and has been initialized
+    if (waveform && waveform.isReady) {
+        // Seek to the start time
+        waveform.seekTo(startTime / waveform.getDuration());
 
-        audioPlayer.addEventListener('loadedmetadata', function () {
-            audioPlayer.currentTime = startTime;
-            movePlayhead(audioPlayer, endTime);
-            audioPlayer.play();
-        });
+        // Start playback
+        waveform.play(startTime, endTime);
 
+        // Use the WaveSurfer API to manage playback
         const interval = setInterval(() => {
-            if (audioPlayer.currentTime >= endTime || audioPlayer.paused) {
-                audioPlayer.pause();
+            const currentTime = waveform.getCurrentTime();
+
+            // Check if the current time has reached the end time or if playback is paused
+            if (currentTime >= endTime || !waveform.isPlaying()) {
+                waveform.pause();
                 clearInterval(interval);
             }
         }, 100);
+    } else {
+        console.error("WaveSurfer is not initialized or not ready.");
     }
 }
+
 
 function makeTimestamp(isTrans){
     
@@ -656,8 +659,8 @@ function finalizeTimestamps(name) {
             // Add the transitions to the table after clearing and rebuilding it
             const transitionRow = document.createElement('div');
             transitionRow.className = 'transition-row';
-            transitionRow.textContent = `Transition ${index + 1}: ${transitionStart} - ${transitionEnd} seconds`;
-            timestampsContainer.appendChild(transitionRow);
+            // transitionRow.textContent = `Transition ${index + 1}: ${transitionStart} - ${transitionEnd} seconds`;
+            // timestampsContainer.appendChild(transitionRow);
             
             // Call addTransitions for each detected region
             addTransitions(index + 1000, transitionStart, transitionEnd);
@@ -769,7 +772,7 @@ function addTransitions(startTime, endTime) {
 
             // Add the play button to preview the transition
             const playButton = document.createElement('button');
-            playButton.innerText = 'Play';
+            playButton.innerText = 'Banana3';
             playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
             transitionContainer.appendChild(playButton);
 
@@ -938,23 +941,25 @@ function addTransitions(id, startTime, endTime) {
             `;
 
             // Add the play button to preview the transition
-            const playButton = document.createElement('button');
-            playButton.innerText = 'Play';
-            playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
-            transitionContainer.appendChild(playButton);
+            // const playButton = document.createElement('button');
+            // playButton.innerText = 'Banana2';
+            // console.log("start: ", startTime);
+            // console.log("end: ", endTime);
+            // playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
+            // transitionContainer.appendChild(playButton);
 
-            // Add the delete button to remove the transition
-            const deleteButton = document.createElement('button');
-            deleteButton.innerText = 'Delete';
-            deleteButton.style.marginLeft = '10px';
-            deleteButton.addEventListener('click', () => {
-                transitionContainer.remove();
-                // Remove from existingTransitions list
-                existingTransitions = existingTransitions.filter(
-                    t => t.id !== id
-                );
-            });
-            transitionContainer.appendChild(deleteButton);
+            // // Add the delete button to remove the transition
+            // const deleteButton = document.createElement('button');
+            // deleteButton.innerText = 'Delete';
+            // deleteButton.style.marginLeft = '10px';
+            // deleteButton.addEventListener('click', () => {
+            //     transitionContainer.remove();
+            //     // Remove from existingTransitions list
+            //     existingTransitions = existingTransitions.filter(
+            //         t => t.id !== id
+            //     );
+            // });
+            // transitionContainer.appendChild(deleteButton);
 
             // Insert the transition container in the appropriate position
             form.insertAdjacentElement('afterend', transitionContainer);
