@@ -15,7 +15,8 @@ let draggingRegionId = null;
 let originalStartTime = null;
 let waveform;
 let deleteMode=false;
-let isDeleteTransitionMode = false;
+let deleteModeT = false;
+let tablemade = false;
 
 function movePlayheadOG() {
     const containerWidth = beatContainer.offsetWidth; // Width of the container
@@ -275,33 +276,241 @@ function makeTimestamp(isTrans){
     
 }
 
+// function finalizeTimestamps(name) {
+//     const timestampsContainer = document.getElementById('timestampsContainer');
+//     timestampsContainer.innerHTML = ''; // Clear previous timestamps
+
+//     // newsigPoints.forEach(time => {
+//     //     const timestampElement = document.createElement('div');
+//     //     timestampElement.textContent = `Time: ${time.toFixed(2)} seconds`;
+//     //     timestampsContainer.appendChild(timestampElement);
+//     // });
+
+//     const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
+//     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
+
+//     const sectionsCount = newsigPoints.length;
+//     let container;
+//     let labels = [];
+
+//     if (name === 'time') {
+//         container = document.getElementById('trash');
+//         labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
+//     } else if (name === 'transition') {
+//         container = document.getElementById('transitionsContainer');
+//         container.style.border = '2px solid black';
+//         labels = ['Motion', 'Strength', 'Speed'];
+//     }
+
+//     container.innerHTML = ''; // Clear previous content
+//     container.style.setProperty('--sections-count', sectionsCount);
+
+//     // Create labels container
+//     const labelsContainer = document.createElement('div');
+//     labelsContainer.className = 'label-container';
+
+//     const spacerBefore = document.createElement('div');
+//     spacerBefore.style.flex = '0.2';
+//     labelsContainer.appendChild(spacerBefore);
+
+//     labels.forEach(label => {
+//         const labelElement = document.createElement('div');
+//         labelElement.className = 'label';
+//         labelElement.innerText = label;
+//         labelsContainer.appendChild(labelElement);
+//     });
+
+//     const spacerAfter = document.createElement('div');
+//     spacerAfter.style.flex = '0.2';
+//     labelsContainer.appendChild(spacerAfter);
+//     container.appendChild(labelsContainer);
+
+//     let sceneTimes = [];
+//     for (let i = 0; i < sectionsCount + 1; i++) {
+//         const section = document.createElement('div');
+//         section.className = 'section form-section';
+
+//         const timeRange = document.createElement('div');
+//         timeRange.className = 'time-range';
+//         if (name === 'time') {
+//             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
+//             sceneTimes.push({ 'start': timestamps[i], 'end': timestamps[i + 1] });
+//         } else if (name === 'transition') {
+//             if (i === sectionsCount) {
+//                 const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
+//                 timeRange.innerText = `Transition ${i + 1}: ${start} - ${audioDuration.toFixed(2)}`;
+//             } else {
+//                 const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
+//                 const end = (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
+//                 timeRange.innerText = `Transition ${i + 1}: ${start} - ${end}`;
+//             }
+//         }
+//         section.appendChild(timeRange);
+
+//         const playButton = document.createElement('button');
+//         playButton.innerText = 'Play';
+//         playButton.addEventListener('click', () => playTimeRange(timestamps[i], timestamps[i + 1]));
+//         section.appendChild(playButton);
+
+//         const inputContainer = document.createElement('div');
+//         inputContainer.className = 'input-container';
+
+//         const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
+//         const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular', 'rubbed graphite on paper'];
+//         const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "Jackson Pollock abstract expressionism"];
+//         const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles', 'whirling lines', 'vibrant kaleidoscope of colors', 'interstellar light trails', 'abstract fractal patterns', 'dissolving geometric shards', 'diffused cosmic mists', 'translucent ripple effects'];
+//         const colorOptions = ['black/white', 'pale blue', 'full color'];
+//         const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
+//         const strengths = ['weak', 'normal', 'strong', 'vstrong'];
+//         const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
+
+//         labels.forEach((label) => {
+//             const input = document.createElement('input');
+//             input.type = 'text';
+//             input.className = 'dropdown-input';
+
+//             if (name === 'time') {
+//                 input.id = `${label.toLowerCase()}_form_${i + 1}`;
+//             } else if (name === 'transition') {
+//                 input.id = `${label.toLowerCase()}_trans_${i + 1}`;
+//             }
+
+//             const datalist = document.createElement('datalist');
+//             datalist.id = `${label.toLowerCase()}_options_${i + 1}`;
+
+//             let options;
+//             switch (label.toLowerCase()) {
+//                 case 'vibe':
+//                     options = vibes;
+//                     break;
+//                 case 'texture':
+//                     options = textures;
+//                     break;
+//                 case 'style':
+//                     options = styles;
+//                     break;
+//                 case 'imagery':
+//                     options = imageries;
+//                     break;
+//                 case 'color':
+//                     options = colorOptions;
+//                     break;
+//                 case 'motion':
+//                     options = motions;
+//                     break;
+//                 case 'strength':
+//                     options = strengths;
+//                     break;
+//                 case 'speed':
+//                     options = speeds;
+//                     break;
+//             }
+
+//             options.forEach(option => {
+//                 const optionElement = document.createElement('option');
+//                 optionElement.value = option;
+//                 datalist.appendChild(optionElement);
+//             });
+
+//             input.setAttribute('list', datalist.id);
+//             inputContainer.appendChild(input);
+//             inputContainer.appendChild(datalist);
+//         });
+
+//         section.appendChild(inputContainer);
+//         container.appendChild(section);
+//     }
+
+//     // Get regions from WaveSurfer
+//     let allRegions = Object.values(waveform.regions.list);
+//     let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
+
+//     if (orangeRegions.length === 0 && tablemade == false) {
+//         const useDefault = window.confirm('No orange transition regions found. Would you like to add default transitions?');
+//         if (useDefault) {
+//             addDefaultTransitions();
+//             allRegions = Object.values(waveform.regions.list);
+//             orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
+
+//         } else {
+//             console.log('Proceeding without transitions.');
+//         }
+//     }
+//     tablemade = true;
+//     if (orangeRegions.length > 0) {
+//         // If there are orange regions, add them as transitions
+//         orangeRegions.forEach((region, index) => {
+//             const transitionStart = region.start.toFixed(2);
+//             const transitionEnd = region.end.toFixed(2);
+
+//             const timestampElement = document.createElement('div');
+//             // timestampElement.textContent = `Transition ${index + 1}: ${transitionStart} - ${transitionEnd} seconds`;
+//             // timestampsContainer.appendChild(timestampElement);
+
+//             addTransitions(index + 1000, transitionStart, transitionEnd);
+//         });
+//     }
+
+//     // Add copy-paste functionality to form sections
+//     const formSections = document.querySelectorAll('.form-section'); 
+
+//     let copiedData = null;
+//     let copiedSectionIndex = null;
+
+//     formSections.forEach((section, index) => {
+//         const copyButton = document.createElement('button');
+//         copyButton.innerText = 'Copy All';
+//         section.appendChild(copyButton);
+
+//         const pasteButton = document.createElement('button');
+//         pasteButton.innerText = 'Paste All';
+//         section.appendChild(pasteButton);
+
+//         copyButton.addEventListener('click', () => {
+//             const inputs = section.querySelectorAll('input');
+//             copiedData = Array.from(inputs).map(input => input.value);
+//             copiedSectionIndex = index;
+
+//             copyButton.innerText = 'Copied!';
+//             setTimeout(() => (copyButton.innerText = 'Copy All'), 2000);
+//         });
+
+//         pasteButton.addEventListener('click', () => {
+//             if (copiedData && copiedSectionIndex !== index) {
+//                 const inputs = section.querySelectorAll('input');
+//                 copiedData.forEach((data, i) => (inputs[i].value = data));
+//             }
+//         });
+//     });
+//     tablemade = true;
+// }
+
 function finalizeTimestamps(name) {
     const timestampsContainer = document.getElementById('timestampsContainer');
     timestampsContainer.innerHTML = ''; // Clear previous timestamps
 
-    newsigPoints = newsigPoints.sort((a, b) => a - b);
-    newsigPoints.forEach(time => {
-        const timestampElement = document.createElement('div');
-        timestampElement.textContent = `Time: ${time.toFixed(2)} seconds`;
-        timestampsContainer.appendChild(timestampElement);
-    });
-
     const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
 
-    const sectionsCount = newsigPoints.length; // Define sectionsCount based on the timestamps array length
+    const sectionsCount = newsigPoints.length;
     let container;
     let labels = [];
+
     if (name === 'time') {
         container = document.getElementById('trash');
         labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
     } else if (name === 'transition') {
         container = document.getElementById('transitionsContainer');
         container.style.border = '2px solid black';
-        const button = document.getElementById('add-transition');
-        // if (button) button.style.display = 'none'; // Hide button if it exists
         labels = ['Motion', 'Strength', 'Speed'];
     }
+
+    // Store current values of inputs before clearing the container
+    const existingValues = {};
+    document.querySelectorAll('.form-section').forEach((section, sectionIndex) => {
+        const inputs = section.querySelectorAll('input');
+        existingValues[sectionIndex] = Array.from(inputs).map(input => input.value);
+    });
 
     container.innerHTML = ''; // Clear previous content
     container.style.setProperty('--sections-count', sectionsCount);
@@ -309,44 +518,45 @@ function finalizeTimestamps(name) {
     // Create labels container
     const labelsContainer = document.createElement('div');
     labelsContainer.className = 'label-container';
+
+    const spacerBefore = document.createElement('div');
+    spacerBefore.style.flex = '0.2';
+    labelsContainer.appendChild(spacerBefore);
+
     labels.forEach(label => {
         const labelElement = document.createElement('div');
         labelElement.className = 'label';
         labelElement.innerText = label;
         labelsContainer.appendChild(labelElement);
     });
+
+    const spacerAfter = document.createElement('div');
+    spacerAfter.style.flex = '0.2';
+    labelsContainer.appendChild(spacerAfter);
     container.appendChild(labelsContainer);
 
     let sceneTimes = [];
     for (let i = 0; i < sectionsCount + 1; i++) {
         const section = document.createElement('div');
-        section.className = 'section form-section'; // Add the "form-section" class to distinguish it
+        section.className = 'section form-section';
 
-        // Add time range or transition label
         const timeRange = document.createElement('div');
         timeRange.className = 'time-range';
         if (name === 'time') {
             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
             sceneTimes.push({ 'start': timestamps[i], 'end': timestamps[i + 1] });
         } else if (name === 'transition') {
-            if (i === sectionsCount) {
-                const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
-                timeRange.innerText = `Transition ${i + 1}: ${start} - ${audioDuration.toFixed(2)}`;
-            } else {
-                const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
-                const end = (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
-                timeRange.innerText = `Transition ${i + 1}: ${start} - ${end}`;
-            }
+            const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
+            const end = (i === sectionsCount) ? audioDuration.toFixed(2) : (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
+            timeRange.innerText = `Transition ${i + 1}: ${start} - ${end}`;
         }
         section.appendChild(timeRange);
 
-        // Add play button
         const playButton = document.createElement('button');
         playButton.innerText = 'Play';
         playButton.addEventListener('click', () => playTimeRange(timestamps[i], timestamps[i + 1]));
         section.appendChild(playButton);
 
-        // Add input boxes
         const inputContainer = document.createElement('div');
         inputContainer.className = 'input-container';
 
@@ -370,7 +580,6 @@ function finalizeTimestamps(name) {
                 input.id = `${label.toLowerCase()}_trans_${i + 1}`;
             }
 
-            // Create datalist for dropdown options
             const datalist = document.createElement('datalist');
             datalist.id = `${label.toLowerCase()}_options_${i + 1}`;
 
@@ -411,81 +620,86 @@ function finalizeTimestamps(name) {
             input.setAttribute('list', datalist.id);
             inputContainer.appendChild(input);
             inputContainer.appendChild(datalist);
+
+            // Repopulate input value if available in stored values
+            if (existingValues[i] && existingValues[i][labels.indexOf(label)]) {
+                input.value = existingValues[i][labels.indexOf(label)];
+            }
         });
 
         section.appendChild(inputContainer);
         container.appendChild(section);
     }
 
-    // Insert transition sections
-    console.log(sceneTimes);
-    for (let i = 0; i < sceneTimes.length - 1; i++) {
-        const currentScene = parseFloat(sceneTimes[i]['end']).toFixed(2);
-        const nextScene = parseFloat(sceneTimes[i + 1]['start']).toFixed(2);
-        // console.log(currentScene,nextScene);
+    // Get regions from WaveSurfer
+    let allRegions = Object.values(waveform.regions.list);
+    let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
 
-        const transitionStartTime = parseFloat(parseFloat(currentScene) - parseFloat(0.5)).toFixed(2);
-        const transitionEndTime = (parseFloat(nextScene) + parseFloat(0.5)).toFixed(2);
-        // console.log(transitionStartTime,transitionEndTime);
+    if (orangeRegions.length === 0 && tablemade == false) {
+        const useDefault = window.confirm('No orange transition regions found. Would you like to add default transitions?');
+        if (useDefault) {
+            addDefaultTransitions();
+            allRegions = Object.values(waveform.regions.list);
+            orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
 
-        addTransitions(i+1000, transitionStartTime, transitionEndTime);
-        
+        } else {
+            console.log('Proceeding without transitions.');
+        }
     }
 
-    addTransitions(3000,(audioDuration-0.5).toFixed(2), audioDuration.toFixed(2));
+    // Repopulate table with transitions after table is built
+    if (orangeRegions.length > 0) {
+        orangeRegions.forEach((region, index) => {
+            const transitionStart = region.start.toFixed(2);
+            const transitionEnd = region.end.toFixed(2);
 
-    // Add copy-paste functionality to only form sections
-    const formSections = document.querySelectorAll('.form-section'); // Target only sections with the "form-section" class
+            // Add the transitions to the table after clearing and rebuilding it
+            const transitionRow = document.createElement('div');
+            transitionRow.className = 'transition-row';
+            transitionRow.textContent = `Transition ${index + 1}: ${transitionStart} - ${transitionEnd} seconds`;
+            timestampsContainer.appendChild(transitionRow);
+            
+            // Call addTransitions for each detected region
+            addTransitions(index + 1000, transitionStart, transitionEnd);
+        });
+    }
 
-    let copiedData = null; // Variable to store copied data
-    let copiedSectionIndex = null; // Variable to store the index of the copied section
+    // Add copy-paste functionality to form sections (unchanged from before)
+    const formSections = document.querySelectorAll('.form-section'); 
+
+    let copiedData = null;
+    let copiedSectionIndex = null;
 
     formSections.forEach((section, index) => {
-        // Add a "Copy" button to each form section
         const copyButton = document.createElement('button');
         copyButton.innerText = 'Copy All';
         section.appendChild(copyButton);
 
-        // Add a "Paste" button to each form section
         const pasteButton = document.createElement('button');
         pasteButton.innerText = 'Paste All';
         section.appendChild(pasteButton);
 
         copyButton.addEventListener('click', () => {
-            // Gather all input values from the current section
             const inputs = section.querySelectorAll('input');
             copiedData = Array.from(inputs).map(input => input.value);
-            copiedSectionIndex = index; // Store the section index for tracking
+            copiedSectionIndex = index;
 
-            // Indicate that data was copied
             copyButton.innerText = 'Copied!';
-            setTimeout(() => (copyButton.innerText = 'Copy All'), 1000);
+            setTimeout(() => (copyButton.innerText = 'Copy All'), 2000);
         });
 
         pasteButton.addEventListener('click', () => {
-            if (copiedData && copiedSectionIndex !== null) {
-                // Make sure the paste is happening only in a different section
-                if (index !== copiedSectionIndex) {
-                    const inputs = section.querySelectorAll('input');
-                    
-                    // Paste the copied data into the current section's inputs
-                    inputs.forEach((input, i) => {
-                        if (copiedData[i] !== undefined) {
-                            input.value = copiedData[i];
-                        }
-                    });
-
-                    // Indicate that data was pasted
-                    pasteButton.innerText = 'Pasted!';
-                    setTimeout(() => (pasteButton.innerText = 'Paste All'), 1000);
-                } else {
-                    pasteButton.innerText = 'Cannot paste in the same section!';
-                    setTimeout(() => (pasteButton.innerText = 'Paste All'), 1000);
-                }
+            if (copiedData && copiedSectionIndex !== index) {
+                const inputs = section.querySelectorAll('input');
+                copiedData.forEach((data, i) => (inputs[i].value = data));
             }
         });
     });
+
+    tablemade = true;
 }
+
+
 
 function deleteSection() {
     const deleteButton = document.getElementById('delete-section');
@@ -779,13 +993,14 @@ function fillDefaults() {
     const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
     const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
     const colorOptions = ['black/white', 'pale blue', 'full color'];
-    const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
-    const strengths = ['weak', 'normal', 'strong', 'vstrong'];
-    const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
+
+    // Get the values entered by the user for vibe and color
+    const vibeInput = document.getElementById('vibeInput').value.trim();  
+    const colorInput = document.getElementById('colorInput').value.trim();  
 
     const sections = document.querySelectorAll('.section');
 
-    // Choose one random texture and style for consistency
+    // Choose a random texture and style for consistency
     const chosenTexture = textures[Math.floor(Math.random() * textures.length)];
     const chosenStyle = styles[Math.floor(Math.random() * styles.length)];
 
@@ -793,73 +1008,60 @@ function fillDefaults() {
         const inputs = section.querySelectorAll('input');
 
         inputs.forEach(input => {
-            if (input.id.includes('vibe_form')) {
+            // Handle vibe input for both regular sections and transitions
+            if (input.id.includes('vibe_form') || input.id.includes('vibe_trans')) {
                 if (!input.value) {
-                    input.value = vibes[Math.floor(Math.random() * vibes.length)];
+                    input.value = vibeInput || vibes[Math.floor(Math.random() * vibes.length)];
                 }
-            } else if (input.id.includes('texture_form')) {
+            } 
+            // Handle texture input for regular sections (no texture for transitions)
+            else if (input.id.includes('texture_form')) {
                 if (!input.value) {
                     input.value = chosenTexture;
                 }
-            } else if (input.id.includes('style_form')) {
+            }
+            // Handle style input for regular sections (no style for transitions)
+            else if (input.id.includes('style_form')) {
                 if (!input.value) {
                     input.value = chosenStyle;
                 }
-            } else if (input.id.includes('imagery_form')) {
+            }
+            // Handle imagery input for regular sections (no imagery for transitions)
+            else if (input.id.includes('imagery_form')) {
                 if (!input.value) {
                     input.value = imageries[Math.floor(Math.random() * imageries.length)];
                 }
-            } else if (input.id.includes('color_form')) {
+            }
+            // Handle color input for both regular sections and transitions
+            else if (input.id.includes('color_form') || input.id.includes('color_trans')) {
                 if (!input.value) {
-                    const midIndex = Math.floor(sections.length / 2);
-                    if (index < 1 || index >= sections.length - 1) {
-                        input.value = 'black/white';
-                    } else if (index < midIndex) {
-                        input.value = 'pale blue';
-                    } else {
-                        input.value = 'full color';
-                    }
-                }
-            } else if (input.id.includes('motion_form')) {
-                if (!input.value) {
-                    input.value = 'zoom_in';
-                }
-            } else if (input.id.includes('strength_form')) {
-                if (!input.value) {
-                    input.value = 'normal';
-                }
-            } else if (input.id.includes('speed_form')) {
-                if (!input.value) {
-                    input.value = 'normal';
+                    input.value = colorInput || (index < sections.length / 2 ? 'black/white' : 'myriad of color');
                 }
             }
-        });
-    });
-
-    const transitionSections = document.querySelectorAll('.section.transition-section');
-    console.log("TRANSITION SECTION: ", transitionSections);
-    transitionSections.forEach((section, index) => {
-        const inputs = section.querySelectorAll('input');
-
-        inputs.forEach(input => {
-            console.log("input: ");
-            console.log(input);
-            if (input.id.includes('motion_trans')) {
+            // Handle motion, strength, and speed inputs for both regular sections and transitions
+            else if (input.id.includes('motion_form') || input.id.includes('motion_trans')) {
                 if (!input.value) {
-                    input.value = index === transitionSections.length - 1 ? 'rotate_cw' : 'rotate_right';
+                    input.value = 'zoom_in'; // Default value for motion
                 }
-            } else if (input.id.includes('strength_trans')) {
+            } 
+            else if (input.id.includes('strength_form') || input.id.includes('strength_trans')) {
                 if (!input.value) {
-                    input.value = index === transitionSections.length - 1 ? 'vstrong' : 'strong';
+                    input.value = 'normal'; // Default value for strength
                 }
-            } else if (input.id.includes('speed_trans')) {
+            } 
+            else if (input.id.includes('speed_form') || input.id.includes('speed_trans')) {
                 if (!input.value) {
-                    input.value = 'normal';
+                    input.value = 'normal'; // Default value for speed
                 }
             }
         });
     });
 }
+
+
+
+
+
 
 
 function gatherFormData() { // Example significant points; replace with your actual significantPoints array
@@ -1201,6 +1403,10 @@ function setupRegions(waveform, data, content, color, size, drag, resize = false
             drag: drag, // Allow dragging
             resize: resize, // Allow resizing from both sides
         });
+        if (color == 'green'){
+            region.on('update-end', refreshTable);
+            region.on('remove', refreshTable);
+        }
 
         // Add labels for Significant Points regions (as before)
         if (content === "Significant Points") {
@@ -1924,40 +2130,163 @@ function delete_intervals() {
     }
 }
 
-function addTransitionRegions() {
-    const timeRangeDivs = document.querySelectorAll('div.time-range[id^="time-range"]');
+function addDefaultTransitions() {
+    const allRegions = Object.values(waveform.regions.list);
+    const greenRegions = allRegions.filter(region => region.color === 'green');
     let transitionRegions = [];
-    timeRangeDivs.forEach(div => {
-        const content = div.textContent;  // Get the content of the div
+
+    // Create 1 sec transition around interval start time
+    greenRegions.forEach(region => {
+        const startTime = region.start;
         
-        // Regex to match 'Transition (X.XXs to Y.YYs)'
-        const regex = /Transition\s\(([\d.]+)s\sto\s([\d.]+)s\)/;
-        const match = content.match(regex);
+        const transitionStart = Math.max(0, startTime - 0.5); // Ensure start time is not negative
+        const transitionEnd = startTime + 0.5;
         
-        if (match) {
-            const startTime = parseFloat(match[1]);
-            const endTime = parseFloat(match[2]);
-            
-            // Push the extracted times to the array
-            transitionRegions.push({ start: startTime, end: endTime });
-        }
+        transitionRegions.push({ start: transitionStart, end: transitionEnd });
     });
 
-    // Now add the regions to the waveform
+    transitionRegions.sort((a, b) => a.start - b.start);
+    const waveformDuration = waveform.getDuration();
+
     if (transitionRegions.length > 0) {
-        transitionRegions.forEach((region, idx) => {
-            waveform.addRegion({
-                start: region.start,
-                end: region.end,
-                color: 'rgba(255, 165, 0, 0.5)',  // Use a different color for transitions
-                drag: true,
-                resize: true,
-            });
-        });
-        console.log("Added transitions:", transitionRegions);
+        const lastTransitionEnd = transitionRegions[transitionRegions.length - 1].end;
+        
+        // Check for overlap
+        if (lastTransitionEnd >= waveformDuration - 2) {
+            // Align final transition
+            transitionRegions.push({ start: lastTransitionEnd, end: waveformDuration });
+        } else {
+            // Final transition of 2 seconds capped at the waveform's duration
+            const finalStart = waveformDuration - 2;
+            transitionRegions.push({ start: finalStart, end: waveformDuration });
+        }
     } else {
-        console.log("No transitions found.");
+        // If no transitions, add a final transition from 2 seconds before the end
+        transitionRegions.push({ start: waveformDuration - 2, end: waveformDuration });
     }
+
+    // add the regions to the waveform
+    transitionRegions.forEach(region => {
+        const reg = waveform.addRegion({
+            start: region.start,
+            end: region.end,
+            color: 'rgba(255, 165, 0, 0.5)',
+            drag: true,
+            resize: true,
+        });
+        reg.on('update-end', refreshTable);
+        reg.on('remove', refreshTable);
+    });
+    
+
+    console.log("Added transitions:", transitionRegions);
+}
+
+
+
+function addTransitionRegions() {
+    const waveformDuration = waveform.getDuration();
+    const centerTime = waveformDuration / 2;
+
+    const reg = waveform.addRegion({
+        start: centerTime - 0.5,
+        end: centerTime + 0.5,
+        color: 'rgba(255, 165, 0, 0.5)',
+        drag: true,
+        resize: true,
+    });
+    reg.on('update-end', refreshTable);
+    reg.on('remove', refreshTable);
+
+    console.log(`Added transition region at center: ${centerTime - 0.5} to ${centerTime + 0.5}`);
+}
+
+function delete_transitions() {
+    // Toggle delete mode for transitions
+    deleteModeT = !deleteModeT;
+    
+    const deleteButton = document.getElementById('deleteTransitionButton'); // Assuming a separate button for deleting transitions
+    
+    if (deleteModeT) {
+        console.log("Transition delete mode enabled. Click on an orange transition to delete it.");
+        
+        // Update the button style to reflect the active delete mode
+        deleteButton.textContent = "Exit Transition Delete Mode";
+        deleteButton.style.backgroundColor = "red";
+        deleteButton.style.color = "white";
+
+        // Add hover effect and region click event listener
+        Object.values(waveform.regions.list).forEach(region => {
+            console.log("hello");
+            if (region.color === 'rgba(255, 165, 0, 0.5)') { // Focus on orange-colored transitions
+                // Add hover effect to highlight in red
+                region.element.addEventListener('mouseenter', () => {
+                    if (deleteModeT) {
+                        region.update({ color: 'rgba(255, 0, 0, 0.5)' }); // Temporarily change to red
+                    }
+                });
+                region.element.addEventListener('mouseleave', () => {
+                    if (deleteModeT) {
+                        region.update({ color: 'rgba(255, 165, 0, 0.5)' }); // Revert to orange
+                    }
+                });
+            }
+        });
+
+        waveform.on('region-click', (region, e) => {
+            e.stopPropagation(); // Prevent other actions from triggering
+
+            if (region.color === 'rgba(255, 0, 0, 0.5)') {
+                // Remove the region from the waveform
+                region.remove();
+                console.log("Deleted transition region:", region);
+            } else {
+                console.log("Clicked on a non-deletable region. No action taken.");
+            }
+        });
+
+    } else {
+        console.log("Transition delete mode disabled.");
+        
+        // Restore the button to its original state
+        deleteButton.textContent = "Delete Transitions";
+        deleteButton.style.backgroundColor = "";
+        deleteButton.style.color = "";
+
+        // Remove the hover and click event listeners when delete mode is off
+        Object.values(waveform.regions.list).forEach(region => {
+            if (region.color === 'rgba(255, 165, 0, 0.5)' || region.color === 'rgba(255, 0, 0, 0.5)') {
+                region.element.removeEventListener('mouseenter', null);
+                region.element.removeEventListener('mouseleave', null);
+            }
+        });
+
+        waveform.un('region-click'); // Remove the region click listener when delete mode is off
+    }
+}
+
+
+function refreshTable() {
+    // Get current regions
+    const allRegions = Object.values(waveform.regions.list);
+    let greenRegions = allRegions.filter(region => region.color === 'green');
+    console.log("green before move: ", greenRegions);
+    let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
+    console.log("orange before move: ", orangeRegions);
+    greenRegions = greenRegions.sort((a, b) => a.start - b.start);
+    orangeRegions = orangeRegions.sort((a, b) => a.start - b.start);
+    console.log("green after move: ", greenRegions);
+    console.log("orange after move: ", orangeRegions);
+
+    // console.log("old sig: ", newsigPoints)
+    // Prepare significant points (this is just an example; adapt as necessary)
+    newsigPoints = greenRegions.map(region => region.start); // Example logic
+    // console.log("new sig: ", newsigPoints)
+    const audioDuration = waveform.getDuration()
+
+    // Call finalizeTimestamps with the type
+    // finalizeTimestamps("transition", newsigPoints, orangeRegions, audioDuration);
+    finalizeTimestamps("time", newsigPoints, orangeRegions, audioDuration);
 }
 
 
@@ -2096,5 +2425,10 @@ function toggleMotion() {
         // Add code here to handle the change to 2D motion
         console.log("Switched to 3D Motion");
     }
+}
+
+function toggle_suggest(){
+    const suggestionsContent = document.getElementById('suggestionsContent');
+    suggestionsContent.classList.toggle('hidden');
 }
 

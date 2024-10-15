@@ -14,7 +14,8 @@
 <!-- <button id="deleteButton">Delete Selected Label</button> -->
 <button id="addNewInterval" onclick="addNewInterval()">Add Interval</button>
 <button onclick="delete_intervals()" id="deleteButton">Delete Intervals</button>
-
+<button id="add-transitions-button" onclick="addTransitionRegions()">Add Transitions</button>
+<button id="deleteTransitionButton" onclick="delete_transitions()">Delete Transition Mode</button>
 <button id="finalize-timestamps" onclick="makeTimestamp(false)">Finalize Time Stamps</button>
 
 <div id="waveform"></div>
@@ -36,8 +37,30 @@
 
 <div id="outputContainer"></div>
 <div id="timestampsContainer"></div>
+<div class="suggestions-container">
+    <button id="suggestionsToggle" onclick="toggle_suggest()" class="suggestions-button">
+        Click for Suggestions
+    </button>
+    <div id="suggestionsContent" class="suggestions-content hidden">
+        <ul>
+            <li>Each segment is preferably around 5 seconds, with 1 second for transition.</li>
+            <li>If your segments are shorter than 3 seconds, it's suggested to delete the transition sections since transitions take up time, potentially overshadowing very short scenes.</li>
+            <li>Suggested ending: zoom (zoom in, zoom out).</li>
+            <li>Suggested transitions: pan (pan up, pan down, pan right, pan left).</li>
+            <li>You can use copy and paste to make all columns for the non-transition scenes the same, and all columns for the transition scenes if you want to get a quick try.</li>
+        </ul>
+    </div>
+</div>
 
 
+<div>
+    <label for="vibeInput">Vibe: </label>
+    <input type="text" id="vibeInput" placeholder="Enter vibe (e.g., calm)">
+</div>
+<div>
+    <label for="colorInput">Color:</label>
+    <input type="text" id="colorInput" placeholder="Enter color (e.g., pale blue)">
+</div>
 <!-- <button onclick="fillDefaults()">Fill with Defaults</button> -->
 <button id="fill-defaults" onclick="fillDefaults()">Fill With Defaults</button>
 
@@ -48,11 +71,11 @@
 <!-- Dropdown Button -->
 <!-- <button id="add-transition" onclick="makeTimestamp(true)">Add Transitions</button> -->
 <!-- <button id="finalizeTransitionButton">Done Transition</button> -->
-<button id="add-transitions-button" onclick="addTransitionRegions()">Add Transitions</button>
-<button id="deleteTransitionButton" onclick="delete_transitions()">Delete Transition Mode</button>
 
 
 <!-- <button id="fillTransitionsDefaults" onclick="fillTransitionDefaults()">Fill Transitions Defaults</button> -->
+
+<!-- <button id="default-trans-btn" onclick="addDefaultTransitions()">Default Transition Suggestion</button> -->
 
 <!-- Dropdown Container -->
 <div id="transitionsContainer"></div>
