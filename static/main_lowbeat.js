@@ -1018,6 +1018,11 @@ function fillDefaults() {
                 if (!input.value) {
                     input.value = vibeInput || vibes[Math.floor(Math.random() * vibes.length)];
                 }
+                else if(input.value && input.value != vibeInput && colorInput != ""){
+                    console.log("Vibe: ",input.value);
+                    console.log("Vibe input: ",vibeInput);
+                    input.value = vibeInput
+                }
             } 
             // Handle texture input for regular sections (no texture for transitions)
             else if (input.id.includes('texture_form')) {
@@ -1041,6 +1046,11 @@ function fillDefaults() {
             else if (input.id.includes('color_form') || input.id.includes('color_trans')) {
                 if (!input.value) {
                     input.value = colorInput || (index < sections.length / 2 ? 'black/white' : 'myriad of color');
+                }
+                else if (input.value && input.value != colorInput && colorInput != "") {
+                    console.log("Color: ",input.value);
+                    console.log("Color input: ",vibeInput);
+                    input.value = colorInput
                 }
             }
             // Handle motion, strength, and speed inputs for both regular sections and transitions
