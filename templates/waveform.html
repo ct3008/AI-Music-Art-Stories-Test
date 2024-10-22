@@ -3,43 +3,79 @@
 {% block content %}
 
 <h1>BEAT & LYRICS TEST</h1>
-<input type="file" id="audioFile" accept=".mp3, .wav, .m4a">
-<input type="number" id="threshold" placeholder="Threshold (0-100)" min="0" max="100" value="70">
+<input type="file" id="audioFile" accept=".mp3, .wav">
+<!-- <input type="number" id="threshold" placeholder="Threshold (0-100)" min="0" max="100" value="70"> -->
 
 <button onclick="processAudio()">Process Audio</button>
-<button onclick="playAudio()">Play</button>
-<button onclick="clearBeats()" id="clearButton">Clear Beats</button>
-<button onclick="showSignificantPoints()" id="findIdealIntervals">Find Ideal Intervals</button>
-<button id="deleteButton">Delete Selected Label</button>
+<!-- <button onclick="processAudioNormal()">Process Audio OG</button> -->
+<!-- <button onclick="playAudio()">Play</button> -->
+<!-- <button onclick="clearBeats()" id="clearButton">Clear Beats</button> -->
+<!-- <button onclick="showSignificantPoints()" id="findIdealIntervals">Find Ideal Intervals</button> -->
+<!-- <button id="deleteButton">Delete Selected Label</button> -->
 <button id="addNewInterval" onclick="addNewInterval()">Add Interval</button>
+<button onclick="delete_intervals()" id="deleteButton">Delete Intervals</button>
+<button id="add-transitions-button" onclick="addTransitionRegions()">Add Transitions</button>
+<button id="deleteTransitionButton" onclick="delete_transitions()">Delete Transition Mode</button>
 <button id="finalize-timestamps" onclick="makeTimestamp(false)">Finalize Time Stamps</button>
 
+<div id="waveform"></div>
+<button id="playPauseButton">ON/OFF</button>
+<div>
+    <label for="zoomSlider">Zoom Level:</label>
+    <input type="range" id="zoomSlider" min="10" max="400" value="20">
+</div>
 
-<div id="beatContainer">
-    <div id="playhead"
-        style="position: absolute; height: 100%; width: 8px; background-color: blue; z-index: 9999; left: 0px;"></div>
+
+<!-- <div id="beatContainer">
+    <div id="playhead" style="position: absolute; height: 100%; width: 8px; background-color: blue; left: 0px; z-index: 9999"></div>
     <canvas id="waveformCanvas"></canvas>
 </div>
 
-<audio id="audioPlayer" controls hidden></audio>
+<audio id="audioPlayer" controls hidden></audio> -->
 
 <button id="toggleMotionButton" onclick="toggleMotion()">3D Motion</button>
 
 <div id="outputContainer"></div>
 <div id="timestampsContainer"></div>
+<div class="suggestions-container">
+    <button id="suggestionsToggle" onclick="toggle_suggest()" class="suggestions-button">
+        Click for Suggestions
+    </button>
+    <div id="suggestionsContent" class="suggestions-content hidden">
+        <ul>
+            <li>Each segment is preferably around 5 seconds, with 1 second for transition.</li>
+            <li>If your segments are shorter than 3 seconds, it's suggested to delete the transition sections since transitions take up time, potentially overshadowing very short scenes.</li>
+            <li>Suggested ending: zoom (zoom in, zoom out).</li>
+            <li>Suggested transitions: pan (pan up, pan down, pan right, pan left).</li>
+            <li>You can use copy and paste to make all columns for the non-transition scenes the same, and all columns for the transition scenes if you want to get a quick try.</li>
+        </ul>
+    </div>
+</div>
 
 
+<div>
+    <label for="vibeInput">Vibe: </label>
+    <input type="text" id="vibeInput" placeholder="Enter vibe (e.g., calm)">
+</div>
+<div>
+    <label for="colorInput">Color:</label>
+    <input type="text" id="colorInput" placeholder="Enter color (e.g., pale blue)">
+</div>
 <!-- <button onclick="fillDefaults()">Fill with Defaults</button> -->
 <button id="fill-defaults" onclick="fillDefaults()">Fill With Defaults</button>
 
 
-<div class="form-container" id="trash"> Trash</div>
-<button id="delete-section">Delete Sections</button>
+<div class="form-container" id="trash">Press Finalize Time Stamps</div>
+<!-- <button id="delete-section">Delete Sections</button> -->
 
 <!-- Dropdown Button -->
-<button id="add-transition" onclick="makeTimestamp(true)">Add Transitions</button>
-<button id="finalizeTransitionButton">Done Transition</button>
+<!-- <button id="add-transition" onclick="makeTimestamp(true)">Add Transitions</button> -->
+<!-- <button id="finalizeTransitionButton">Done Transition</button> -->
+
+
 <!-- <button id="fillTransitionsDefaults" onclick="fillTransitionDefaults()">Fill Transitions Defaults</button> -->
+
+<!-- <button id="default-trans-btn" onclick="addDefaultTransitions()">Default Transition Suggestion</button> -->
 
 <!-- Dropdown Container -->
 <div id="transitionsContainer"></div>
@@ -50,5 +86,11 @@
 </div>
 <!-- Add a condition later so that this only appears after everything is filled out -->
 <div id="processedDataContainer"></div>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/wavesurfer.js"></script> -->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.4.0/wavesurfer.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.4.0/plugin/wavesurfer.regions.min.js"></script>
+
 
 {% endblock %}

@@ -28,7 +28,7 @@ export function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
 
     // Exclude points too close to the beginning or end
     const excludedPoints = combined.filter(point => 
-        point.time > 3 && point.time < (songDuration - 4)
+        point.time > 3 && point.time < (songDuration - 3)
     );
 
     // Step 3: Clustering
@@ -45,10 +45,12 @@ export function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
             const currentPoint = excludedPoints[i];
 
             if (currentPoint.source === 'lowEnergy' && (currentPoint.time - currentCluster[0].time) <= maxLowEnergyDistance) {
+				console.log("lowenergy pt: ", currentPoint.time);
                 currentCluster.push(currentPoint);
             } else if ((currentPoint.time - lastPoint.time) < minDistance) {
                 currentCluster.push(currentPoint);
             } else {
+				console.log("beat pt: ", currentPoint.time);
                 clustered.push(currentCluster);
                 currentCluster = [currentPoint];
             }
