@@ -9,7 +9,7 @@ let lowEnergyBeats = {};
 let significantPoints = [];
 let motion_mode = "3D";
 let newsigPoints = [];
-let lastClickedLabel = null; 
+let lastClickedLabel = null;
 let transitionsAdded = false;
 let draggingRegionId = null; 
 let originalStartTime = null;
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
         clearInterval(playheadInterval);
         playhead.style.left = '0px'; // Optionally reset the playhead
     });
-    
+
 
 
 });
@@ -259,24 +259,22 @@ function playTimeRange(startTime, endTime) {
     }
 }
 
-
 function makeTimestamp(isTrans){
-    
     if (isTrans){
         console.log("trans");
         transitionsAdded = true;
         createTransitionLines();
-    } else{
+    } else {
         console.log("other")
         finalizeTimestamps('time');
-        
+
         if (transitionsAdded) {
             // createTransitionLines();
             console.log("bool");
             // finalizeTimestamps('transition');
         }
     }
-    
+
 }
 
 // function finalizeTimestamps(name) {
@@ -525,7 +523,6 @@ function finalizeTimestamps(name) {
     const spacerBefore = document.createElement('div');
     spacerBefore.style.flex = '0.2';
     labelsContainer.appendChild(spacerBefore);
-
     labels.forEach(label => {
         const labelElement = document.createElement('div');
         labelElement.className = 'label';
@@ -644,7 +641,6 @@ function finalizeTimestamps(name) {
             addDefaultTransitions();
             allRegions = Object.values(waveform.regions.list);
             orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
-
         } else {
             console.log('Proceeding without transitions.');
         }
@@ -749,7 +745,7 @@ function deleteSection() {
 
 function addTransitions(startTime, endTime) {
     const formContainers = document.querySelectorAll('.section');
-    
+
     formContainers.forEach((form, index) => {
         const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
         const formEndTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[1]);
@@ -789,7 +785,7 @@ function addTransitions(startTime, endTime) {
             form.insertAdjacentElement('afterend', transitionContainer);
         }
     });
-} 
+}
 
 
 
@@ -1111,7 +1107,7 @@ function gatherFormData() { // Example significant points; replace with your act
 
 function gatherTransitionData(formData) {
     const transitionsData = {};
-    
+
     // Extract the valid transition sections
     const transitionSections = document.querySelectorAll('.section.transition-section');
 
@@ -1160,7 +1156,7 @@ function gatherTransitionData(formData) {
     return transitionsData;
 }
 
-function processTable(){
+function processTable() {
     const formData = gatherFormData();
     const transitionsData = gatherTransitionData(formData);
     const data = {
@@ -1173,7 +1169,6 @@ function processTable(){
     document.getElementById('processing').style = "display: block;"
     console.log(data);
     console.log("RUNNING PROCESS TABLE");
-    
 
     fetch('/process-data', {
         method: 'POST',
@@ -1182,44 +1177,44 @@ function processTable(){
         },
         body: JSON.stringify(data)
     })
-    .then(response => response.json())
-    .then(data => {
-        console.log(data);
-        console.log("returned back");
-        for (const [key, value] of Object.entries(data)) {
-            console.log(`${key}: ${value}`);
-            if (key === 'output') {
-                console.log(value);
-                window.open(value, '_blank');
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            console.log("returned back");
+            for (const [key, value] of Object.entries(data)) {
+                console.log(`${key}: ${value}`);
+                if (key === 'output') {
+                    console.log(value);
+                    window.open(value, '_blank');
+                }
             }
-        }
-        let resultHTML = '';
+            let resultHTML = '';
 
-        // if (data.animation_prompts) {
-        //     resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
-        // }
+            // if (data.animation_prompts) {
+            //     resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
+            // }
 
-        if (data.motion_prompts) {
-            resultHTML += `<h3>Motion Strings:</h3>`;
-            for (const [motion, transitions] of Object.entries(data.motion_prompts)) {
-                resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
+            if (data.motion_prompts) {
+                resultHTML += `<h3>Motion Strings:</h3>`;
+                for (const [motion, transitions] of Object.entries(data.motion_prompts)) {
+                    resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
+                }
             }
-        }
 
-        if (data.prompts) {
-            resultHTML += `<h3>Prompts:</h3><p>${data.prompts}</p>`;
-        }
+            if (data.prompts) {
+                resultHTML += `<h3>Prompts:</h3><p>${data.prompts}</p>`;
+            }
 
-        if (data.output) {
-            resultHTML += `<h3>Output:</h3><p><a href="${data.output}" target="_blank">Click here to view the output</a></p>`;
-        }
+            if (data.output) {
+                resultHTML += `<h3>Output:</h3><p><a href="${data.output}" target="_blank">Click here to view the output</a></p>`;
+            }
 
-        document.getElementById('processedDataContainer').innerHTML = resultHTML;
-        document.getElementById('processedDataContainer').style = "border: 2px solid black;"
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+            document.getElementById('processedDataContainer').innerHTML = resultHTML;
+            document.getElementById('processedDataContainer').style = "border: 2px solid black;"
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
 }
 
 
@@ -1498,31 +1493,31 @@ function processAudioNormal() {
 
     const formData = new FormData();
     formData.append('audioFile', fileInput.files[0]);
-    
+
 
     fetch('/upload_audio', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-            lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-            audioDuration = data.duration;
-            console.log("LOW ENERGY");
-            console.log(lowEnergyBeats); // Log for debugging
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+                audioDuration = data.duration;
+                console.log("LOW ENERGY");
+                console.log(lowEnergyBeats); // Log for debugging
 
-            // Now process the audio after lowEnergyBeats are fetched
-            processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer);
-        } else {
-            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-    });
+                // Now process the audio after lowEnergyBeats are fetched
+                processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer);
+            } else {
+                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+        });
 }
 
 
@@ -1948,12 +1943,12 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
         timeLabel.style.left = `${(beatTime / duration) * beatContainer.offsetWidth}px`;
         timeLabel.style.transform = 'translateX(-50%)';
         timeLabel.style.backgroundColor = isNew ? 'green' : '';
-        
+
         beatLine.timeLabel = timeLabel;
 
         // Event listener for clicking on the time label
         timeLabel.addEventListener('click', function () {
-            if (lastClickedLabel === timeLabel) { 
+            if (lastClickedLabel === timeLabel) {
                 lastClickedLabel.style.borderColor = '';
                 timeLabel.style.borderColor = 'red';
                 lastClickedLabel = timeLabel;
@@ -2023,7 +2018,7 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
         }
 
         // Append the elements to the container
-        
+
         beatContainer.appendChild(timeLabel);
 
         // Initially show the hidden beat if new interval
@@ -2046,8 +2041,8 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
                     updateNewsigPoints();
                 }
             }
-            
-            
+
+
         });
     }
 
@@ -2057,7 +2052,7 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
 function drawBeats(beats, beatContainer, duration, color, hidden = false) {
     clearPreviousTimestamps();
     newsigPoints = [...beats];
-    
+
     beats.forEach((beat) => {
         createBeat(beat, beatContainer, duration, color, hidden);
     });
@@ -2410,21 +2405,21 @@ function getLyrics() {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-            lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-            console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
-            updateUIWithLowEnergyBeats(); // Example function call
-        } else {
-            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+                console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
+                updateUIWithLowEnergyBeats(); // Example function call
+            } else {
+                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+        });
 }
 
 function toggleMotion() {

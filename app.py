@@ -8,8 +8,9 @@ import replicate
 
 app = Flask(__name__, template_folder='./templates', static_folder='./static')
 
-api_key = os.getenv("OPENAI_DISCO_API_KEY")
 client = OpenAI(api_key=api_key)
+# openai_api_key = os.getenv("OPENAI_API_KEY")
+# replicate_api_token = os.getenv("REPLICATE_API_TOKEN")
 
 api_token = os.getenv("MY_REPLICATE_TOKEN")
 print("API TOKEN?: ", api_token)
