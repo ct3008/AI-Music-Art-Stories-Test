@@ -9,7 +9,7 @@ let lowEnergyBeats = {};
 let significantPoints = [];
 let motion_mode = "3D";
 let newsigPoints = [];
-let lastClickedLabel = null;
+let lastClickedLabel = null; 
 let transitionsAdded = false;
 let draggingRegionId = null; 
 let originalStartTime = null;
@@ -186,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function () {
         clearInterval(playheadInterval);
         playhead.style.left = '0px'; // Optionally reset the playhead
     });
-
+    
 
 
 });
@@ -236,6 +236,7 @@ function movePlayhead(audioPlayer, endTime) {
 }
 
 function playTimeRange(startTime, endTime) {
+    console.log("start end play interval: ", startTime, endTime);
     // Ensure WaveSurfer is available and has been initialized
     if (waveform && waveform.isReady) {
         // Seek to the start time
@@ -247,6 +248,7 @@ function playTimeRange(startTime, endTime) {
         // Use the WaveSurfer API to manage playback
         const interval = setInterval(() => {
             const currentTime = waveform.getCurrentTime();
+            console.log(currentTime);
 
             // Check if the current time has reached the end time or if playback is paused
             if (currentTime >= endTime || !waveform.isPlaying()) {
@@ -259,22 +261,24 @@ function playTimeRange(startTime, endTime) {
     }
 }
 
+
 function makeTimestamp(isTrans){
+    
     if (isTrans){
         console.log("trans");
         transitionsAdded = true;
         createTransitionLines();
-    } else {
+    } else{
         console.log("other")
         finalizeTimestamps('time');
-
+        
         if (transitionsAdded) {
             // createTransitionLines();
             console.log("bool");
             // finalizeTimestamps('transition');
         }
     }
-
+    
 }
 
 // function finalizeTimestamps(name) {
@@ -486,6 +490,221 @@ function makeTimestamp(isTrans){
 //     tablemade = true;
 // }
 
+// function finalizeTimestamps(name) {
+//     const timestampsContainer = document.getElementById('timestampsContainer');
+//     timestampsContainer.innerHTML = ''; // Clear previous timestamps
+
+//     const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
+//     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
+
+//     const sectionsCount = newsigPoints.length;
+//     let container;
+//     let labels = [];
+
+//     if (name === 'time') {
+//         container = document.getElementById('trash');
+//         labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
+//     } else if (name === 'transition') {
+//         container = document.getElementById('transitionsContainer');
+//         container.style.border = '2px solid black';
+//         labels = ['Motion', 'Strength', 'Speed'];
+//     }
+
+//     // Store current values of inputs before clearing the container
+//     const existingValues = {};
+//     document.querySelectorAll('.form-section').forEach((section, sectionIndex) => {
+//         const inputs = section.querySelectorAll('input');
+//         existingValues[sectionIndex] = Array.from(inputs).map(input => input.value);
+//     });
+
+//     container.innerHTML = ''; // Clear previous content
+//     container.style.setProperty('--sections-count', sectionsCount);
+
+//     // Create labels container
+//     const labelsContainer = document.createElement('div');
+//     labelsContainer.className = 'label-container';
+
+//     const spacerBefore = document.createElement('div');
+//     spacerBefore.style.flex = '0.2';
+//     labelsContainer.appendChild(spacerBefore);
+
+//     labels.forEach(label => {
+//         const labelElement = document.createElement('div');
+//         labelElement.className = 'label';
+//         labelElement.innerText = label;
+//         labelsContainer.appendChild(labelElement);
+//     });
+
+//     const spacerAfter = document.createElement('div');
+//     spacerAfter.style.flex = '0.2';
+//     labelsContainer.appendChild(spacerAfter);
+//     container.appendChild(labelsContainer);
+
+//     let sceneTimes = [];
+//     for (let i = 0; i < sectionsCount + 1; i++) {
+//         const section = document.createElement('div');
+//         section.className = 'section form-section';
+
+//         const timeRange = document.createElement('div');
+//         timeRange.className = 'time-range';
+//         if (name === 'time') {
+//             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
+//             sceneTimes.push({ 'start': timestamps[i], 'end': timestamps[i + 1] });
+//         } else if (name === 'transition') {
+//             const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
+//             const end = (i === sectionsCount) ? audioDuration.toFixed(2) : (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
+//             timeRange.innerText = `Transition ${i + 1}: ${start} - ${end}`;
+//         }
+//         section.appendChild(timeRange);
+
+//         const playButton = document.createElement('button');
+//         playButton.innerText = 'Play';
+//         playButton.addEventListener('click', () => playTimeRange(timestamps[i], timestamps[i + 1]));
+//         section.appendChild(playButton);
+
+//         const inputContainer = document.createElement('div');
+//         inputContainer.className = 'input-container';
+
+//         const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
+//         const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular', 'rubbed graphite on paper'];
+//         const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "Jackson Pollock abstract expressionism"];
+//         const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles', 'whirling lines', 'vibrant kaleidoscope of colors', 'interstellar light trails', 'abstract fractal patterns', 'dissolving geometric shards', 'diffused cosmic mists', 'translucent ripple effects'];
+//         const colorOptions = ['black/white', 'pale blue', 'full color'];
+//         const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
+//         const strengths = ['weak', 'normal', 'strong', 'vstrong'];
+//         const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
+
+//         labels.forEach((label) => {
+//             const input = document.createElement('input');
+//             input.type = 'text';
+//             input.className = 'dropdown-input';
+
+//             if (name === 'time') {
+//                 input.id = `${label.toLowerCase()}_form_${i + 1}`;
+//             } else if (name === 'transition') {
+//                 input.id = `${label.toLowerCase()}_trans_${i + 1}`;
+//             }
+
+//             const datalist = document.createElement('datalist');
+//             datalist.id = `${label.toLowerCase()}_options_${i + 1}`;
+
+//             let options;
+//             switch (label.toLowerCase()) {
+//                 case 'vibe':
+//                     options = vibes;
+//                     break;
+//                 case 'texture':
+//                     options = textures;
+//                     break;
+//                 case 'style':
+//                     options = styles;
+//                     break;
+//                 case 'imagery':
+//                     options = imageries;
+//                     break;
+//                 case 'color':
+//                     options = colorOptions;
+//                     break;
+//                 case 'motion':
+//                     options = motions;
+//                     break;
+//                 case 'strength':
+//                     options = strengths;
+//                     break;
+//                 case 'speed':
+//                     options = speeds;
+//                     break;
+//             }
+            
+
+//             options.forEach(option => {
+//                 const optionElement = document.createElement('option');
+//                 optionElement.value = option;
+//                 datalist.appendChild(optionElement);
+//             });
+
+//             input.setAttribute('list', datalist.id);
+//             inputContainer.appendChild(input);
+//             inputContainer.appendChild(datalist);
+
+//             // Repopulate input value if available in stored values
+//             if (existingValues[i] && existingValues[i][labels.indexOf(label)]) {
+//                 input.value = existingValues[i][labels.indexOf(label)];
+//             }
+//         });
+
+//         section.appendChild(inputContainer);
+//         container.appendChild(section);
+//     }
+
+//     // Get regions from WaveSurfer
+//     let allRegions = Object.values(waveform.regions.list);
+//     let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
+
+//     if (orangeRegions.length === 0 && tablemade == false) {
+//         const useDefault = window.confirm('No transition regions found. Would you like to add some default transitions?');
+//         if (useDefault) {
+//             addDefaultTransitions();
+//             allRegions = Object.values(waveform.regions.list);
+//             orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
+
+//         } else {
+//             console.log('Proceeding without transitions.');
+//         }
+//     }
+
+//     // Repopulate table with transitions after table is built
+//     if (orangeRegions.length > 0) {
+//         orangeRegions.forEach((region, index) => {
+//             const transitionStart = region.start.toFixed(2);
+//             const transitionEnd = region.end.toFixed(2);
+
+//             // Add the transitions to the table after clearing and rebuilding it
+//             const transitionRow = document.createElement('div');
+//             transitionRow.className = 'transition-row';
+//             // transitionRow.textContent = `Transition ${index + 1}: ${transitionStart} - ${transitionEnd} seconds`;
+//             // timestampsContainer.appendChild(transitionRow);
+            
+//             // Call addTransitions for each detected region
+//             addTransitions(index + 1000, transitionStart, transitionEnd);
+//         });
+//     }
+
+//     // Add copy-paste functionality to form sections (unchanged from before)
+//     const formSections = document.querySelectorAll('.form-section'); 
+
+//     let copiedData = null;
+//     let copiedSectionIndex = null;
+
+//     formSections.forEach((section, index) => {
+//         const copyButton = document.createElement('button');
+//         copyButton.innerText = 'Copy All';
+//         section.appendChild(copyButton);
+
+//         const pasteButton = document.createElement('button');
+//         pasteButton.innerText = 'Paste All';
+//         section.appendChild(pasteButton);
+
+//         copyButton.addEventListener('click', () => {
+//             const inputs = section.querySelectorAll('input');
+//             copiedData = Array.from(inputs).map(input => input.value);
+//             copiedSectionIndex = index;
+
+//             copyButton.innerText = 'Copied!';
+//             setTimeout(() => (copyButton.innerText = 'Copy All'), 2000);
+//         });
+
+//         pasteButton.addEventListener('click', () => {
+//             if (copiedData && copiedSectionIndex !== index) {
+//                 const inputs = section.querySelectorAll('input');
+//                 copiedData.forEach((data, i) => (inputs[i].value = data));
+//             }
+//         });
+//     });
+
+//     tablemade = true;
+// }
+
 function finalizeTimestamps(name) {
     const timestampsContainer = document.getElementById('timestampsContainer');
     timestampsContainer.innerHTML = ''; // Clear previous timestamps
@@ -499,11 +718,13 @@ function finalizeTimestamps(name) {
 
     if (name === 'time') {
         container = document.getElementById('trash');
-        labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
+        labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength']
+        // labels = ['Vibe', 'Imagery', 'Texture', 'Style', 'Color', 'Motion', 'Strength', 'Speed'];
     } else if (name === 'transition') {
         container = document.getElementById('transitionsContainer');
         container.style.border = '2px solid black';
-        labels = ['Motion', 'Strength', 'Speed'];
+        // labels = ['Motion', 'Strength', 'Speed'];
+        labels = ['Motion', 'Strength']
     }
 
     // Store current values of inputs before clearing the container
@@ -523,6 +744,7 @@ function finalizeTimestamps(name) {
     const spacerBefore = document.createElement('div');
     spacerBefore.style.flex = '0.2';
     labelsContainer.appendChild(spacerBefore);
+
     labels.forEach(label => {
         const labelElement = document.createElement('div');
         labelElement.className = 'label';
@@ -561,8 +783,8 @@ function finalizeTimestamps(name) {
         inputContainer.className = 'input-container';
 
         const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-        const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular', 'rubbed graphite on paper'];
-        const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "Jackson Pollock abstract expressionism"];
+        const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular lines', 'rubbed graphite on paper'];
+        const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "expressionism"];
         const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles', 'whirling lines', 'vibrant kaleidoscope of colors', 'interstellar light trails', 'abstract fractal patterns', 'dissolving geometric shards', 'diffused cosmic mists', 'translucent ripple effects'];
         const colorOptions = ['black/white', 'pale blue', 'full color'];
         const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
@@ -606,10 +828,23 @@ function finalizeTimestamps(name) {
                 case 'strength':
                     options = strengths;
                     break;
-                case 'speed':
-                    options = speeds;
-                    break;
+                // case 'speed':
+                //     options = speeds;
+                //     break;
             }
+
+            input.addEventListener('input', () => {
+                const currentValue = input.value;
+                // Check if the current value matches exactly with one of the options
+                if (options.includes(currentValue)) {
+                    // Clear to avoid showing the closest match
+                    input.value = ''; 
+                    setTimeout(() => {
+                        input.value = currentValue; // Restore original value
+                        input.setSelectionRange(input.value.length, input.value.length); // Move cursor to the end
+                    }, 0);
+                }
+            });
 
             options.forEach(option => {
                 const optionElement = document.createElement('option');
@@ -621,10 +856,32 @@ function finalizeTimestamps(name) {
             inputContainer.appendChild(input);
             inputContainer.appendChild(datalist);
 
+            // input.addEventListener('focus', () => {
+            //     const currentValue = input.value;
+            //     input.value = '';  // Clear input to trigger full option display
+            //     setTimeout(() => {
+            //         input.value = currentValue;  // Restore the original value after showing options
+            //     }, 0);
+            //     console.log("focus event triggered");
+            //     input.setSelectionRange(input.value.length, input.value.length); // Move cursor to end
+            //     input.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown'})); // Simulate key press to trigger dropdown
+            // });
+        
+            input.addEventListener('click', () => {
+                const currentValue = input.value;
+                input.value = ''; // Clear input to suppress the closest match
+            
+                // Allow the dropdown to open
+                setTimeout(() => {
+                    input.value = currentValue; // Restore original value
+                    input.setSelectionRange(input.value.length, input.value.length); // Move cursor to the end
+                }, 0);
+            });
+
             // Repopulate input value if available in stored values
-            if (existingValues[i] && existingValues[i][labels.indexOf(label)]) {
-                input.value = existingValues[i][labels.indexOf(label)];
-            }
+            // if (existingValues[i] && existingValues[i][labels.indexOf(label)]) {
+            //     input.value = existingValues[i][labels.indexOf(label)];
+            // }
         });
 
         section.appendChild(inputContainer);
@@ -636,11 +893,12 @@ function finalizeTimestamps(name) {
     let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
 
     if (orangeRegions.length === 0 && tablemade == false) {
-        const useDefault = window.confirm('No orange transition regions found. Would you like to add default transitions?');
+        const useDefault = window.confirm('No transition regions found. Would you like to add some default transitions?');
         if (useDefault) {
             addDefaultTransitions();
             allRegions = Object.values(waveform.regions.list);
             orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
+
         } else {
             console.log('Proceeding without transitions.');
         }
@@ -698,8 +956,6 @@ function finalizeTimestamps(name) {
     tablemade = true;
 }
 
-
-
 function deleteSection() {
     const deleteButton = document.getElementById('delete-section');
     let deleteMode = false;
@@ -743,49 +999,50 @@ function deleteSection() {
 }
 
 
-function addTransitions(startTime, endTime) {
-    const formContainers = document.querySelectorAll('.section');
+// function addTransitions(startTime, endTime) {
+//     console.log("ADD TTRANSITION CALLED");
+//     const formContainers = document.querySelectorAll('.section');
+    
+//     formContainers.forEach((form, index) => {
+//         const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
+//         const formEndTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[1]);
 
-    formContainers.forEach((form, index) => {
-        const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
-        const formEndTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[1]);
+//         if (startTime >= formStartTime && startTime < formEndTime) {
+//             // Create the transition container
+//             const transitionContainer = document.createElement('div');
+//             transitionContainer.className = 'section transition-section';
+//             transitionContainer.innerHTML = `
+//                 <div class="time-range">Transition (${startTime}s to ${endTime}s)</div>
+//                 <div class="input-container">
+//                     <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
+//                     <input type="text" id="motion_trans_${startTime}_${endTime}">
+//                     <label for="strength_trans_${startTime}_${endTime}">Strength:</label>
+//                     <input type="text" id="strength_trans_${startTime}_${endTime}">
+//                     <label for="speed_trans_${startTime}_${endTime}">Speed:</label>
+//                     <input type="text" id="speed_trans_${startTime}_${endTime}">
+//                 </div>
+//             `;
 
-        if (startTime >= formStartTime && startTime < formEndTime) {
-            // Create the transition container
-            const transitionContainer = document.createElement('div');
-            transitionContainer.className = 'section transition-section';
-            transitionContainer.innerHTML = `
-                <div class="time-range">Transition (${startTime}s to ${endTime}s)</div>
-                <div class="input-container">
-                    <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
-                    <input type="text" id="motion_trans_${startTime}_${endTime}">
-                    <label for="strength_trans_${startTime}_${endTime}">Strength:</label>
-                    <input type="text" id="strength_trans_${startTime}_${endTime}">
-                    <label for="speed_trans_${startTime}_${endTime}">Speed:</label>
-                    <input type="text" id="speed_trans_${startTime}_${endTime}">
-                </div>
-            `;
+//             // Add the play button to preview the transition
+//             const playButton = document.createElement('button');
+//             playButton.innerText = 'Banana3';
+//             playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
+//             transitionContainer.appendChild(playButton);
 
-            // Add the play button to preview the transition
-            const playButton = document.createElement('button');
-            playButton.innerText = 'Banana3';
-            playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
-            transitionContainer.appendChild(playButton);
+//             // Add the delete button to remove the transition
+//             const deleteButton = document.createElement('button');
+//             deleteButton.innerText = 'Delete';
+//             deleteButton.style.marginLeft = '10px';
+//             deleteButton.addEventListener('click', () => {
+//                 transitionContainer.remove();
+//             });
+//             transitionContainer.appendChild(deleteButton);
 
-            // Add the delete button to remove the transition
-            const deleteButton = document.createElement('button');
-            deleteButton.innerText = 'Delete';
-            deleteButton.style.marginLeft = '10px';
-            deleteButton.addEventListener('click', () => {
-                transitionContainer.remove();
-            });
-            transitionContainer.appendChild(deleteButton);
-
-            // Insert the transition container in the appropriate position
-            form.insertAdjacentElement('afterend', transitionContainer);
-        }
-    });
-}
+//             // Insert the transition container in the appropriate position
+//             form.insertAdjacentElement('afterend', transitionContainer);
+//         }
+//     });
+// } 
 
 
 
@@ -906,13 +1163,66 @@ function updateExistingTransition(id, startTime, endTime) {
     if (transitionContainer) {
         const playButton = transitionContainer.querySelector('button'); // Select the first button (Play button)
         if (playButton) {
-            playButton.onclick = () => playTimeRange(startTime, endTime);
+            playButton.onclick = () => playTimeRange(startTime.toFixed(2), endTime.toFixed(2));
         }
     }
 }
 
 // Your existing addTransitions function with a unique ID parameter
+// function addTransitions(id, startTime, endTime) {
+//     console.log("AddTrans2 called");
+//     const formContainers = document.querySelectorAll('.section');
+
+//     formContainers.forEach((form) => {
+//         const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
+//         const formEndTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[1]);
+
+//         if (startTime >= formStartTime && startTime < formEndTime) {
+//             // Create the transition container
+//             const transitionContainer = document.createElement('div');
+//             transitionContainer.className = 'section transition-section';
+//             transitionContainer.dataset.transitionId = id; // Store the transition ID for updates
+//             transitionContainer.innerHTML = `
+//                 <div id="time-range-${id}" class="time-range">Transition (${startTime}s to ${endTime}s)</div>
+//                 <div class="input-container">
+//                     <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
+//                     <input type="text" id="motion_trans_${startTime}_${endTime}">
+//                     <label for="strength_trans_${startTime}_${endTime}">Strength:</label>
+//                     <input type="text" id="strength_trans_${startTime}_${endTime}">
+//                     <label for="speed_trans_${startTime}_${endTime}">Speed:</label>
+//                     <input type="text" id="speed_trans_${startTime}_${endTime}">
+//                 </div>
+//             `;
+
+//             // Add the play button to preview the transition
+//             const playButton = document.createElement('button');
+//             playButton.innerText = 'Banana2';
+//             console.log("start: ", startTime);
+//             console.log("end: ", endTime);
+//             playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
+//             transitionContainer.appendChild(playButton);
+
+//             // Add the delete button to remove the transition
+//             // const deleteButton = document.createElement('button');
+//             // deleteButton.innerText = 'Delete';
+//             // deleteButton.style.marginLeft = '10px';
+//             // deleteButton.addEventListener('click', () => {
+//             //     transitionContainer.remove();
+//             //     // Remove from existingTransitions list
+//             //     existingTransitions = existingTransitions.filter(
+//             //         t => t.id !== id
+//             //     );
+//             // });
+//             // transitionContainer.appendChild(deleteButton);
+
+//             // Insert the transition container in the appropriate position
+//             form.insertAdjacentElement('afterend', transitionContainer);
+//         }
+//     });
+// }
+
 function addTransitions(id, startTime, endTime) {
+    console.log("AddTrans2 called");
     const formContainers = document.querySelectorAll('.section');
 
     formContainers.forEach((form) => {
@@ -931,37 +1241,94 @@ function addTransitions(id, startTime, endTime) {
                     <input type="text" id="motion_trans_${startTime}_${endTime}">
                     <label for="strength_trans_${startTime}_${endTime}">Strength:</label>
                     <input type="text" id="strength_trans_${startTime}_${endTime}">
-                    <label for="speed_trans_${startTime}_${endTime}">Speed:</label>
-                    <input type="text" id="speed_trans_${startTime}_${endTime}">
                 </div>
             `;
 
-            // Add the play button to preview the transition
-            // const playButton = document.createElement('button');
-            // playButton.innerText = 'Banana2';
-            // console.log("start: ", startTime);
-            // console.log("end: ", endTime);
-            // playButton.addEventListener('click', () => playTimeRange(startTime, endTime));
-            // transitionContainer.appendChild(playButton);
+            // transitionContainer.innerHTML = `
+            //     <div id="time-range-${id}" class="time-range">Transition (${startTime}s to ${endTime}s)</div>
+            //     <div class="input-container">
+            //         <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
+            //         <input type="text" id="motion_trans_${startTime}_${endTime}">
+            //         <label for="strength_trans_${startTime}_${endTime}">Strength:</label>
+            //         <input type="text" id="strength_trans_${startTime}_${endTime}">
+            //         <label for="speed_trans_${startTime}_${endTime}">Speed:</label>
+            //         <input type="text" id="speed_trans_${startTime}_${endTime}">
+            //     </div>
+            // `;
 
-            // // Add the delete button to remove the transition
-            // const deleteButton = document.createElement('button');
-            // deleteButton.innerText = 'Delete';
-            // deleteButton.style.marginLeft = '10px';
-            // deleteButton.addEventListener('click', () => {
-            //     transitionContainer.remove();
-            //     // Remove from existingTransitions list
-            //     existingTransitions = existingTransitions.filter(
-            //         t => t.id !== id
-            //     );
-            // });
-            // transitionContainer.appendChild(deleteButton);
+            // Add the play button to preview the transition
+            const playButton = document.createElement('button');
+            playButton.innerText = 'Banana2';
+            console.log("start: ", startTime);
+            console.log("end: ", endTime);
+            playButton.addEventListener('click', () => playTimeRange(parseFloat(startTime), parseFloat(endTime)));
+            transitionContainer.appendChild(playButton);
 
             // Insert the transition container in the appropriate position
             form.insertAdjacentElement('afterend', transitionContainer);
+
+            // Add dropdown functionality to inputs
+            const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
+            const strengths = ['weak', 'normal', 'strong', 'vstrong'];
+            // const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
+
+            // const inputTypes = ['motion', 'strength', 'speed'];
+            const inputTypes = ['motion', 'strength']
+            inputTypes.forEach((type) => {
+                const input = document.getElementById(`${type}_trans_${startTime}_${endTime}`);
+                const datalist = document.createElement('datalist');
+                datalist.id = `${type}_options_${startTime}_${endTime}`;
+
+                let options;
+                switch (type) {
+                    case 'motion':
+                        options = motions;
+                        break;
+                    case 'strength':
+                        options = strengths;
+                        break;
+                    // case 'speed':
+                    //     options = speeds;
+                    //     break;
+                }
+
+                // Populate datalist with options
+                options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option;
+                    datalist.appendChild(optionElement);
+                });
+
+                input.setAttribute('list', datalist.id);
+                input.parentNode.appendChild(datalist);
+
+                // Add event listeners to suppress closest match dropdown behavior
+                input.addEventListener('input', () => {
+                    const currentValue = input.value;
+                    if (options.includes(currentValue)) {
+                        input.value = '';
+                        setTimeout(() => {
+                            input.value = currentValue;
+                            input.setSelectionRange(input.value.length, input.value.length); // Move cursor to the end
+                        }, 0);
+                    }
+                });
+
+                input.addEventListener('click', () => {
+                    const currentValue = input.value;
+                    input.value = '';
+                    setTimeout(() => {
+                        input.value = currentValue;
+                        input.setSelectionRange(input.value.length, input.value.length); // Move cursor to the end
+                    }, 0);
+                });
+            });
         }
     });
 }
+
+
+
 
 // Update transition times based on dragging
 function updateTransitionTimes(transitionId) {
@@ -993,7 +1360,7 @@ function fillDefaults() {
     const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing'];
     const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
     const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
-    const colorOptions = ['black/white', 'pale blue', 'full color'];
+    const colorOptions = ['black/white', 'myriad of color', 'pale blue', "deep red"];
 
     // Get the values entered by the user for vibe and color
     const vibeInput = document.getElementById('vibeInput').value.trim();  
@@ -1003,18 +1370,20 @@ function fillDefaults() {
 
     // Choose a random texture and style for consistency
     const chosenTexture = textures[Math.floor(Math.random() * textures.length)];
-    const chosenStyle = styles[Math.floor(Math.random() * styles.length)];
+    const chosenStyle = 'abstract';
 
     sections.forEach((section, index) => {
         const inputs = section.querySelectorAll('input');
+        
 
         inputs.forEach(input => {
+            const endTime = parseFloat(input.id.split('_').pop());
             // Handle vibe input for both regular sections and transitions
             if (input.id.includes('vibe_form') || input.id.includes('vibe_trans')) {
                 if (!input.value) {
                     input.value = vibeInput || vibes[Math.floor(Math.random() * vibes.length)];
                 }
-                else if(input.value && input.value != vibeInput && colorInput != ""){
+                else if(input.value && input.value != vibeInput && vibeInput != ""){
                     console.log("Vibe: ",input.value);
                     console.log("Vibe input: ",vibeInput);
                     input.value = vibeInput
@@ -1041,7 +1410,7 @@ function fillDefaults() {
             // Handle color input for both regular sections and transitions
             else if (input.id.includes('color_form') || input.id.includes('color_trans')) {
                 if (!input.value) {
-                    input.value = colorInput || (index < sections.length / 2 ? 'black/white' : 'myriad of color');
+                    input.value = colorInput || (index < Math.floor(sections.length / 2) ? 'black/white' : 'myriad of color');
                 }
                 else if (input.value && input.value != colorInput && colorInput != "") {
                     console.log("Color: ",input.value);
@@ -1050,21 +1419,46 @@ function fillDefaults() {
                 }
             }
             // Handle motion, strength, and speed inputs for both regular sections and transitions
-            else if (input.id.includes('motion_form') || input.id.includes('motion_trans')) {
+            else if (input.id.includes('motion_form')) {
                 if (!input.value) {
-                    input.value = 'zoom_in'; // Default value for motion
+                    input.value = 'zoom_in';
                 }
             } 
-            else if (input.id.includes('strength_form') || input.id.includes('strength_trans')) {
-                if (!input.value) {
-                    input.value = 'normal'; // Default value for strength
-                }
-            } 
-            else if (input.id.includes('speed_form') || input.id.includes('speed_trans')) {
-                if (!input.value) {
-                    input.value = 'normal'; // Default value for speed
+            else if (input.id.includes('motion_trans')){
+                if (!input.value && motion_mode==="3D" || motion_mode==="3D" && (input.value.includes("spin") || input.value.includes("pan"))) {
+                    if (endTime == audioDuration){
+                        input.value = 'rotate_ccw';
+                    }else{
+                        input.value = 'rotate_right';
+                    }
+                    
+                } else if (!input.value && motion_mode==="2D" || motion_mode==="2D" && (input.value.includes("rotate"))){
+                    if (endTime == audioDuration){
+                        input.value = 'spin_ccw';
+                    }else{
+                        input.value = 'pan_right';
+                    }
                 }
             }
+            else if (input.id.includes('strength_form')) {
+                if (!input.value) {
+                    input.value = 'normal';
+                }
+            } 
+            else if (input.id.includes('strength_trans')) {
+                if (!input.value) {
+                    if(endTime == audioDuration){
+                        input.value = 'vstrong';
+                    }else{
+                        input.value = 'strong';
+                    }
+                }
+            } 
+            // else if (input.id.includes('speed_form') || input.id.includes('speed_trans')) {
+            //     if (!input.value) {
+            //         input.value = 'normal';
+            //     }
+            // }
         });
     });
 }
@@ -1095,7 +1489,7 @@ function gatherFormData() { // Example significant points; replace with your act
             "color": document.getElementById(`color_form_${index + 1}`).value,
             "motion": document.getElementById(`motion_form_${index + 1}`).value,
             "strength": document.getElementById(`strength_form_${index + 1}`).value,
-            "speed": document.getElementById(`speed_form_${index + 1}`).value
+            // "speed": document.getElementById(`speed_form_${index + 1}`).value
         };
     });
 
@@ -1107,7 +1501,7 @@ function gatherFormData() { // Example significant points; replace with your act
 
 function gatherTransitionData(formData) {
     const transitionsData = {};
-
+    
     // Extract the valid transition sections
     const transitionSections = document.querySelectorAll('.section.transition-section');
 
@@ -1119,11 +1513,12 @@ function gatherTransitionData(formData) {
         // Extract the IDs for motion, strength, and speed inputs
         const motionInput = section.querySelector('input[id^="motion_trans_"]');
         const strengthInput = section.querySelector('input[id^="strength_trans_"]');
-        const speedInput = section.querySelector('input[id^="speed_trans_"]');
+        // const speedInput = section.querySelector('input[id^="speed_trans_"]');
         console.log(motionInput, strengthInput, speedInput);
 
         // Check if all three inputs are present
-        if (motionInput && strengthInput && speedInput) {
+        // if (motionInput && strengthInput && speedInput) {
+        if (motionInput && strengthInput) {
             // Extract the startTime and endTime from the time-range text
             const timeRangeText = timeRangeDiv.innerText;
             console.log(timeRangeText);
@@ -1145,7 +1540,7 @@ function gatherTransitionData(formData) {
                     // "color": document.getElementById(`color_form_${startTime}_${endTime}`).value,
                     "motion": motionInput.value,
                     "strength": strengthInput.value,
-                    "speed": speedInput.value,
+                    // "speed": speedInput.value,
                     "transition": true // Since all inputs are present, it's a valid transition
                 };
             }
@@ -1156,7 +1551,7 @@ function gatherTransitionData(formData) {
     return transitionsData;
 }
 
-function processTable() {
+function processTable(){
     const formData = gatherFormData();
     const transitionsData = gatherTransitionData(formData);
     const data = {
@@ -1169,6 +1564,7 @@ function processTable() {
     document.getElementById('processing').style = "display: block;"
     console.log(data);
     console.log("RUNNING PROCESS TABLE");
+    
 
     fetch('/process-data', {
         method: 'POST',
@@ -1177,49 +1573,50 @@ function processTable() {
         },
         body: JSON.stringify(data)
     })
-        .then(response => response.json())
-        .then(data => {
-            console.log(data);
-            console.log("returned back");
-            for (const [key, value] of Object.entries(data)) {
-                console.log(`${key}: ${value}`);
-                if (key === 'output') {
-                    console.log(value);
-                    window.open(value, '_blank');
-                }
+    .then(response => response.json())
+    .then(data => {
+        console.log(data);
+        console.log("returned back");
+        for (const [key, value] of Object.entries(data)) {
+            console.log(`${key}: ${value}`);
+            if (key === 'output') {
+                console.log(value);
+                window.open(value, '_blank');
             }
-            let resultHTML = '';
+        }
+        let resultHTML = '';
 
-            // if (data.animation_prompts) {
-            //     resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
-            // }
+        // if (data.animation_prompts) {
+        //     resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
+        // }
 
-            if (data.motion_prompts) {
-                resultHTML += `<h3>Motion Strings:</h3>`;
-                for (const [motion, transitions] of Object.entries(data.motion_prompts)) {
-                    resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
-                }
+        if (data.motion_prompts) {
+            resultHTML += `<h3>Motion Strings:</h3>`;
+            for (const [motion, transitions] of Object.entries(data.motion_prompts)) {
+                resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
             }
+        }
 
-            if (data.prompts) {
-                resultHTML += `<h3>Prompts:</h3><p>${data.prompts}</p>`;
-            }
+        if (data.prompts) {
+            resultHTML += `<h3>Prompts:</h3><p>${data.prompts}</p>`;
+        }
 
-            if (data.output) {
-                resultHTML += `<h3>Output:</h3><p><a href="${data.output}" target="_blank">Click here to view the output</a></p>`;
-            }
+        if (data.output) {
+            resultHTML += `<h3>Output:</h3><p><a href="${data.output}" target="_blank">Click here to view the output</a></p>`;
+        }
 
-            document.getElementById('processedDataContainer').innerHTML = resultHTML;
-            document.getElementById('processedDataContainer').style = "border: 2px solid black;"
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
+        document.getElementById('processedDataContainer').innerHTML = resultHTML;
+        document.getElementById('processedDataContainer').style = "border: 2px solid black;"
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
 }
 
 
 
 function processAudio() {
+    tablemade = false;
     const fileInput = document.getElementById('audioFile');
     // const clearButton = document.getElementById('clearButton');
 
@@ -1414,6 +1811,7 @@ function setupRegions(waveform, data, content, color, size, drag, resize = false
             resize: resize, // Allow resizing from both sides
         });
         if (color == 'green'){
+            region.element.style.zIndex = 100;
             region.on('update-end', refreshTable);
             region.on('remove', refreshTable);
         }
@@ -1493,31 +1891,31 @@ function processAudioNormal() {
 
     const formData = new FormData();
     formData.append('audioFile', fileInput.files[0]);
-
+    
 
     fetch('/upload_audio', {
         method: 'POST',
         body: formData
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-                audioDuration = data.duration;
-                console.log("LOW ENERGY");
-                console.log(lowEnergyBeats); // Log for debugging
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+            lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+            audioDuration = data.duration;
+            console.log("LOW ENERGY");
+            console.log(lowEnergyBeats); // Log for debugging
 
-                // Now process the audio after lowEnergyBeats are fetched
-                processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer);
-            } else {
-                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-        });
+            // Now process the audio after lowEnergyBeats are fetched
+            processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer);
+        } else {
+            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+    });
 }
 
 
@@ -1850,12 +2248,74 @@ function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
 
 
 // Inserts additional points if there are fewer than the desired number of points
+// function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, desiredCount, songDuration) {
+//     console.log("insert");
+
+//     const newPoints = [...finalPoints];
+//     newPoints.sort((a, b) => a - b);
+//     const minGap = 4;
+
+//     let loopCounter = 0; // Counter to prevent infinite loops
+//     const maxLoops = 15; // Maximum number of iterations to prevent infinite loops
+
+//     while (newPoints.length < desiredCount && loopCounter < maxLoops) {
+//         loopCounter++; // Increment the loop counter
+
+//         const gaps = [];
+
+//         // Include the start of the song as a gap
+//         if (newPoints.length === 0 || newPoints[0] > 0) {
+//             gaps.push({ start: 0, end: newPoints[0] || songDuration, gap: newPoints[0] || songDuration });
+//         }
+
+//         for (let i = 0; i < newPoints.length - 1; i++) {
+//             const start = newPoints[i];
+//             const end = newPoints[i + 1];
+//             gaps.push({ start, end, gap: end - start });
+//         }
+
+//         // Include the end of the song as a gap
+//         if (newPoints.length === 0 || newPoints[newPoints.length - 1] < songDuration) {
+//             gaps.push({ start: newPoints[newPoints.length - 1] || 0, end: songDuration, gap: songDuration - (newPoints[newPoints.length - 1] || 0) });
+//         }
+
+//         const maxGapObj = gaps.reduce((max, gap) => gap.gap > max.gap ? gap : max, { gap: 0 });
+
+//         if (maxGapObj.gap >= minGap) {
+//             const midPoint = (maxGapObj.start + maxGapObj.end) / 2;
+//             const nearbyPoints = allPoints.filter(p => p.time >= maxGapObj.start && p.time <= maxGapObj.end);
+
+//             // Try to align with lowEnergy or beat points
+//             const candidates = nearbyPoints.filter(p => Math.abs(p.time - midPoint) <= 2);
+//             if (candidates.length > 0) {
+//                 const chosenPoint = candidates.reduce((prev, curr) => {
+//                     return (curr.strength > prev.strength) ? curr : prev;
+//                 });
+//                 if (!newPoints.includes(chosenPoint.time) && (newPoints.length === 0 || chosenPoint.time - newPoints[newPoints.length - 1] >= minGap)) {
+//                     newPoints.push(chosenPoint.time);
+//                 }
+//             }
+//         } else {
+//             // Break if there are no more gaps large enough to insert
+//             break;
+//         }
+//         // console.log("new pt: ", newPoints)
+//         // Sort again to find new gaps
+//         newPoints.sort((a, b) => a - b);
+//     }
+
+//     // Ensure no duplicates and the exact desired count
+//     console.log([...new Set(newPoints)].slice(0, desiredCount));
+//     return [...new Set(newPoints)].slice(0, desiredCount);
+// }
+
 function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, desiredCount, songDuration) {
     console.log("insert");
 
     const newPoints = [...finalPoints];
     newPoints.sort((a, b) => a - b);
     const minGap = 4;
+    const endGapThreshold = 6;  // minimum gap of 3 seconds between last point and total song duration
 
     let loopCounter = 0; // Counter to prevent infinite loops
     const maxLoops = 15; // Maximum number of iterations to prevent infinite loops
@@ -1877,8 +2337,11 @@ function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, d
         }
 
         // Include the end of the song as a gap
-        if (newPoints.length === 0 || newPoints[newPoints.length - 1] < songDuration) {
-            gaps.push({ start: newPoints[newPoints.length - 1] || 0, end: songDuration, gap: songDuration - (newPoints[newPoints.length - 1] || 0) });
+        const lastPoint = newPoints[newPoints.length - 1] || 0;
+        const remainingGap = songDuration - lastPoint;
+
+        if (remainingGap >= endGapThreshold) {
+            gaps.push({ start: lastPoint, end: songDuration, gap: remainingGap });
         }
 
         const maxGapObj = gaps.reduce((max, gap) => gap.gap > max.gap ? gap : max, { gap: 0 });
@@ -1886,13 +2349,12 @@ function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, d
         if (maxGapObj.gap >= minGap) {
             const midPoint = (maxGapObj.start + maxGapObj.end) / 2;
             const nearbyPoints = allPoints.filter(p => p.time >= maxGapObj.start && p.time <= maxGapObj.end);
-
+            // console.log("nearby: " + nearbyPoints);
             // Try to align with lowEnergy or beat points
             const candidates = nearbyPoints.filter(p => Math.abs(p.time - midPoint) <= 2);
+            // console.log("candiates: " + candidates)
             if (candidates.length > 0) {
-                const chosenPoint = candidates.reduce((prev, curr) => {
-                    return (curr.strength > prev.strength) ? curr : prev;
-                });
+                const chosenPoint = candidates.reduce((prev, curr) => (curr.strength > prev.strength) ? curr : prev);
                 if (!newPoints.includes(chosenPoint.time) && (newPoints.length === 0 || chosenPoint.time - newPoints[newPoints.length - 1] >= minGap)) {
                     newPoints.push(chosenPoint.time);
                 }
@@ -1901,9 +2363,24 @@ function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, d
             // Break if there are no more gaps large enough to insert
             break;
         }
-        // console.log("new pt: ", newPoints)
+
         // Sort again to find new gaps
         newPoints.sort((a, b) => a - b);
+    }
+
+    // Handle final point placement logic if needed
+    if (songDuration - newPoints[newPoints.length - 1] >= 5) {
+        console.log("handle final")
+        // Find a strong beat or lowEnergy beat within this range
+        const candidates = allPoints.filter(p => p.time >= (songDuration - 4) && p.time <= (songDuration - 1.5));
+        console.log("candidates: ", candidates);
+        if (candidates.length > 0) {
+            const chosenFinalPoint = candidates.reduce((prev, curr) => (curr.strength > prev.strength) ? curr : prev);
+            console.log("chosen final point: ", chosenFinalPoint)
+            if (!newPoints.includes(chosenFinalPoint.time)) {
+                newPoints.push(chosenFinalPoint.time);
+            }
+        }
     }
 
     // Ensure no duplicates and the exact desired count
@@ -1943,12 +2420,12 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
         timeLabel.style.left = `${(beatTime / duration) * beatContainer.offsetWidth}px`;
         timeLabel.style.transform = 'translateX(-50%)';
         timeLabel.style.backgroundColor = isNew ? 'green' : '';
-
+        
         beatLine.timeLabel = timeLabel;
 
         // Event listener for clicking on the time label
         timeLabel.addEventListener('click', function () {
-            if (lastClickedLabel === timeLabel) {
+            if (lastClickedLabel === timeLabel) { 
                 lastClickedLabel.style.borderColor = '';
                 timeLabel.style.borderColor = 'red';
                 lastClickedLabel = timeLabel;
@@ -2018,7 +2495,7 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
         }
 
         // Append the elements to the container
-
+        
         beatContainer.appendChild(timeLabel);
 
         // Initially show the hidden beat if new interval
@@ -2041,8 +2518,8 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
                     updateNewsigPoints();
                 }
             }
-
-
+            
+            
         });
     }
 
@@ -2052,7 +2529,7 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
 function drawBeats(beats, beatContainer, duration, color, hidden = false) {
     clearPreviousTimestamps();
     newsigPoints = [...beats];
-
+    
     beats.forEach((beat) => {
         createBeat(beat, beatContainer, duration, color, hidden);
     });
@@ -2162,17 +2639,17 @@ function addDefaultTransitions() {
         const lastTransitionEnd = transitionRegions[transitionRegions.length - 1].end;
         
         // Check for overlap
-        if (lastTransitionEnd >= waveformDuration - 2) {
+        if (lastTransitionEnd >= waveformDuration - 1.5) {
             // Align final transition
             transitionRegions.push({ start: lastTransitionEnd, end: waveformDuration });
         } else {
             // Final transition of 2 seconds capped at the waveform's duration
-            const finalStart = waveformDuration - 2;
+            const finalStart = waveformDuration - 1.5;
             transitionRegions.push({ start: finalStart, end: waveformDuration });
         }
     } else {
         // If no transitions, add a final transition from 2 seconds before the end
-        transitionRegions.push({ start: waveformDuration - 2, end: waveformDuration });
+        transitionRegions.push({ start: waveformDuration - 1.5, end: waveformDuration });
     }
 
     // add the regions to the waveform
@@ -2277,26 +2754,28 @@ function delete_transitions() {
 
 
 function refreshTable() {
-    // Get current regions
-    const allRegions = Object.values(waveform.regions.list);
-    let greenRegions = allRegions.filter(region => region.color === 'green');
-    console.log("green before move: ", greenRegions);
-    let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
-    console.log("orange before move: ", orangeRegions);
-    greenRegions = greenRegions.sort((a, b) => a.start - b.start);
-    orangeRegions = orangeRegions.sort((a, b) => a.start - b.start);
-    console.log("green after move: ", greenRegions);
-    console.log("orange after move: ", orangeRegions);
+    if (tablemade == true){
+        // Get current regions
+        const allRegions = Object.values(waveform.regions.list);
+        let greenRegions = allRegions.filter(region => region.color === 'green');
+        console.log("green before move: ", greenRegions);
+        let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
+        console.log("orange before move: ", orangeRegions);
+        greenRegions = greenRegions.sort((a, b) => a.start - b.start);
+        orangeRegions = orangeRegions.sort((a, b) => a.start - b.start);
+        console.log("green after move: ", greenRegions);
+        console.log("orange after move: ", orangeRegions);
 
-    // console.log("old sig: ", newsigPoints)
-    // Prepare significant points (this is just an example; adapt as necessary)
-    newsigPoints = greenRegions.map(region => region.start); // Example logic
-    // console.log("new sig: ", newsigPoints)
-    const audioDuration = waveform.getDuration()
+        // console.log("old sig: ", newsigPoints)
+        // Prepare significant points (this is just an example; adapt as necessary)
+        newsigPoints = greenRegions.map(region => region.start); // Example logic
+        // console.log("new sig: ", newsigPoints)
+        const audioDuration = waveform.getDuration()
 
-    // Call finalizeTimestamps with the type
-    // finalizeTimestamps("transition", newsigPoints, orangeRegions, audioDuration);
-    finalizeTimestamps("time", newsigPoints, orangeRegions, audioDuration);
+        // Call finalizeTimestamps with the type
+        // finalizeTimestamps("transition", newsigPoints, orangeRegions, audioDuration);
+        finalizeTimestamps("time", newsigPoints, orangeRegions, audioDuration);
+    }
 }
 
 
@@ -2405,21 +2884,21 @@ function getLyrics() {
         method: 'POST',
         body: formData
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-                console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
-                updateUIWithLowEnergyBeats(); // Example function call
-            } else {
-                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-        });
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+            lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+            console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
+            updateUIWithLowEnergyBeats(); // Example function call
+        } else {
+            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+    });
 }
 
 function toggleMotion() {

@@ -93,14 +93,12 @@ audio {
     box-sizing: border-box;
 }
 
-/* Dropdown */
-#dropdownContainer {
-    border: 5px solid black;
-    padding: 10px;
-    margin-top: 20px;
-    background-color: #f9f9f9;
-    width: 100%;
+.dropdown-input {
+    width: 150px; /* Fixed width for input boxes */
+    box-sizing: border-box; /* Ensure padding is included in width */
 }
+
+
 
 #transitionsContainer {
     display: flex;
@@ -133,12 +131,6 @@ audio {
     overflow-x: auto; /* Allow horizontal scrolling */
     white-space: nowrap; /* Prevent wrapping of child elements */
     padding: 10px; /* Optional: Add padding for spacing */
-}
-
-
-.dropdown-input {
-    width: 150px; /* Fixed width for input boxes */
-    box-sizing: border-box; /* Ensure padding is included in width */
 }
 
 #trash, #transitionsContainer {
