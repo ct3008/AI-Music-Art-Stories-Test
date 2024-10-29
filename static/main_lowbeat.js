@@ -236,7 +236,7 @@ function movePlayhead(audioPlayer, endTime) {
 }
 
 function playTimeRange(startTime, endTime) {
-    console.log("start end play interval: ", startTime, endTime);
+    // console.log("start end play interval: ", startTime, endTime);
     // Ensure WaveSurfer is available and has been initialized
     if (waveform && waveform.isReady) {
         // Seek to the start time
@@ -783,10 +783,10 @@ function finalizeTimestamps(name) {
         inputContainer.className = 'input-container';
 
         const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-        const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular lines', 'rubbed graphite on paper'];
-        const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "expressionism"];
-        const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles', 'whirling lines', 'vibrant kaleidoscope of colors', 'interstellar light trails', 'abstract fractal patterns', 'dissolving geometric shards', 'diffused cosmic mists', 'translucent ripple effects'];
-        const colorOptions = ['black/white', 'pale blue', 'full color'];
+        const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'digital glitch', 'splattered paint', 'graffiti', 'ink blots'];
+        const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', 'collage'];
+        const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
+        const colorOptions = ['black/white', 'myriad of color', 'sky blue (#00BFFF)', "fiery red (#db0804)", 'cherry blossom pink (#FFB7C5)', 'amber (#FFBF00)'];
         const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
         const strengths = ['weak', 'normal', 'strong', 'vstrong'];
         const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
@@ -1224,6 +1224,7 @@ function updateExistingTransition(id, startTime, endTime) {
 function addTransitions(id, startTime, endTime) {
     console.log("AddTrans2 called");
     const formContainers = document.querySelectorAll('.section');
+    console.log("formcontainer: ", formContainers)
 
     formContainers.forEach((form) => {
         const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
@@ -1258,7 +1259,7 @@ function addTransitions(id, startTime, endTime) {
 
             // Add the play button to preview the transition
             const playButton = document.createElement('button');
-            playButton.innerText = 'Banana2';
+            playButton.innerText = 'Play';
             console.log("start: ", startTime);
             console.log("end: ", endTime);
             playButton.addEventListener('click', () => playTimeRange(parseFloat(startTime), parseFloat(endTime)));
@@ -1357,10 +1358,17 @@ function updateTransitionTimes(transitionId) {
 
 function fillDefaults() {
     const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-    const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing'];
-    const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital'];
+    const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'digital glitch', 'splattered paint', 'graffiti', 'ink blots'];
+    const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', 'collage'];
     const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
-    const colorOptions = ['black/white', 'myriad of color', 'pale blue', "deep red"];
+    const colorOptions = ['black/white', 'myriad of color', 'sky blue (#00BFFF)', "fiery red (#db0804)", 'cherry blossom pink (#FFB7C5)', 'amber (#FFBF00)'];
+
+    // Conflict mapping for vibes and colors to textures
+    const conflictMapping = {
+        'myriad of color': ['charcoal drawing', 'pencil drawing', 'calligraphy brush ink stroke', 'ink blots'],
+        'black/white': ['splattered paint','pastel watercolor on canvas', 'graffiti']
+        
+    };
 
     // Get the values entered by the user for vibe and color
     const vibeInput = document.getElementById('vibeInput').value.trim();  
@@ -1369,12 +1377,22 @@ function fillDefaults() {
     const sections = document.querySelectorAll('.section');
 
     // Choose a random texture and style for consistency
-    const chosenTexture = textures[Math.floor(Math.random() * textures.length)];
+    let chosenTexture = textures[Math.floor(Math.random() * textures.length)];
     const chosenStyle = 'abstract';
+    const chosenImagery = imageries[Math.floor(Math.random() * imageries.length)];
+
+    // Check for conflicts based on user input
+    if (colorInput && conflictMapping[colorInput]) {
+        // Exclude conflicting textures if a color is chosen
+        const conflictingTextures = conflictMapping[colorInput];
+        const availableTextures = textures.filter(texture => !conflictingTextures.includes(texture));
+        if (availableTextures.length > 0) {
+            chosenTexture = availableTextures[Math.floor(Math.random() * availableTextures.length)];
+        }
+    }
 
     sections.forEach((section, index) => {
         const inputs = section.querySelectorAll('input');
-        
 
         inputs.forEach(input => {
             const endTime = parseFloat(input.id.split('_').pop());
@@ -1384,9 +1402,9 @@ function fillDefaults() {
                     input.value = vibeInput || vibes[Math.floor(Math.random() * vibes.length)];
                 }
                 else if(input.value && input.value != vibeInput && vibeInput != ""){
-                    console.log("Vibe: ",input.value);
-                    console.log("Vibe input: ",vibeInput);
-                    input.value = vibeInput
+                    console.log("Vibe: ", input.value);
+                    console.log("Vibe input: ", vibeInput);
+                    input.value = vibeInput;
                 }
             } 
             // Handle texture input for regular sections (no texture for transitions)
@@ -1404,7 +1422,7 @@ function fillDefaults() {
             // Handle imagery input for regular sections (no imagery for transitions)
             else if (input.id.includes('imagery_form')) {
                 if (!input.value) {
-                    input.value = imageries[Math.floor(Math.random() * imageries.length)];
+                    input.value = chosenImagery;
                 }
             }
             // Handle color input for both regular sections and transitions
@@ -1413,9 +1431,9 @@ function fillDefaults() {
                     input.value = colorInput || (index < Math.floor(sections.length / 2) ? 'black/white' : 'myriad of color');
                 }
                 else if (input.value && input.value != colorInput && colorInput != "") {
-                    console.log("Color: ",input.value);
-                    console.log("Color input: ",vibeInput);
-                    input.value = colorInput
+                    console.log("Color: ", input.value);
+                    console.log("Color input: ", vibeInput);
+                    input.value = colorInput;
                 }
             }
             // Handle motion, strength, and speed inputs for both regular sections and transitions
@@ -1424,18 +1442,18 @@ function fillDefaults() {
                     input.value = 'zoom_in';
                 }
             } 
-            else if (input.id.includes('motion_trans')){
-                if (!input.value && motion_mode==="3D" || motion_mode==="3D" && (input.value.includes("spin") || input.value.includes("pan"))) {
-                    if (endTime == audioDuration){
+            else if (input.id.includes('motion_trans')) {
+                if (!input.value && motion_mode === "3D" || motion_mode === "3D" && (input.value.includes("spin") || input.value.includes("pan"))) {
+                    if (endTime == audioDuration) {
                         input.value = 'rotate_ccw';
-                    }else{
+                    } else {
                         input.value = 'rotate_right';
                     }
-                    
-                } else if (!input.value && motion_mode==="2D" || motion_mode==="2D" && (input.value.includes("rotate"))){
-                    if (endTime == audioDuration){
+
+                } else if (!input.value && motion_mode === "2D" || motion_mode === "2D" && (input.value.includes("rotate"))) {
+                    if (endTime == audioDuration) {
                         input.value = 'spin_ccw';
-                    }else{
+                    } else {
                         input.value = 'pan_right';
                     }
                 }
@@ -1447,18 +1465,13 @@ function fillDefaults() {
             } 
             else if (input.id.includes('strength_trans')) {
                 if (!input.value) {
-                    if(endTime == audioDuration){
+                    if (endTime == audioDuration) {
                         input.value = 'vstrong';
-                    }else{
+                    } else {
                         input.value = 'strong';
                     }
                 }
             } 
-            // else if (input.id.includes('speed_form') || input.id.includes('speed_trans')) {
-            //     if (!input.value) {
-            //         input.value = 'normal';
-            //     }
-            // }
         });
     });
 }
@@ -1514,7 +1527,7 @@ function gatherTransitionData(formData) {
         const motionInput = section.querySelector('input[id^="motion_trans_"]');
         const strengthInput = section.querySelector('input[id^="strength_trans_"]');
         // const speedInput = section.querySelector('input[id^="speed_trans_"]');
-        console.log(motionInput, strengthInput, speedInput);
+        console.log(motionInput, strengthInput);
 
         // Check if all three inputs are present
         // if (motionInput && strengthInput && speedInput) {
@@ -2197,7 +2210,7 @@ function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
     // Step 3: Selecting points
     const finalPoints = [];
     const desiredCount = Math.ceil(songDuration / 4);
-    const minGap = 4; // Minimum gap between selected points
+    const minGap = 3.7; // Minimum gap between selected points
 
     let lastSelectedTime = -minGap; // Initialize to a negative value
 
