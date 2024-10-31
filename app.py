@@ -13,8 +13,9 @@ client = OpenAI(api_key=api_key)
 
 # api_token = os.getenv("MY_REPLICATE_TOKEN")
 api_token = os.getenv("LAB_DISCO_API_KEY")
+# api_token = ''
 print("API TOKEN?: ", api_token)
-api = replicate.Client(api_token=api_token)
+# api = replicate.Client(api_token=api_token)
 
 
 motion_magnitudes = {

@@ -201,7 +201,7 @@ function playAudio() {
         audioPlayer.style.display = "block";
         audioPlayer.addEventListener('loadedmetadata', function () {
             audioDuration = audioPlayer.duration; // Set the duration once metadata is loaded
-            console.log("Audio Duration: " + audioDuration + " seconds"); // Optional: Log duration to console
+            // console.log("Audio Duration: " + audioDuration + " seconds"); // Optional: Log duration to console
             movePlayheadOG(audioPlayer);
         });
         audioPlayer.play();
@@ -248,7 +248,7 @@ function playTimeRange(startTime, endTime) {
         // Use the WaveSurfer API to manage playback
         const interval = setInterval(() => {
             const currentTime = waveform.getCurrentTime();
-            console.log(currentTime);
+            // console.log(currentTime);
 
             // Check if the current time has reached the end time or if playback is paused
             if (currentTime >= endTime || !waveform.isPlaying()) {
@@ -265,16 +265,16 @@ function playTimeRange(startTime, endTime) {
 function makeTimestamp(isTrans){
     
     if (isTrans){
-        console.log("trans");
+        // console.log("trans");
         transitionsAdded = true;
         createTransitionLines();
     } else{
-        console.log("other")
+        // console.log("other")
         finalizeTimestamps('time');
         
         if (transitionsAdded) {
             // createTransitionLines();
-            console.log("bool");
+            // console.log("bool");
             // finalizeTimestamps('transition');
         }
     }
@@ -783,9 +783,9 @@ function finalizeTimestamps(name) {
         inputContainer.className = 'input-container';
 
         const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-        const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'digital glitch', 'splattered paint', 'graffiti', 'ink blots'];
-        const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', 'collage'];
-        const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
+        const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular', 'rubbed graphite on paper','digital glitch', 'splattered paint', 'graffiti', 'ink blots'];
+        const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "digital", "collage"];
+        const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles', 'whirling lines', 'vibrant kaleidoscope of colors', 'interstellar light trails', 'abstract fractal patterns', 'dissolving geometric shards', 'diffused cosmic mists', 'translucent ripple effects'];
         const colorOptions = ['black/white', 'myriad of color', 'sky blue (#00BFFF)', "fiery red (#db0804)", 'cherry blossom pink (#FFB7C5)', 'amber (#FFBF00)'];
         const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
         const strengths = ['weak', 'normal', 'strong', 'vstrong'];
@@ -904,19 +904,25 @@ function finalizeTimestamps(name) {
         }
     }
 
+    console.log("NEW ----------------------")
     // Repopulate table with transitions after table is built
     if (orangeRegions.length > 0) {
-        orangeRegions.forEach((region, index) => {
-            const transitionStart = region.start.toFixed(2);
-            const transitionEnd = region.end.toFixed(2);
-
-            // Add the transitions to the table after clearing and rebuilding it
-            const transitionRow = document.createElement('div');
-            transitionRow.className = 'transition-row';
-            // transitionRow.textContent = `Transition ${index + 1}: ${transitionStart} - ${transitionEnd} seconds`;
-            // timestampsContainer.appendChild(transitionRow);
-            
-            // Call addTransitions for each detected region
+        // Extract start and end times into a separate array of objects
+        const sortedRegions = orangeRegions.map(region => ({
+            startTime: parseFloat(region.start.toFixed(2)),
+            endTime: parseFloat(region.end.toFixed(2))
+        }));
+    
+        // Sort the extracted regions based on end time or start time
+        sortedRegions.sort((a, b) => b.endTime - a.endTime);
+    
+        // Now, use the sorted timestamps to add transitions
+        sortedRegions.forEach((region, index) => {
+            const transitionStart = region.startTime;
+            const transitionEnd = region.endTime;
+            console.log("adding for: ", transitionStart, " ", transitionEnd);
+    
+            // Call addTransitions for each detected region with sorted times
             addTransitions(index + 1000, transitionStart, transitionEnd);
         });
     }
@@ -962,11 +968,11 @@ function deleteSection() {
 
     deleteButton.addEventListener('click', () => {
         deleteMode = !deleteMode;
-        console.log(deleteMode);
+        // console.log(deleteMode);
         deleteButton.innerText = deleteMode ? 'Exit Delete Mode' : 'Delete Section';
 
         if (deleteMode) {
-            console.log('Delete Mode');
+            // console.log('Delete Mode');
             document.querySelectorAll('.section').forEach(section => {
                 // Highlight sections for deletion
                 section.style.border = '2px dashed red';
@@ -976,7 +982,7 @@ function deleteSection() {
             });
         } else {
             // Exit delete mode and remove highlights
-            console.log("not delete mode?");
+            // console.log("not delete mode?");
             document.querySelectorAll('.section').forEach(section => {
                 section.style.border = ''; // Remove the highlight
                 section.removeEventListener('click', handleSectionDeletion); // Remove event listener to avoid issues
@@ -1141,6 +1147,7 @@ function createTransitionLines() {
         );
 
         if (existingTransition) {
+            console.log("EXISTING TRANSITION FLAG CALL UPDATE")
             // Update the existing transition in the UI
             updateExistingTransition(transitionId, startTime, endTime);
         } else {
@@ -1234,9 +1241,9 @@ function addTransitions(id, startTime, endTime) {
             // Create the transition container
             const transitionContainer = document.createElement('div');
             transitionContainer.className = 'section transition-section';
-            transitionContainer.dataset.transitionId = id; // Store the transition ID for updates
+            // transitionContainer.dataset.transitionId = id; // Store the transition ID for updates
             transitionContainer.innerHTML = `
-                <div id="time-range-${id}" class="time-range">Transition (${startTime}s to ${endTime}s)</div>
+                <div class="time-range">Transition (${startTime}s to ${endTime}s)</div>
                 <div class="input-container">
                     <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
                     <input type="text" id="motion_trans_${startTime}_${endTime}">
@@ -1267,6 +1274,7 @@ function addTransitions(id, startTime, endTime) {
 
             // Insert the transition container in the appropriate position
             form.insertAdjacentElement('afterend', transitionContainer);
+            // form.insertAdjacentElement('beforeend', transitionContainer);//seems interesting
 
             // Add dropdown functionality to inputs
             const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
@@ -1333,6 +1341,7 @@ function addTransitions(id, startTime, endTime) {
 
 // Update transition times based on dragging
 function updateTransitionTimes(transitionId) {
+    console.log("Update transition times")
     const duration = audioDuration;
     const leftLine = document.querySelector(`.left-line[data-transition-id='${transitionId}']`);
     const rightLine = document.querySelector(`.right-line[data-transition-id='${transitionId}']`);
@@ -1358,10 +1367,12 @@ function updateTransitionTimes(transitionId) {
 
 function fillDefaults() {
     const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
-    const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'digital glitch', 'splattered paint', 'graffiti', 'ink blots'];
-    const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', 'collage'];
-    const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles'];
+    const textures = ['painting', 'calligraphy brush ink stroke', 'pastel watercolor on canvas', 'charcoal drawing', 'pencil drawing', 'impasto palette knife painting', 'mosaic', 'jagged/irregular', 'rubbed graphite on paper','digital glitch', 'splattered paint', 'graffiti', 'ink blots'];
+    // const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', 'collage'];
+    const styles = ['abstract', 'impressionist', 'futuristic', 'contemporary', 'renaissance', 'surrealist', 'minimalist', 'digital', "neoclassic", "constructivism", "digital", "collage"];
+    const imageries = ['blossoming flower', 'chaotic intertwining lines', 'flowing waves', 'starry night', 'curvilinear intertwined circles', 'whirling lines', 'vibrant kaleidoscope of colors', 'interstellar light trails', 'abstract fractal patterns', 'dissolving geometric shards', 'diffused cosmic mists', 'translucent ripple effects'];
     const colorOptions = ['black/white', 'myriad of color', 'sky blue (#00BFFF)', "fiery red (#db0804)", 'cherry blossom pink (#FFB7C5)', 'amber (#FFBF00)'];
+        
 
     // Conflict mapping for vibes and colors to textures
     const conflictMapping = {
@@ -1369,6 +1380,7 @@ function fillDefaults() {
         'black/white': ['splattered paint','pastel watercolor on canvas', 'graffiti']
         
     };
+    
 
     // Get the values entered by the user for vibe and color
     const vibeInput = document.getElementById('vibeInput').value.trim();  
@@ -1431,8 +1443,8 @@ function fillDefaults() {
                     input.value = colorInput || (index < Math.floor(sections.length / 2) ? 'black/white' : 'myriad of color');
                 }
                 else if (input.value && input.value != colorInput && colorInput != "") {
-                    console.log("Color: ", input.value);
-                    console.log("Color input: ", vibeInput);
+                    // console.log("Color: ", input.value);
+                    // console.log("Color input: ", vibeInput);
                     input.value = colorInput;
                 }
             }
@@ -1506,9 +1518,9 @@ function gatherFormData() { // Example significant points; replace with your act
         };
     });
 
-    console.log("GATHER FORM DATA");
-    console.log(formData);
-    console.log(formData.length);
+    // console.log("GATHER FORM DATA");
+    // console.log(formData);
+    // console.log(formData.length);
     return formData;
 }
 
@@ -1521,29 +1533,29 @@ function gatherTransitionData(formData) {
     transitionSections.forEach((section) => {
         // Extract the time-range div within this section
         const timeRangeDiv = section.querySelector('.time-range');
-        console.log(timeRangeDiv)
+        // console.log(timeRangeDiv)
 
         // Extract the IDs for motion, strength, and speed inputs
         const motionInput = section.querySelector('input[id^="motion_trans_"]');
         const strengthInput = section.querySelector('input[id^="strength_trans_"]');
         // const speedInput = section.querySelector('input[id^="speed_trans_"]');
-        console.log(motionInput, strengthInput);
+        // console.log(motionInput, strengthInput);
 
         // Check if all three inputs are present
         // if (motionInput && strengthInput && speedInput) {
         if (motionInput && strengthInput) {
             // Extract the startTime and endTime from the time-range text
             const timeRangeText = timeRangeDiv.innerText;
-            console.log(timeRangeText);
+            // console.log(timeRangeText);
             const matches = timeRangeText.match(/Transition \((\d+(\.\d+)?)s to (\d+(\.\d+)?)s\)/);
-            console.log(matches);
+            // console.log(matches);
             if (matches) {
-                console.log("MATCHES: ");
-                console.log(matches);
+                // console.log("MATCHES: ");
+                // console.log(matches);
                 const startTime = parseFloat(matches[1]).toFixed(2);
                 const endTime = parseFloat(matches[3]).toFixed(2);
                 const timeRange = `${startTime}-${endTime}`;
-                console.log(timeRange);
+                // console.log(timeRange);
 
                 transitionsData[timeRange] = {
                     // "vibe": document.getElementById(`vibe_form_${startTime}_${endTime}`).value,
@@ -1560,7 +1572,7 @@ function gatherTransitionData(formData) {
         }
     });
 
-    console.log(transitionsData);
+    // console.log(transitionsData);
     return transitionsData;
 }
 
@@ -1575,8 +1587,8 @@ function processTable(){
         motion_mode: motion_mode
     };
     document.getElementById('processing').style = "display: block;"
-    console.log(data);
-    console.log("RUNNING PROCESS TABLE");
+    // console.log(data);
+    // console.log("RUNNING PROCESS TABLE");
     
 
     fetch('/process-data', {
@@ -1588,12 +1600,12 @@ function processTable(){
     })
     .then(response => response.json())
     .then(data => {
-        console.log(data);
-        console.log("returned back");
+        // console.log(data);
+        // console.log("returned back");
         for (const [key, value] of Object.entries(data)) {
-            console.log(`${key}: ${value}`);
+            // console.log(`${key}: ${value}`);
             if (key === 'output') {
-                console.log(value);
+                // console.log(value);
                 window.open(value, '_blank');
             }
         }
@@ -1675,7 +1687,7 @@ function processAudio() {
 
                 // Load the audio URL
                 waveform.load(audioUrl);
-                console.log("New WaveSurfer instance created and audio loaded: ", audioUrl);
+                // console.log("New WaveSurfer instance created and audio loaded: ", audioUrl);
             }
 
             waveform.on('error', (error) => {
@@ -1696,7 +1708,7 @@ function processAudio() {
 
             // Set up regions and markers after the waveform is ready
             waveform.on('ready', () => {
-                console.log("Waveform is ready.");
+                // console.log("Waveform is ready.");
                 setupRegions(waveform, lowEnergyBeatTimes, 'Low Energy Beat', 'red', 0.01, false);
                 setupRegions(waveform, beats_time, 'Beats', 'blue', 0.01, false);
                 // Event listener for clicking a region
@@ -1705,13 +1717,13 @@ function processAudio() {
                     if (currentTime >= region.start && currentTime <= region.end) {
                         waveform.play(region.start); // Play from the marker start
                     }
-                    console.log("TIME: ", currentTime);
+                    // console.log("TIME: ", currentTime);
                 });
 
                 
 
                 waveform.on('region-update-end', (region) => {
-                    console.log("Region dragging ended");
+                    // console.log("Region dragging ended");
                 
                     // Get all regions from the waveform
                     const allRegions = Object.values(waveform.regions.list); // Fetch all regions as an array
@@ -1771,25 +1783,25 @@ function processAudio() {
             lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
             audioDuration = data.duration;
 
-            console.log("sig pts: ", newsigPoints);
+            // console.log("sig pts: ", newsigPoints);
             significantPoints = findSignificantPoints(data.aligned_onsets, lowEnergyBeats, audioDuration);
             significantPoints.sort((a, b) => a - b);
             if(newsigPoints.length == 0){
-                console.log("refresh new song");
+                // console.log("refresh new song");
                 //no sig pts have been identified yet
                 newsigPoints = [...significantPoints]
                 newsigPoints.sort((a, b) => a - b);
-                console.log("SIG POINTS: " + significantPoints);
+                // console.log("SIG POINTS: " + significantPoints);
                 
             }
             else if(significantPoints[0] != newsigPoints[0] || significantPoints.length != newsigPoints.length){
                 //new song loaded
-                console.log("new song when one loaded");
+                // console.log("new song when one loaded");
                 newsigPoints = [...significantPoints]
                 newsigPoints.sort((a, b) => a - b);
                 
             } else{
-                console.log("same song");
+                // console.log("same song");
                 //same song is loaded
                 newsigPoints.sort((a, b) => a - b);
                 
@@ -1916,8 +1928,8 @@ function processAudioNormal() {
             document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
             lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
             audioDuration = data.duration;
-            console.log("LOW ENERGY");
-            console.log(lowEnergyBeats); // Log for debugging
+            // console.log("LOW ENERGY");
+            // console.log(lowEnergyBeats); // Log for debugging
 
             // Now process the audio after lowEnergyBeats are fetched
             processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanvas, audioPlayer);
@@ -1944,24 +1956,24 @@ function processAudioFile(fileInput, thresholdInput, beatContainer, waveformCanv
 
             displayBeats(channelData, beatContainer, audioPlayer, event.target.result, buffer, fileInput);
             const beats = detectBeats(channelData, sampleRate, thresholdInput.value);
-            console.log("BEATS: ");
+            // console.log("BEATS: ");
             beats.forEach(beat => {
                 beats_time.push(beat.time);
             });
-            console.log("BEAT TIME: " + beats_time);
+            // console.log("BEAT TIME: " + beats_time);
 
             // Draw the fetched lowEnergyBeats
             let lowEnergyBeatTimes = [];
             lowEnergyBeats.forEach(beats => {
                 lowEnergyBeatTimes.push(beats.time);
             });
-            console.log("LOW BEAT TIMES: " + lowEnergyBeatTimes);
+            // console.log("LOW BEAT TIMES: " + lowEnergyBeatTimes);
             drawBeats(lowEnergyBeatTimes, beatContainer, buffer.duration, 'blue');
             drawBeats(beats_time, beatContainer, buffer.duration, 'red');
             // console.log(beats);
             // console.log(lowEnergyBeats);
             significantPoints = findSignificantPoints(beats, lowEnergyBeats, audioDuration);
-            console.log("SIG POINTS: " + significantPoints);
+            // console.log("SIG POINTS: " + significantPoints);
             drawBeats(significantPoints, beatContainer, buffer.duration, 'green', true);
         }, function (error) {
             console.error("Error decoding audio data: " + error);
@@ -2190,12 +2202,12 @@ function filterClosePoints(points, maxGap) {
 }
 
 function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
-    console.log("find sig");
+    // console.log("find sig");
 
     // Step 1: Combine beats and lowEnergyBeats with metadata
     const combined = [];
-    console.log("beats: ", beats);
-    console.log("lowenergy: ", lowEnergyBeats);
+    // console.log("beats: ", beats);
+    // console.log("lowenergy: ", lowEnergyBeats);
     beats.forEach(point => combined.push({ time: point.time, source: 'beat', strength: point.strength }));
     lowEnergyBeats.forEach(point => combined.push({ time: point.time, source: 'lowEnergy', strength: point.strength }));
 
@@ -2236,7 +2248,7 @@ function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
 
     // Ensure the final points are unique
     let uniqueFinalPoints = [...new Set(finalPoints)];
-    console.log("unique: ", uniqueFinalPoints);
+    // console.log("unique: ", uniqueFinalPoints);
 
     // Step 4: Remove any points where the gap between consecutive points is shorter than 3 seconds (except the final point)
     uniqueFinalPoints = uniqueFinalPoints.filter((point, index, array) => {
@@ -2246,14 +2258,14 @@ function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
         return (array[index + 1] - point >= 3); // Keep if the gap to the next point is >= 3 seconds
     });
 
-    console.log("Filtered points (gap >= 3): ", uniqueFinalPoints);
+    // console.log("Filtered points (gap >= 3): ", uniqueFinalPoints);
 
     // Step 5: If we have more than the desired count, slice to desired count
     if (uniqueFinalPoints.length > desiredCount) {
-        console.log("more");
+        // console.log("more");
         return uniqueFinalPoints.slice(0, desiredCount);
     } else {
-        console.log("less");
+        // console.log("less");
         // Otherwise, insert additional points if needed
         return insertAdditionalPoints(uniqueFinalPoints, combined, beats, lowEnergyBeats, desiredCount, songDuration);
     }
@@ -2323,7 +2335,7 @@ function findSignificantPoints(beats, lowEnergyBeats, songDuration) {
 // }
 
 function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, desiredCount, songDuration) {
-    console.log("insert");
+    // console.log("insert");
 
     const newPoints = [...finalPoints];
     newPoints.sort((a, b) => a - b);
@@ -2383,13 +2395,13 @@ function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, d
 
     // Handle final point placement logic if needed
     if (songDuration - newPoints[newPoints.length - 1] >= 5) {
-        console.log("handle final")
+        // console.log("handle final")
         // Find a strong beat or lowEnergy beat within this range
         const candidates = allPoints.filter(p => p.time >= (songDuration - 4) && p.time <= (songDuration - 1.5));
-        console.log("candidates: ", candidates);
+        // console.log("candidates: ", candidates);
         if (candidates.length > 0) {
             const chosenFinalPoint = candidates.reduce((prev, curr) => (curr.strength > prev.strength) ? curr : prev);
-            console.log("chosen final point: ", chosenFinalPoint)
+            // console.log("chosen final point: ", chosenFinalPoint)
             if (!newPoints.includes(chosenFinalPoint.time)) {
                 newPoints.push(chosenFinalPoint.time);
             }
@@ -2397,7 +2409,7 @@ function insertAdditionalPoints(finalPoints, allPoints, beats, lowEnergyBeats, d
     }
 
     // Ensure no duplicates and the exact desired count
-    console.log([...new Set(newPoints)].slice(0, desiredCount));
+    // console.log([...new Set(newPoints)].slice(0, desiredCount));
     return [...new Set(newPoints)].slice(0, desiredCount);
 }
 
@@ -2519,8 +2531,8 @@ function createBeat(beatTime, beatContainer, duration, color, isHidden = false, 
         }
 
         document.getElementById('deleteButton').addEventListener('click', function () {
-            console.log("DELETE");
-            console.log(lastClickedLabel);
+            // console.log("DELETE");
+            // console.log(lastClickedLabel);
             if (lastClickedLabel) {
                 const index = Array.from(beatContainer.children).indexOf(lastClickedLabel);
                 if (index !== -1) {
@@ -2552,7 +2564,7 @@ function addNewInterval() {
     data = [audioDuration/2]
     newsigPoints = [...data];
     newsigPoints = newsigPoints.sort((a, b) => a - b);
-    console.log("AFTER ADD: ", newsigPoints)
+    // console.log("AFTER ADD: ", newsigPoints)
     setupRegions(waveform, data, "Significant Points", 'green', 0.25, true);
     //OLD VERSION
     // const beatContainer = document.getElementById('beatContainer');
@@ -2569,7 +2581,7 @@ function delete_intervals() {
     const deleteButton = document.getElementById('deleteButton');
     
     if (deleteMode) {
-        console.log("Delete mode enabled. Click on a region to delete it.");
+        // console.log("Delete mode enabled. Click on a region to delete it.");
         
         // Update the button style to reflect the active delete mode
         deleteButton.textContent = "Exit Delete Mode";
@@ -2605,13 +2617,13 @@ function delete_intervals() {
                 // Update the newsigPoints array by filtering out the deleted region
                 newsigPoints = newsigPoints.filter(time => time !== region.start);
 
-                console.log("Deleted region and updated newsigPoints:", newsigPoints);
+                // console.log("Deleted region and updated newsigPoints:", newsigPoints);
             } else {
                 console.log("Clicked on a non-deletable region. No action taken.");
             }
         });
     } else {
-        console.log("Delete mode disabled.");
+        // console.log("Delete mode disabled.");
 
         // Restore the button to its original state
         deleteButton.textContent = "Delete Intervals";
@@ -2717,7 +2729,7 @@ function delete_transitions() {
 
         // Add hover effect and region click event listener
         Object.values(waveform.regions.list).forEach(region => {
-            console.log("hello");
+            // console.log("hello");
             if (region.color === 'rgba(255, 165, 0, 0.5)') { // Focus on orange-colored transitions
                 // Add hover effect to highlight in red
                 region.element.addEventListener('mouseenter', () => {
@@ -2739,7 +2751,7 @@ function delete_transitions() {
             if (region.color === 'rgba(255, 0, 0, 0.5)') {
                 // Remove the region from the waveform
                 region.remove();
-                console.log("Deleted transition region:", region);
+                // console.log("Deleted transition region:", region);
             } else {
                 console.log("Clicked on a non-deletable region. No action taken.");
             }
@@ -2771,18 +2783,18 @@ function refreshTable() {
         // Get current regions
         const allRegions = Object.values(waveform.regions.list);
         let greenRegions = allRegions.filter(region => region.color === 'green');
-        console.log("green before move: ", greenRegions);
+        // console.log("green before move: ", greenRegions);
         let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
         console.log("orange before move: ", orangeRegions);
         greenRegions = greenRegions.sort((a, b) => a.start - b.start);
         orangeRegions = orangeRegions.sort((a, b) => a.start - b.start);
-        console.log("green after move: ", greenRegions);
+        // console.log("green after move: ", greenRegions);
         console.log("orange after move: ", orangeRegions);
 
-        // console.log("old sig: ", newsigPoints)
+        // console.log("sig before drag: ", newsigPoints)
         // Prepare significant points (this is just an example; adapt as necessary)
         newsigPoints = greenRegions.map(region => region.start); // Example logic
-        // console.log("new sig: ", newsigPoints)
+        // console.log("new sig after drag: ", newsigPoints)
         const audioDuration = waveform.getDuration()
 
         // Call finalizeTimestamps with the type
@@ -2902,7 +2914,7 @@ function getLyrics() {
         if (data.success) {
             document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
             lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-            console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
+            // console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
             updateUIWithLowEnergyBeats(); // Example function call
         } else {
             document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
@@ -2920,12 +2932,12 @@ function toggleMotion() {
         button.textContent = "2D Motion";
         motion_mode = "2D";
         // Add code here to handle the change to 3D motion
-        console.log("Switched to 2D Motion");
+        // console.log("Switched to 2D Motion");
     } else {
         button.textContent = "3D Motion";
         motion_mode = "3D";
         // Add code here to handle the change to 2D motion
-        console.log("Switched to 3D Motion");
+        // console.log("Switched to 3D Motion");
     }
 }
 
