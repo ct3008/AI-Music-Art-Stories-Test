@@ -17,6 +17,12 @@ let waveform;
 let deleteMode=false;
 let deleteModeT = false;
 let tablemade = false;
+let updatedGreenRegions = [];
+let updatedOrangeRegions = [];
+let existingTransitionValues = {};
+let existingValues = {};
+let added = true;
+
 
 function movePlayheadOG() {
     const containerWidth = beatContainer.offsetWidth; // Width of the container
@@ -270,7 +276,7 @@ function makeTimestamp(isTrans){
         createTransitionLines();
     } else{
         // console.log("other")
-        finalizeTimestamps('time');
+        finalizeTimestamps('time',-1,-1);
         
         if (transitionsAdded) {
             // createTransitionLines();
@@ -705,9 +711,11 @@ function makeTimestamp(isTrans){
 //     tablemade = true;
 // }
 
-function finalizeTimestamps(name) {
-    const timestampsContainer = document.getElementById('timestampsContainer');
-    timestampsContainer.innerHTML = ''; // Clear previous timestamps
+
+
+function finalizeTimestamps(name, regionIndex_form, regionIndex_trans) {
+    // const timestampsContainer = document.getElementById('timestampsContainer');
+    // timestampsContainer.innerHTML = ''; // Clear previous timestamps
 
     const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
     const timestamps = [0, ...roundedSignificantPoints, audioDuration.toFixed(2)].map(Number);
@@ -728,16 +736,87 @@ function finalizeTimestamps(name) {
     }
 
     // Store current values of inputs before clearing the container
-    const existingValues = {};
-    document.querySelectorAll('.form-section').forEach((section, sectionIndex) => {
+    
+    if (regionIndex_form < 0){
+        console.log("existing values region index instead of overwrite: ")
+        console.log(existingValues)
+        
+    } 
+    // else{
+    //     existingValues = {};
+    //     // console.log("form sections: ", document.querySelectorAll('.form-section'))
+    //     document.querySelectorAll('.form-section').forEach((section, sectionIndex) => {
+    //         const inputs = section.querySelectorAll('input');
+    //         existingValues[sectionIndex] = Array.from(inputs).map(input => input.value);
+    //     });
+    //     console.log("form section existing vals: ")
+    //     console.log(existingValues)
+    // }
+    
+    if (regionIndex_form >= 0) {
+        
+        console.log(existingValues)
+        console.log("length existing vals: ", Object.keys(existingValues).length)
+        // Step 1: Add a placeholder for the new entry at the end of existingValues
+        existingValues[Object.keys(existingValues).length] = [];
+    
+        // Step 2: Shift all elements from the end up to the regionIndex_form to the right
+        for (let i = Object.keys(existingValues).length; i > regionIndex_form; i--) {
+            existingValues[i] = existingValues[i - 1];
+        }
+    
+        // Step 3: Insert an empty instance at regionIndex_form
+        existingValues[regionIndex_form] = [];
+    }
+    existingValues = Object.keys(existingValues)
+            .sort((a, b) => Number(a) - Number(b))  // Sort keys numerically in ascending order
+            .reduce((newObj, key, index) => {
+                console.log("index:", key, index)
+                newObj[index] = existingValues[key];  // Reassign values to new consecutive keys
+                return newObj;
+            }, {});
+    console.log("----------------- EXISTING VALUES --------------")
+    console.log(existingValues)
+
+    
+    // document.querySelectorAll('.transition-section').forEach((section, sectionIndex) => {
+    //     console.log("IN EXISTING LOOP BEFORE CLEAR: ", section)
+    //     const inputs = section.querySelectorAll('input');
+    //     existingTransitionValues[sectionIndex] = Array.from(inputs).map(input => input.value);
+    // });
+    // console.log("------- EXISTING TRANSITION ----------")
+    // console.log(existingTransitionValues)
+
+    const sortedSections = Array.from(document.querySelectorAll('.transition-section'))
+        .sort((a, b) => {
+            // Compare sectionIds in descending order
+            return parseInt(b.getAttribute('sectionId')) - parseInt(a.getAttribute('sectionId'));
+        });
+
+    // Now, iterate over sortedSections and map the inputs
+    // if (regionIndex_form <0){
+    sortedSections.forEach((section, sectionIndex) => {
+        const id = section.querySelector('.time-range').id.split('-')[2];
+        // console.log("IN EXISTING LOOP BEFORE CLEAR: ", section);
         const inputs = section.querySelectorAll('input');
-        existingValues[sectionIndex] = Array.from(inputs).map(input => input.value);
+        // console.log("finalize before: ");
+        // console.log(existingTransitionValues);
+        existingTransitionValues[id] = Array.from(inputs).map(input => input.value);
+        // console.log("finalize after: ");
+        // console.log(existingTransitionValues);
+
     });
+    // }
+    
+
+    
+
 
     container.innerHTML = ''; // Clear previous content
     container.style.setProperty('--sections-count', sectionsCount);
 
     // Create labels container
+    
     const labelsContainer = document.createElement('div');
     labelsContainer.className = 'label-container';
 
@@ -760,14 +839,15 @@ function finalizeTimestamps(name) {
     let sceneTimes = [];
     for (let i = 0; i < sectionsCount + 1; i++) {
         const section = document.createElement('div');
-        section.className = 'section form-section';
 
         const timeRange = document.createElement('div');
         timeRange.className = 'time-range';
         if (name === 'time') {
+            section.className = 'section form-section';
             timeRange.innerText = `${timestamps[i]}-${timestamps[i + 1]}`;
             sceneTimes.push({ 'start': timestamps[i], 'end': timestamps[i + 1] });
         } else if (name === 'transition') {
+            section.className = 'section form-section';
             const start = (parseFloat(timestamps[i + 1]) - 0.5).toFixed(2);
             const end = (i === sectionsCount) ? audioDuration.toFixed(2) : (parseFloat(timestamps[i + 1]) + 0.5).toFixed(2);
             timeRange.innerText = `Transition ${i + 1}: ${start} - ${end}`;
@@ -791,99 +871,117 @@ function finalizeTimestamps(name) {
         const strengths = ['weak', 'normal', 'strong', 'vstrong'];
         const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
 
-        labels.forEach((label) => {
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'dropdown-input';
-
-            if (name === 'time') {
-                input.id = `${label.toLowerCase()}_form_${i + 1}`;
-            } else if (name === 'transition') {
-                input.id = `${label.toLowerCase()}_trans_${i + 1}`;
-            }
-
-            const datalist = document.createElement('datalist');
-            datalist.id = `${label.toLowerCase()}_options_${i + 1}`;
-
-            let options;
-            switch (label.toLowerCase()) {
-                case 'vibe':
-                    options = vibes;
-                    break;
-                case 'texture':
-                    options = textures;
-                    break;
-                case 'style':
-                    options = styles;
-                    break;
-                case 'imagery':
-                    options = imageries;
-                    break;
-                case 'color':
-                    options = colorOptions;
-                    break;
-                case 'motion':
-                    options = motions;
-                    break;
-                case 'strength':
-                    options = strengths;
-                    break;
-                // case 'speed':
-                //     options = speeds;
-                //     break;
-            }
-
-            input.addEventListener('input', () => {
-                const currentValue = input.value;
-                // Check if the current value matches exactly with one of the options
-                if (options.includes(currentValue)) {
-                    // Clear to avoid showing the closest match
-                    input.value = ''; 
+        if(name==='time'){
+            labels.forEach((label) => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'dropdown-input';
+    
+                if (name === 'time') {
+                    input.id = `${label.toLowerCase()}_form_${i + 1}`;
+                } else if (name === 'transition') {
+                    input.id = `${label.toLowerCase()}_trans_${i + 1}`;
+                }
+    
+                const datalist = document.createElement('datalist');
+                datalist.id = `${label.toLowerCase()}_options_${i + 1}`;
+    
+                let options;
+                switch (label.toLowerCase()) {
+                    case 'vibe':
+                        options = vibes;
+                        break;
+                    case 'texture':
+                        options = textures;
+                        break;
+                    case 'style':
+                        options = styles;
+                        break;
+                    case 'imagery':
+                        options = imageries;
+                        break;
+                    case 'color':
+                        options = colorOptions;
+                        break;
+                    case 'motion':
+                        options = motions;
+                        break;
+                    case 'strength':
+                        options = strengths;
+                        break;
+                    // case 'speed':
+                    //     options = speeds;
+                    //     break;
+                }
+    
+                input.addEventListener('input', () => {
+                    const currentValue = input.value;
+                    // Check if the current value matches exactly with one of the options
+                    if (options.includes(currentValue)) {
+                        // Clear to avoid showing the closest match
+                        input.value = ''; 
+                        setTimeout(() => {
+                            input.value = currentValue; // Restore original value
+                            input.setSelectionRange(input.value.length, input.value.length); // Move cursor to the end
+                        }, 0);
+                    }
+                });
+    
+                options.forEach(option => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = option;
+                    datalist.appendChild(optionElement);
+                });
+    
+                input.setAttribute('list', datalist.id);
+                inputContainer.appendChild(input);
+                inputContainer.appendChild(datalist);
+    
+                // input.addEventListener('focus', () => {
+                //     const currentValue = input.value;
+                //     input.value = '';  // Clear input to trigger full option display
+                //     setTimeout(() => {
+                //         input.value = currentValue;  // Restore the original value after showing options
+                //     }, 0);
+                //     console.log("focus event triggered");
+                //     input.setSelectionRange(input.value.length, input.value.length); // Move cursor to end
+                //     input.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown'})); // Simulate key press to trigger dropdown
+                // });
+            
+                input.addEventListener('click', () => {
+                    const currentValue = input.value;
+                    input.value = ''; // Clear input to suppress the closest match
+                
+                    // Allow the dropdown to open
                     setTimeout(() => {
                         input.value = currentValue; // Restore original value
                         input.setSelectionRange(input.value.length, input.value.length); // Move cursor to the end
                     }, 0);
+                });
+
+                input.addEventListener('blur', () => {
+                    // Use a delay to capture values after any pending updates
+                    setTimeout(() => {
+                        // Store only the values for the current interval or region
+                        const intervalInputs = Array.from(inputContainer.querySelectorAll('input'));
+                        existingValues[i] = intervalInputs.map(input => input.value);
+                        console.log("Updated values on blur:", existingValues);
+                    }, 100);
+                });
+    
+                // console.log("----------INPUT:",input,"----------");
+    
+                // Repopulate input value if available in stored values
+                // console.log("REPOPULATE EXISTING")
+                // console.log(existingValues);
+                if (existingValues[i] && existingValues[i][labels.indexOf(label)]) {
+                    input.value = existingValues[i][labels.indexOf(label)];
                 }
+                
             });
-
-            options.forEach(option => {
-                const optionElement = document.createElement('option');
-                optionElement.value = option;
-                datalist.appendChild(optionElement);
-            });
-
-            input.setAttribute('list', datalist.id);
-            inputContainer.appendChild(input);
-            inputContainer.appendChild(datalist);
-
-            // input.addEventListener('focus', () => {
-            //     const currentValue = input.value;
-            //     input.value = '';  // Clear input to trigger full option display
-            //     setTimeout(() => {
-            //         input.value = currentValue;  // Restore the original value after showing options
-            //     }, 0);
-            //     console.log("focus event triggered");
-            //     input.setSelectionRange(input.value.length, input.value.length); // Move cursor to end
-            //     input.dispatchEvent(new KeyboardEvent('keydown', {key: 'ArrowDown'})); // Simulate key press to trigger dropdown
-            // });
+        }
         
-            input.addEventListener('click', () => {
-                const currentValue = input.value;
-                input.value = ''; // Clear input to suppress the closest match
-            
-                // Allow the dropdown to open
-                setTimeout(() => {
-                    input.value = currentValue; // Restore original value
-                    input.setSelectionRange(input.value.length, input.value.length); // Move cursor to the end
-                }, 0);
-            });
-
-            // Repopulate input value if available in stored values
-            // if (existingValues[i] && existingValues[i][labels.indexOf(label)]) {
-            //     input.value = existingValues[i][labels.indexOf(label)];
-            // }
-        });
-
+        
         section.appendChild(inputContainer);
         container.appendChild(section);
     }
@@ -902,11 +1000,49 @@ function finalizeTimestamps(name) {
         } else {
             console.log('Proceeding without transitions.');
         }
+        let greenRegions = allRegions.filter(region => region.color === 'green').sort((a, b) => a.start - b.start);
+        let orangetempRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)').sort((a, b) => a.start - b.start);
+        updatedGreenRegions = greenRegions;
+        if (orangeRegions.length > 0){
+            updatedOrangeRegions = orangetempRegions;
+        }
+        
+        // console.log("ADDED TO UPDATED:",updatedGreenRegions.length,updatedOrangeRegions.length)
+
     }
+    
+    // document.querySelectorAll('.transition-section').forEach((section, sectionIndex) => {
+    //     console.log("IN EXISTING LOOP AFTER LOOP: ", section)
+    //     const inputs = section.querySelectorAll('input');
+    //     // existingTransitionValues[sectionIndex] = Array.from(inputs).map(input => input.value);
+    // });
+    // existingTransitionValues = {};
+    // console.log(document.querySelectorAll('.transition-section'))
+    // document.querySelectorAll('.transition-section').forEach((section) => {
+    //     console.log("IN EXISTING LOOP AFTER LOOP: ", section)
+    //     const id = section.querySelector('.time-range').id.split('-')[2]; // Extract the ID from time-range
+    //     const inputs = section.querySelectorAll('input');
+    //     // if(Object.keys(existingTransitionValues) === 0){
+    //     //     existingTransitionValues[id] = Array.from(inputs).map(input => input.value);
+    //     // }
+    //     // if(idx_region>0){
+    //     //     console.log("REPLACE: ", idx_region)
+    //     //     existingTransitionValues[idx_region] = ['',''];
+    //     // }
+    //     existingTransitionValues[id] = Array.from(inputs).map(input => input.value);
+    // });
+
+
+    console.log("------- EXISTING TRANSITION ----------")
+    console.log(existingTransitionValues)
 
     console.log("NEW ----------------------")
     // Repopulate table with transitions after table is built
     if (orangeRegions.length > 0) {
+        // if(document.querySelectorAll('.transition-section').length === 0){
+        //     console.log("0 len in finalize: ", document.querySelectorAll('.transition-section'))
+        //     existingTransitionValues[0]=['','']
+        // }
         // Extract start and end times into a separate array of objects
         const sortedRegions = orangeRegions.map(region => ({
             startTime: parseFloat(region.start.toFixed(2)),
@@ -915,16 +1051,48 @@ function finalizeTimestamps(name) {
     
         // Sort the extracted regions based on end time or start time
         sortedRegions.sort((a, b) => b.endTime - a.endTime);
+        
     
+        // console.log("transition sections: ", document.querySelectorAll('.transition-section'))
+        let length = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)').length;
+        console.log("LENGTH:", allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)').length);
+        
+        if (length != 0 && regionIndex_trans >= 0) {
+            //Add a transition
+            regionIndex_trans = length - 1 - regionIndex_trans;
+            for (let i = length -1; i > regionIndex_trans; i--) {
+                // Move the value from the previous index to the current index
+                existingTransitionValues[i] = existingTransitionValues[i - 1];
+                // console.log("shift here: ", i)
+            }
+            existingTransitionValues[regionIndex_trans] = ['', ''];
+            // console.log("existingTransitionValues after: ", existingTransitionValues);
+        } else if (regionIndex_trans < 0){
+            const trans_idx = Object.keys(existingTransitionValues).length  + regionIndex_trans;
+            delete existingTransitionValues[trans_idx];
+            existingTransitionValues = Object.keys(existingTransitionValues)
+                .sort((a, b) => Number(a) - Number(b))  // Sort keys numerically in ascending order
+                .reduce((newObj, key, index) => {
+                    newObj[index] = existingTransitionValues[key];  // Reassign values to new consecutive keys
+                    return newObj;
+                }, {});
+
+            console.log("New Deleted Transition: ", (-1)*regionIndex_trans)
+            console.log(existingTransitionValues)
+        }
+        
+
         // Now, use the sorted timestamps to add transitions
         sortedRegions.forEach((region, index) => {
             const transitionStart = region.startTime;
             const transitionEnd = region.endTime;
-            console.log("adding for: ", transitionStart, " ", transitionEnd);
-    
-            // Call addTransitions for each detected region with sorted times
-            addTransitions(index + 1000, transitionStart, transitionEnd);
+            
+            // console.log("existing transition main low ")
+            // console.log( existingTransitionValues)
+            addTransitions(index, transitionStart, transitionEnd, Math.abs(Object.keys(existingTransitionValues).length - 1 - index), existingTransitionValues, regionIndex_trans);
+            
         });
+        
     }
 
     // Add copy-paste functionality to form sections (unchanged from before)
@@ -1055,125 +1223,125 @@ function deleteSection() {
 //WORKING
 let existingTransitions = []; // Track all transitions globally
 
-function createTransitionLines() {
-    const beatContainer = document.getElementById('beatContainer');
-    const duration = audioDuration;
+// function createTransitionLines() {
+//     const beatContainer = document.getElementById('beatContainer');
+//     const duration = audioDuration;
 
-    // Create draggable left and right lines with unique identifiers
-    const leftLine = document.createElement('div');
-    const rightLine = document.createElement('div');
-    leftLine.className = 'draggable-line left-line';
-    rightLine.className = 'draggable-line right-line';
+//     // Create draggable left and right lines with unique identifiers
+//     const leftLine = document.createElement('div');
+//     const rightLine = document.createElement('div');
+//     leftLine.className = 'draggable-line left-line';
+//     rightLine.className = 'draggable-line right-line';
 
-    // Generate a unique ID for this transition
-    const transitionId = `transition-${Date.now()}`;
-    leftLine.dataset.transitionId = transitionId;
-    rightLine.dataset.transitionId = transitionId;
+//     // Generate a unique ID for this transition
+//     const transitionId = `transition-${Date.now()}`;
+//     leftLine.dataset.transitionId = transitionId;
+//     rightLine.dataset.transitionId = transitionId;
 
-    // Create the highlight area between the lines
-    const highlight = document.createElement('div');
-    highlight.className = 'highlight-area';
+//     // Create the highlight area between the lines
+//     const highlight = document.createElement('div');
+//     highlight.className = 'highlight-area';
 
-    beatContainer.appendChild(leftLine);
-    beatContainer.appendChild(rightLine);
-    beatContainer.appendChild(highlight);
+//     beatContainer.appendChild(leftLine);
+//     beatContainer.appendChild(rightLine);
+//     beatContainer.appendChild(highlight);
 
-    function updateHighlightPosition() {
-        const leftPos = parseFloat(leftLine.style.left);
-        const rightPos = parseFloat(rightLine.style.left);
-        highlight.style.left = `${leftPos}px`;
-        highlight.style.width = `${rightPos - leftPos}px`;
-    }
+//     function updateHighlightPosition() {
+//         const leftPos = parseFloat(leftLine.style.left);
+//         const rightPos = parseFloat(rightLine.style.left);
+//         highlight.style.left = `${leftPos}px`;
+//         highlight.style.width = `${rightPos - leftPos}px`;
+//     }
 
-    function makeDraggable(line, onDrag) {
-        let isDragging = false;
+//     function makeDraggable(line, onDrag) {
+//         let isDragging = false;
 
-        line.addEventListener('mousedown', function (event) {
-            event.preventDefault();
-            isDragging = true;
-            line.style.cursor = 'ew-resize'; // Change cursor on drag start
-            document.addEventListener('mousemove', onDrag);
-            document.addEventListener('mouseup', function () {
-                isDragging = false;
-                line.style.cursor = ''; // Reset cursor after drag
-                document.removeEventListener('mousemove', onDrag);
-                updateTransitionTimes(line.dataset.transitionId); // Update transition times on drag end
-            });
-        });
+//         line.addEventListener('mousedown', function (event) {
+//             event.preventDefault();
+//             isDragging = true;
+//             line.style.cursor = 'ew-resize'; // Change cursor on drag start
+//             document.addEventListener('mousemove', onDrag);
+//             document.addEventListener('mouseup', function () {
+//                 isDragging = false;
+//                 line.style.cursor = ''; // Reset cursor after drag
+//                 document.removeEventListener('mousemove', onDrag);
+//                 updateTransitionTimes(line.dataset.transitionId); // Update transition times on drag end
+//             });
+//         });
 
-        line.addEventListener('mouseenter', function () {
-            line.style.cursor = 'ew-resize'; // Change cursor on hover
-        });
+//         line.addEventListener('mouseenter', function () {
+//             line.style.cursor = 'ew-resize'; // Change cursor on hover
+//         });
 
-        line.addEventListener('mouseleave', function () {
-            line.style.cursor = ''; // Reset cursor when not hovering
-        });
-    }
+//         line.addEventListener('mouseleave', function () {
+//             line.style.cursor = ''; // Reset cursor when not hovering
+//         });
+//     }
 
-    makeDraggable(leftLine, (event) => {
-        if (!event.buttons) return;
+//     makeDraggable(leftLine, (event) => {
+//         if (!event.buttons) return;
 
-        const rect = beatContainer.getBoundingClientRect();
-        const offsetX = event.clientX - rect.left;
-        const newLeft = Math.max(0, Math.min(offsetX, parseFloat(rightLine.style.left) - 10)); // Prevent crossing right line
-        leftLine.style.left = `${newLeft}px`;
-        updateHighlightPosition();
-    });
+//         const rect = beatContainer.getBoundingClientRect();
+//         const offsetX = event.clientX - rect.left;
+//         const newLeft = Math.max(0, Math.min(offsetX, parseFloat(rightLine.style.left) - 10)); // Prevent crossing right line
+//         leftLine.style.left = `${newLeft}px`;
+//         updateHighlightPosition();
+//     });
 
-    makeDraggable(rightLine, (event) => {
-        if (!event.buttons) return;
-        const rect = beatContainer.getBoundingClientRect();
-        const offsetX = event.clientX - rect.left;
-        const newRight = Math.max(parseFloat(leftLine.style.left) + 10, Math.min(offsetX, beatContainer.offsetWidth)); // Prevent crossing left line
-        rightLine.style.left = `${newRight}px`;
-        updateHighlightPosition();
-    });
+//     makeDraggable(rightLine, (event) => {
+//         if (!event.buttons) return;
+//         const rect = beatContainer.getBoundingClientRect();
+//         const offsetX = event.clientX - rect.left;
+//         const newRight = Math.max(parseFloat(leftLine.style.left) + 10, Math.min(offsetX, beatContainer.offsetWidth)); // Prevent crossing left line
+//         rightLine.style.left = `${newRight}px`;
+//         updateHighlightPosition();
+//     });
 
-    // Set initial positions
-    leftLine.style.left = '100px';
-    rightLine.style.left = '300px';
-    updateHighlightPosition();
+//     // Set initial positions
+//     leftLine.style.left = '100px';
+//     rightLine.style.left = '300px';
+//     updateHighlightPosition();
 
-    // Finalize transition when button is clicked
-    document.getElementById('finalizeTransitionButton').addEventListener('click', () => {
-        const leftTime = (parseFloat(leftLine.style.left) / beatContainer.offsetWidth) * duration;
-        const rightTime = (parseFloat(rightLine.style.left) / beatContainer.offsetWidth) * duration;
-        const startTime = leftTime.toFixed(2);
-        const endTime = rightTime.toFixed(2);
+//     // Finalize transition when button is clicked
+//     document.getElementById('finalizeTransitionButton').addEventListener('click', () => {
+//         const leftTime = (parseFloat(leftLine.style.left) / beatContainer.offsetWidth) * duration;
+//         const rightTime = (parseFloat(rightLine.style.left) / beatContainer.offsetWidth) * duration;
+//         const startTime = leftTime.toFixed(2);
+//         const endTime = rightTime.toFixed(2);
 
-        // Check if this transition already exists by its unique ID
-        const existingTransition = existingTransitions.find(
-            transition => transition.id === transitionId
-        );
+//         // // Check if this transition already exists by its unique ID
+//         // const existingTransition = existingTransitions.find(
+//         //     transition => transition.id === transitionId
+//         // );
 
-        if (existingTransition) {
-            console.log("EXISTING TRANSITION FLAG CALL UPDATE")
-            // Update the existing transition in the UI
-            updateExistingTransition(transitionId, startTime, endTime);
-        } else {
-            // Add a new transition
-            addTransitions(transitionId, startTime, endTime);
-            existingTransitions.push({ id: transitionId, startTime, endTime });
-        }
-    });
-}
+//         // if (existingTransition) {
+//         //     console.log("EXISTING TRANSITION FLAG CALL UPDATE")
+//         //     // Update the existing transition in the UI
+//         //     updateExistingTransition(transitionId, startTime, endTime);
+//         // } else {
+//         // Add a new transition
+//         addTransitions(transitionId, startTime, endTime,);
+//         // existingTransitions.push({ id: transitionId, startTime, endTime });
+//         // }
+//     });
+// }
 
-// Function to update an existing transition's UI
-function updateExistingTransition(id, startTime, endTime) {
-    console.log("UPDATE ID" + id + " START TIME: " + startTime + " END TIME: " + endTime);
-    const timeRangeElement = document.querySelector(`#time-range-${id}`);
-    if (timeRangeElement) {
-        timeRangeElement.innerText = `Transition (${startTime}s to ${endTime}s)`;
-    }
+// // Function to update an existing transition's UI
+// function updateExistingTransition(id, startTime, endTime) {
+//     console.log("UPDATE ID" + id + " START TIME: " + startTime + " END TIME: " + endTime);
+//     const timeRangeElement = document.querySelector(`#time-range-${id}`);
+//     if (timeRangeElement) {
+//         timeRangeElement.innerText = `Transition (${startTime}s to ${endTime}s)`;
+//     }
 
-    const transitionContainer = document.querySelector(`.transition-section[data-transition-id="${id}"]`);
-    if (transitionContainer) {
-        const playButton = transitionContainer.querySelector('button'); // Select the first button (Play button)
-        if (playButton) {
-            playButton.onclick = () => playTimeRange(startTime.toFixed(2), endTime.toFixed(2));
-        }
-    }
-}
+//     const transitionContainer = document.querySelector(`.transition-section[data-transition-id="${id}"]`);
+//     if (transitionContainer) {
+//         const playButton = transitionContainer.querySelector('button'); // Select the first button (Play button)
+//         if (playButton) {
+//             playButton.onclick = () => playTimeRange(startTime.toFixed(2), endTime.toFixed(2));
+//         }
+//     }
+// }
 
 // Your existing addTransitions function with a unique ID parameter
 // function addTransitions(id, startTime, endTime) {
@@ -1228,10 +1396,10 @@ function updateExistingTransition(id, startTime, endTime) {
 //     });
 // }
 
-function addTransitions(id, startTime, endTime) {
-    console.log("AddTrans2 called");
+function addTransitions(id, startTime, endTime, i, existingTransitionValues,regionIndex) {
+    // console.log("AddTrans2 called");
     const formContainers = document.querySelectorAll('.section');
-    console.log("formcontainer: ", formContainers)
+    // console.log("formcontainer: ", formContainers)
 
     formContainers.forEach((form) => {
         const formStartTime = parseFloat(form.querySelector('.time-range').innerText.split('-')[0]);
@@ -1243,7 +1411,7 @@ function addTransitions(id, startTime, endTime) {
             transitionContainer.className = 'section transition-section';
             // transitionContainer.dataset.transitionId = id; // Store the transition ID for updates
             transitionContainer.innerHTML = `
-                <div class="time-range">Transition (${startTime}s to ${endTime}s)</div>
+                <div id="time-range-${id}" class="time-range">Transition (${startTime}s to ${endTime}s)</div>
                 <div class="input-container">
                     <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
                     <input type="text" id="motion_trans_${startTime}_${endTime}">
@@ -1252,23 +1420,11 @@ function addTransitions(id, startTime, endTime) {
                 </div>
             `;
 
-            // transitionContainer.innerHTML = `
-            //     <div id="time-range-${id}" class="time-range">Transition (${startTime}s to ${endTime}s)</div>
-            //     <div class="input-container">
-            //         <label for="motion_trans_${startTime}_${endTime}">Motion:</label>
-            //         <input type="text" id="motion_trans_${startTime}_${endTime}">
-            //         <label for="strength_trans_${startTime}_${endTime}">Strength:</label>
-            //         <input type="text" id="strength_trans_${startTime}_${endTime}">
-            //         <label for="speed_trans_${startTime}_${endTime}">Speed:</label>
-            //         <input type="text" id="speed_trans_${startTime}_${endTime}">
-            //     </div>
-            // `;
-
             // Add the play button to preview the transition
             const playButton = document.createElement('button');
             playButton.innerText = 'Play';
-            console.log("start: ", startTime);
-            console.log("end: ", endTime);
+            // console.log("start: ", startTime);
+            // console.log("end: ", endTime);
             playButton.addEventListener('click', () => playTimeRange(parseFloat(startTime), parseFloat(endTime)));
             transitionContainer.appendChild(playButton);
 
@@ -1279,6 +1435,7 @@ function addTransitions(id, startTime, endTime) {
             // Add dropdown functionality to inputs
             const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
             const strengths = ['weak', 'normal', 'strong', 'vstrong'];
+            const labels = ["Motion", "Strength"]
             // const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
 
             // const inputTypes = ['motion', 'strength', 'speed'];
@@ -1331,39 +1488,53 @@ function addTransitions(id, startTime, endTime) {
                         input.setSelectionRange(input.value.length, input.value.length); // Move cursor to the end
                     }, 0);
                 });
+                // input.addEventListener('blur', () => {
+                //     setTimeout(() => {
+                //         document.querySelectorAll('.transition-section').forEach((section, sectionIndex) => {
+                //             const inputs = section.querySelectorAll('input');
+                //             existingTransitionValues[sectionIndex] = Array.from(inputs).map(input => input.value);
+                //         });
+                //         console.log("------- EXISTING TRANSITION IN TRANSITION UPDATED ----------");
+                //         console.log(existingTransitionValues);
+                //     }, 100);  // Ensure enough delay for input finalization
+                // });
+                // // console.log("TRANS EXIST LENGTH: ", Object.keys(existingTransitionValues).length);
+                // // console.log("TRANS VALS: ", existingTransitionValues);
+                // if(tablemade && Object.keys(existingTransitionValues).length > 0){
+                //     // console.log("ADD TRANSITION FOR EXISTING TRANS ADD: ", i, " ", existingTransitionValues[i])
+                //     // console.log("input val: ",input)
+                //     // console.log("label index: ",inputTypes.indexOf(type))
+                //     // console.log("replace with: ", existingTransitionValues[i][inputTypes.indexOf(type)])
+                //     if (existingTransitionValues[i] && existingTransitionValues[i][inputTypes.indexOf(type)]) {
+                //         input.value = existingTransitionValues[i][inputTypes.indexOf(type)];
+                //     }
+                // }
+                input.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        const inputs = transitionContainer.querySelectorAll('input');
+                        existingTransitionValues[id] = Array.from(inputs).map(input => input.value);
+                    }, 100);
+                    // console.log("Blur: ", existingTransitionValues);
+                });
+
+                if(tablemade && Object.keys(existingTransitionValues).length > 0){
+                    // console.log("enter loop: ", Object.keys(existingTransitionValues));
+                    if (existingTransitionValues[id] && existingTransitionValues[id][inputTypes.indexOf(type)]) {
+                        input.value = existingTransitionValues[id][inputTypes.indexOf(type)];
+                        
+                    }
+                }
+                
+                
+    
+                
+                
+                
             });
         }
     });
 }
 
-
-
-
-// Update transition times based on dragging
-function updateTransitionTimes(transitionId) {
-    console.log("Update transition times")
-    const duration = audioDuration;
-    const leftLine = document.querySelector(`.left-line[data-transition-id='${transitionId}']`);
-    const rightLine = document.querySelector(`.right-line[data-transition-id='${transitionId}']`);
-    const beatContainer = document.getElementById('beatContainer');
-
-    if (leftLine && rightLine) {
-        const leftTime = (parseFloat(leftLine.style.left) / beatContainer.offsetWidth) * duration;
-        const rightTime = (parseFloat(rightLine.style.left) / beatContainer.offsetWidth) * duration;
-        const startTime = leftTime.toFixed(2);
-        const endTime = rightTime.toFixed(2);
-
-        // Update the existing transition
-        updateExistingTransition(transitionId, startTime, endTime);
-
-        // Update the stored transition data
-        const transition = existingTransitions.find(t => t.id === transitionId);
-        if (transition) {
-            transition.startTime = startTime;
-            transition.endTime = endTime;
-        }
-    }
-}
 
 function fillDefaults() {
     const vibes = ['calm', 'epic', 'aggressive', 'chill', 'dark', 'energetic', 'epic', 'ethereal', 'happy', 'romantic', 'sad', 'scary', 'sexy', 'uplifting'];
@@ -1405,6 +1576,7 @@ function fillDefaults() {
 
     sections.forEach((section, index) => {
         const inputs = section.querySelectorAll('input');
+        const intervalValues = [];
 
         inputs.forEach(input => {
             const endTime = parseFloat(input.id.split('_').pop());
@@ -1484,8 +1656,32 @@ function fillDefaults() {
                     }
                 }
             } 
+            intervalValues.push(input.value);
+            
         });
+        if (section.classList.contains('transition-section')) {
+            existingTransitionValues[index] = intervalValues;
+        } else {
+            existingValues[index] = intervalValues;
+        }
+
+        existingValues = Object.keys(existingValues)
+            .sort((a, b) => Number(a) - Number(b))  // Sort keys numerically in ascending order
+            .reduce((newObj, key, index) => {
+                newObj[index] = existingValues[key];  // Reassign values to new consecutive keys
+                return newObj;
+            }, {});
+
+            existingTransitionValues = Object.keys(existingTransitionValues)
+            .sort((a, b) => Number(a) - Number(b))  // Sort keys numerically in ascending order
+            .reduce((newObj, key, index) => {
+                newObj[index] = existingTransitionValues[key];  // Reassign values to new consecutive keys
+                return newObj;
+            }, {});
+        
     });
+    console.log("Updated existingValues:", existingValues);
+    console.log("Updated existingTransitionValues:", existingTransitionValues);
 }
 
 
@@ -1734,7 +1930,7 @@ function processAudio() {
                     // Update newsigPoints based on green regions' start times
                     newsigPoints = greenRegions.map(r => r.start);
                 
-                    console.log("Updated newsigPoints:", newsigPoints);
+                    // console.log("Updated newsigPoints:", newsigPoints);
                 });
                 
             });
@@ -1773,8 +1969,10 @@ function processAudio() {
             const playPauseButton = document.getElementById('playPauseButton');
             playPauseButton.addEventListener('click', () => {
                 if (waveform.isPlaying()) {
+                    playPauseButton.innerHTML = 'PLAY';
                     waveform.pause();
                 } else {
+                    playPauseButton.innerHTML = 'PAUSE';
                     waveform.play();
                 }
             });
@@ -1837,8 +2035,9 @@ function setupRegions(waveform, data, content, color, size, drag, resize = false
         });
         if (color == 'green'){
             region.element.style.zIndex = 100;
-            region.on('update-end', refreshTable);
-            region.on('remove', refreshTable);
+            region.on('update-end', () => refreshTable("form"));
+            region.on('remove', () => refreshTable("form"));
+            console.log("add green region")
         }
 
         // Add labels for Significant Points regions (as before)
@@ -2561,11 +2760,18 @@ function drawBeats(beats, beatContainer, duration, color, hidden = false) {
 }
 
 function addNewInterval() {
-    data = [audioDuration/2]
-    newsigPoints = [...data];
+    const cursorTime = waveform.getCurrentTime();
+    console.log("add new interval newsig: ", newsigPoints);
+    data = [cursorTime]
+    newsigPoints = [data[0], ...newsigPoints];
+    const index = newsigPoints.sort((a, b) => a - b).indexOf(data[0]);
+    console.log("add interval index: ", index)
+
     newsigPoints = newsigPoints.sort((a, b) => a - b);
     // console.log("AFTER ADD: ", newsigPoints)
     setupRegions(waveform, data, "Significant Points", 'green', 0.25, true);
+    // finalizeTimestamps("time",index,-1);
+    refreshTable("form");
     //OLD VERSION
     // const beatContainer = document.getElementById('beatContainer');
     // const duration = audioDuration;
@@ -2615,7 +2821,35 @@ function delete_intervals() {
                 region.remove();
 
                 // Update the newsigPoints array by filtering out the deleted region
+                console.log(newsigPoints)
+                console.log("reg start: ", region.start)
+                let deletedTimeIndex = 0;
+                for (let i = 0; i < newsigPoints.length; i++) {
+                    if (region.start < newsigPoints[i]) {
+                        deletedTimeIndex = i;
+                        break;
+                    } else {
+                        deletedTimeIndex = newsigPoints.length; // If region.start is greater than all elements, it will be at the end
+                    }
+                }
                 newsigPoints = newsigPoints.filter(time => time !== region.start);
+                console.log("new sig in delete func: ", newsigPoints, existingValues)
+                console.log("DELETE INTERVAL FUNC INDEX: ", deletedTimeIndex)
+                delete existingValues[deletedTimeIndex];
+                if (deletedTimeIndex === 0) {
+
+                }
+
+                // existingValues = Object.keys(existingValues)
+                //     .sort((a, b) => a - b)  // Sort keys numerically in ascending order
+                //     .reduce((newObj, key, index) => {
+                //         newObj[index] = existingValues[key];
+                //         return newObj;
+                //     }, {});
+
+                console.log(existingValues)
+
+                refreshTable("form")
 
                 // console.log("Deleted region and updated newsigPoints:", newsigPoints);
             } else {
@@ -2686,8 +2920,8 @@ function addDefaultTransitions() {
             drag: true,
             resize: true,
         });
-        reg.on('update-end', refreshTable);
-        reg.on('remove', refreshTable);
+        reg.on('update-end', () => refreshTable("none"));
+        reg.on('remove', () => refreshTable("none"));
     });
     
 
@@ -2698,19 +2932,25 @@ function addDefaultTransitions() {
 
 function addTransitionRegions() {
     const waveformDuration = waveform.getDuration();
-    const centerTime = waveformDuration / 2;
+    const cursorTime = waveform.getCurrentTime(); // Get the current cursor position
+    const regionStart = (cursorTime - 0.5).toFixed(2);
+    const regionEnd = (cursorTime + 0.5).toFixed(2);
 
     const reg = waveform.addRegion({
-        start: centerTime - 0.5,
-        end: centerTime + 0.5,
+        start: regionStart,
+        end: regionEnd,
         color: 'rgba(255, 165, 0, 0.5)',
         drag: true,
         resize: true,
     });
-    reg.on('update-end', refreshTable);
-    reg.on('remove', refreshTable);
+    reg.on('update-end', () => refreshTable("trans"));
+    reg.on('remove', () => refreshTable("trans"));
+    console.log("add transition region len idx: ", Object.keys(existingTransitionValues).length)
+    // addTransitions(Object.keys(existingTransitionValues).length, regionStart, regionEnd, Object.keys(existingTransitionValues).length, existingTransitionValues);
+    refreshTable("trans");
 
-    console.log(`Added transition region at center: ${centerTime - 0.5} to ${centerTime + 0.5}`);
+    console.log(`Added transition region at center: ${regionStart} to ${regionEnd}`);
+    // finalizeTimestamps("transition");
 }
 
 function delete_transitions() {
@@ -2751,6 +2991,8 @@ function delete_transitions() {
             if (region.color === 'rgba(255, 0, 0, 0.5)') {
                 // Remove the region from the waveform
                 region.remove();
+                refreshTable("trans");
+
                 // console.log("Deleted transition region:", region);
             } else {
                 console.log("Clicked on a non-deletable region. No action taken.");
@@ -2777,32 +3019,185 @@ function delete_transitions() {
     }
 }
 
+//OG
+// function refreshTable() {
+//     if (tablemade == true){
+//         // Get current regions
+//         const allRegions = Object.values(waveform.regions.list);
+//         let greenRegions = allRegions.filter(region => region.color === 'green');
+//         // console.log("green before move: ", greenRegions);
+//         let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
+//         console.log("orange before move: ", orangeRegions);
+//         greenRegions = greenRegions.sort((a, b) => a.start - b.start);
+//         orangeRegions = orangeRegions.sort((a, b) => a.start - b.start);
+//         // console.log("green after move: ", greenRegions);
+//         console.log("orange after move: ", orangeRegions);
 
-function refreshTable() {
-    if (tablemade == true){
-        // Get current regions
+//         // console.log("sig before drag: ", newsigPoints)
+//         // Prepare significant points (this is just an example; adapt as necessary)
+//         newsigPoints = greenRegions.map(region => region.start); // Example logic
+//         // console.log("new sig after drag: ", newsigPoints)
+//         const audioDuration = waveform.getDuration()
+
+//         // Call finalizeTimestamps with the type
+//         // finalizeTimestamps("transition", newsigPoints, orangeRegions, audioDuration);
+//         finalizeTimestamps("time", newsigPoints, orangeRegions, audioDuration);
+//     }
+// }
+
+// Working refreshTable with updated code
+// function refreshTable(new_type) {
+//     if (tablemade == true){
+//         console.log("TYPE OF ADDITION: ", new_type);
+//         // Get current regions
+//         const allRegions = Object.values(waveform.regions.list);
+
+//         let greenRegions = allRegions.filter(region => region.color === 'green');
+//         // console.log("green before move: ", greenRegions);
+//         let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
+//         greenRegions = greenRegions.sort((a, b) => a.start - b.start);
+//         orangeRegions = orangeRegions.sort((a, b) => a.start - b.start);
+//         console.log("green before move: ", greenRegions);
+//         console.log("orange before move: ", orangeRegions);
+//         console.log("og updated green: ", updatedGreenRegions);
+//         console.log("og updated orange: ", updatedOrangeRegions);
+
+
+//         if(new_type == "form"){
+//             const mismatches = greenRegions.filter((greenRegion, index) => {
+//                 const updatedRegion = updatedGreenRegions[index];
+//                 return !updatedRegion || greenRegion.start !== updatedRegion.start || greenRegion.end !== updatedRegion.end;
+//             });
+//             console.log("Mismatched green regions: ", mismatches);
+
+//         }else if (new_type == "trans"){
+//             const mismatches = orangeRegions.filter((orangeRegion, index) => {
+//                 const updatedRegion = updatedOrangeRegions[index];
+//                 return !updatedRegion || orangeRegion.start !== updatedRegion.start || orangeRegion.end !== updatedRegion.end;
+//             });
+//             console.log("Mismatched orange regions: ", mismatches);
+//             // finalizeTimestamps("time");
+//         }else {
+//             ;
+//         }
+
+//         updatedGreenRegions = greenRegions
+//         updatedOrangeRegions = orangeRegions
+//         console.log("new updated green: ", updatedGreenRegions);
+//         console.log("new updated orange: ", updatedOrangeRegions);
+//         // console.log("green after move: ", greenRegions);
+//         // console.log("orange after move: ", orangeRegions);
+
+//         // console.log("sig before drag: ", newsigPoints)
+//         // Prepare significant points (this is just an example; adapt as necessary)
+//         newsigPoints = greenRegions.map(region => region.start); // Example logic
+//         // console.log("new sig after drag: ", newsigPoints)
+//         const audioDuration = waveform.getDuration()
+
+//         // Call finalizeTimestamps with the type
+//         // finalizeTimestamps("transition", newsigPoints, orangeRegions, audioDuration);
+//         finalizeTimestamps("time");
+//     }
+// }
+
+
+function refreshTable(new_type) {
+    if (tablemade) {
+        
         const allRegions = Object.values(waveform.regions.list);
-        let greenRegions = allRegions.filter(region => region.color === 'green');
-        // console.log("green before move: ", greenRegions);
-        let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)');
-        console.log("orange before move: ", orangeRegions);
-        greenRegions = greenRegions.sort((a, b) => a.start - b.start);
-        orangeRegions = orangeRegions.sort((a, b) => a.start - b.start);
-        // console.log("green after move: ", greenRegions);
-        console.log("orange after move: ", orangeRegions);
+        
+        let greenRegions = allRegions.filter(region => region.color === 'green').sort((a, b) => a.start - b.start);
+        let orangeRegions = allRegions.filter(region => region.color === 'rgba(255, 165, 0, 0.5)').sort((a, b) => a.start - b.start);
+        
+        newsigPoints = greenRegions.map(region => region.start);
+        console.log("NEW SIG: ", newsigPoints);
+        let newRegionIndex_trans = 't';
+        let newRegionIndex_form = 'f';
 
-        // console.log("sig before drag: ", newsigPoints)
-        // Prepare significant points (this is just an example; adapt as necessary)
-        newsigPoints = greenRegions.map(region => region.start); // Example logic
-        // console.log("new sig after drag: ", newsigPoints)
-        const audioDuration = waveform.getDuration()
+        if (new_type === "trans") {
+            console.log("Transition")
+            // console.log("LENGTH BEFORE CALL:",orangeRegions.length,updatedOrangeRegions.length)
+            // console.log("existing transitions before: ", existingTransitionValues)
+            newRegionIndex_trans = handleRegionChanges(orangeRegions, updatedOrangeRegions, existingTransitionValues, "trans");
+            added = false;
+            // console.log("existing transitions after: ", existingTransitionValues)
+            
+            // console.log("updated transition");
+            updatedOrangeRegions = orangeRegions;
+        }else if (new_type === "form") {
+            console.log("DATA")
+            // console.log("LENGTH BEFORE CALL:",orangeRegions.length,updatedOrangeRegions.length)
+            // console.log("existing transitions before: ", existingTransitionValues)
+            newRegionIndex_form = handleRegionChanges(greenRegions, updatedGreenRegions, existingValues, "form");
+            updatedGreenRegions = greenRegions;
+        }
+        
 
-        // Call finalizeTimestamps with the type
-        // finalizeTimestamps("transition", newsigPoints, orangeRegions, audioDuration);
-        finalizeTimestamps("time", newsigPoints, orangeRegions, audioDuration);
+        const audioDuration = waveform.getDuration();
+        finalizeTimestamps("time", newRegionIndex_form, newRegionIndex_trans);
     }
 }
 
+function handleRegionChanges(currentRegions, updatedRegions, valuesDict, type) {
+    // Find added or removed regions by comparing current with updated
+    
+    const mismatchedRegions = currentRegions.filter(region => {
+        return !updatedRegions.some(updatedRegion => 
+            updatedRegion.start.toFixed(2) === region.start.toFixed(2) && updatedRegion.end.toFixed(2) === region.end.toFixed(2)
+        );
+    });
+
+    const mismatchedRegionsOther = updatedRegions.filter(region => {
+        return !currentRegions.some(currentRegion => 
+            currentRegion.start.toFixed(2) === region.start.toFixed(2) && currentRegion.end.toFixed(2) === region.end.toFixed(2)
+        );
+    });
+    console.log("size current: ", currentRegions.length)
+    currentRegions.forEach((region, index) => {
+        const start = region.start;
+        const end = region.end;
+
+        // Check if existingTransitionValues is defined
+        console.log("current times:", index, start, end);
+    });
+
+    console.log("size old: ", updatedRegions.length)
+    updatedRegions.forEach((region, index) => {
+        const start = region.start;
+        const end = region.end;
+
+        // Check if existingTransitionValues is defined
+        console.log("current times:", index, start, end);
+    });
+
+    const chosenMismatchedRegions = mismatchedRegions.length > 0 ? mismatchedRegions : mismatchedRegionsOther;
+    const chosenMismatchedIndexes = chosenMismatchedRegions.map(mRegion => updatedRegions.indexOf(mRegion));
+
+
+
+    console.log("Mismatched region: ", mismatchedRegions);
+    console.log("OTHER DIR MISMATCH: ", mismatchedRegionsOther)
+    console.log("chosen mismatch: ", chosenMismatchedRegions, chosenMismatchedIndexes);
+
+    if (currentRegions.length > updatedRegions.length) {
+        const newRegionIndex = mismatchedRegions.length ? currentRegions.indexOf(mismatchedRegions[0]) : currentRegions.length - 1;
+        console.log("new index: ", newRegionIndex);
+        console.log(valuesDict);
+        return newRegionIndex
+    } else if (currentRegions.length < updatedRegions.length) {
+        console.log("REMOVE REGION: ", currentRegions)
+        console.log("REMOVE REGION ex val before: ", existingTransitionValues)
+        // Region removed; delete corresponding entry in `valuesDict`
+        const removedRegionIndex = chosenMismatchedRegions.map(mRegion => updatedRegions.indexOf(mRegion));
+        console.log("removed index: ", (-1)*removedRegionIndex[0])
+        // delete valuesDict[removedRegionIndex];
+        console.log("REMOVE REGION ex val after: ", existingTransitionValues)
+        return removedRegionIndex[0]*(-1)-1
+        
+    }
+
+    console.log("Updated valuesDict after region change:", valuesDict);
+}
 
 
 
