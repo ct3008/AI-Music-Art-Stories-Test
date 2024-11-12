@@ -8,11 +8,12 @@ import replicate
 
 app = Flask(__name__, template_folder='./templates', static_folder='./static')
 
+api_key = os.getenv("OPENAI_DISCO_API_KEY")
 client = OpenAI(api_key=api_key)
-# openai_api_key = os.getenv("OPENAI_API_KEY")
-# replicate_api_token = os.getenv("REPLICATE_API_TOKEN")
 
-api_token = os.getenv("MY_REPLICATE_TOKEN")
+# api_token = os.getenv("MY_REPLICATE_TOKEN")
+# api_token = os.getenv("LAB_DISCO_API_KEY")
+api_token = ''
 print("API TOKEN?: ", api_token)
 api = replicate.Client(api_token=api_token)
 
@@ -174,7 +175,8 @@ def upload_audio_large():
 def split_and_pair_values(data):
     motions = data['motion'].strip().split(',')
     strengths = data['strength'].strip().split(',')
-    speeds = data['speed'].strip().split(',')
+    speeds = ['normal']
+    # speeds = data['speed'].strip().split(',')
     return list(zip(motions, strengths, speeds))
 
 def get_motion_data(form_data, trans_data, time_intervals):
@@ -591,7 +593,7 @@ def process_data():
         print(f"{motion}: {', '.join(transitions)}")
 
     final_scene_times = scene_change_times
-    final_scene_times.insert(0, '0')
+    final_scene_times.insert(0, 0)
     final_scene_times.append(round(song_duration,2))
     final_scene_times = set(final_scene_times)
     final_scene_times = list(final_scene_times)
@@ -602,6 +604,10 @@ def process_data():
     animation_prompts = ""
 
     print("BAnANANANA", final_scene_times, final_anim_frames)
+    if final_anim_frames[-1] + 1 == final_anim_frames[-2]:
+        final_anim_frames=final_anim_frames[:-1]
+    print("BAnANANANA After", final_scene_times, final_anim_frames)
+
     
     for i in range(len(final_anim_frames) - 1):
         animation_prompts += f"{final_anim_frames[i]}: | "
@@ -638,4 +644,4 @@ def process_data():
     return jsonify(response)
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5003)
+    app.run(debug=True, port=5004)
