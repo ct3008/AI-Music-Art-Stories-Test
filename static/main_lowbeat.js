@@ -540,7 +540,8 @@ function finalizeTimestamps(name, regionIndex_form, regionIndex_trans) {
         section.appendChild(timeRange);
 
         const playButton = document.createElement('button');
-        playButton.innerText = 'Play';
+        playButton.innerText = '▶';
+        // 'play'
         playButton.addEventListener('click', () => playTimeRange(timestamps[i], timestamps[i + 1]));
         section.appendChild(playButton);
 
@@ -1080,7 +1081,7 @@ function addTransitions(id, startTime, endTime, i, existingTransitionValues,regi
             transitionContainer.innerHTML = `
                 <div id="time-range-${id}" class="time-range">Transition (${startTime}s to ${endTime}s)</div>
                 <div class="input-container">
-                    <button id="trans_play_button">Play</button>
+                    <button id="trans_play_button">▶</button>
                     <div style="width: 200px; margin-left: 1px; margin-top: 230px;">
                         <input type="text" id="motion_trans_${startTime}_${endTime}" style="margin-bottom: 10px;">
                         <br>
@@ -1092,11 +1093,17 @@ function addTransitions(id, startTime, endTime, i, existingTransitionValues,regi
             // Add the play button to preview the transition
             // const playButton = document.createElement('button');
             // playButton.innerText = 'Play';
-            const playButton = document.getElementById('trans_play_button')
+            // const playButton = document.getElementById('trans_play_button')
             // console.log("start: ", startTime);
             // console.log("end: ", endTime);
             // playButton.addEventListener('click', () => playTimeRange(parseFloat(startTime), parseFloat(endTime)));
             // transitionContainer.appendChild(playButton);
+            const playButton = transitionContainer.querySelector('#trans_play_button');
+
+            // Ensure that playButton is found and event listener is added
+            if (playButton) {
+                playButton.addEventListener('click', () => playTimeRange(parseFloat(startTime), parseFloat(endTime)));
+            }
 
             // Insert the transition container in the appropriate position
             form.insertAdjacentElement('afterend', transitionContainer);
@@ -1567,14 +1574,26 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
+function togglePlayPause() {
+    if (waveform.isPlaying()) {
+        playPauseButton.innerHTML = '▶';
+        waveform.pause();
+    } else {
+        playPauseButton.innerHTML = '⏸'; 
+        waveform.play();
+    }
+}
+
 function processAudio() {
     tablemade = false;
     const fileInput = document.getElementById('audioFile');
     const play_button = document.getElementById("playPauseButton")
     const slider = document.getElementById("slider")
+    const loadingIndicator = document.getElementById("loadingIndicator");
 
     play_button.style.display = "block";
     slider.style.display = "block";
+    loadingIndicator.style.display = "block";
 
     // const clearButton = document.getElementById('clearButton');
 
@@ -1714,6 +1733,16 @@ function processAudio() {
                     waveform.play();
                 }
             });
+            waveform.on('finish', () => {
+                playPauseButton.innerHTML = '▶';
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === ' ' && (document.activeElement === waveform.container || waveform.isPlaying())) {
+                    event.preventDefault(); // Prevent page scrolling when space is pressed
+                    togglePlayPause();
+                }
+            });
 
             document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
             lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
@@ -1756,6 +1785,10 @@ function processAudio() {
     .catch(error => {
         console.error('Error:', error);
         document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+    })
+    .finally(() => {
+        // Hide loading indicator after completion
+        loadingIndicator.style.display = "none";
     });
 }
 

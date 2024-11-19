@@ -38,7 +38,11 @@
     <button id="finalize-timestamps" style="display: none;" onclick="show_default_boxes()">Finalize Time Stamps</button>
 </div>
 
-<div id="waveform"></div>
+<div id="waveform">
+    <div id="loadingIndicator" style="display: none;">
+        <img width="auto" height="200" src="./static/loading.gif" alt="Loading..." />
+    </div>
+</div>
 <button id="playPauseButton" style="display: none; size: 25px">▶</button>
 <div id="slider" style="display: none;">
     <label for="zoomSlider">Zoom Level:</label>
@@ -52,8 +56,6 @@
 </div>
 
 <audio id="audioPlayer" controls hidden></audio> -->
-
-<button id="toggleMotionButton" style="display: none;" onclick="toggleMotion()">3D Motion</button>
 
 <div id="outputContainer"></div>
 <div id="timestampsContainer"></div>
@@ -166,6 +168,7 @@
             <option value="ink blots">
         </datalist>
     </div>
+    <button id="toggleMotionButton" style="display: none;" onclick="toggleMotion()">3D Motion</button>
 </div>
 
 <!-- <button onclick="fillDefaults()">Fill with Defaults</button> -->
