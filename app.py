@@ -12,27 +12,27 @@ api_key = os.getenv("OPENAI_DISCO_API_KEY")
 client = OpenAI(api_key=api_key)
 
 # api_token = os.getenv("MY_REPLICATE_TOKEN")
-# api_token = os.getenv("LAB_DISCO_API_KEY")
-api_token = ''
+api_token = os.getenv("LAB_DISCO_API_KEY")
+# api_token = ''
 print("API TOKEN?: ", api_token)
 api = replicate.Client(api_token=api_token)
 
 
 motion_magnitudes = {
-    "zoom_in": {"none": 1.00, "weak": 1.02, "normal": 1.04, "strong": 3, "vstrong": 6},
+    "zoom_in": {"none": 1.00, "weak": 1.02, "normal": 1.04, "strong": 3, "vstrong": 10},
     "zoom_out": {"none": 1.00, "weak": 0.98, "normal": 0.96, "strong": 0.4, "vstrong": 0.1},
-    "rotate_up": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 6},
-    "rotate_down": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -6},
-    "rotate_right": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 6},
-    "rotate_left": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -6},
-    "rotate_cw": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 6},
-    "rotate_ccw": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -6},
-    "spin_cw": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 6},
-    "spin_ccw": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -6},
-    "pan_up": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 6},
-    "pan_down": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -6},
-    "pan_right": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 6},
-    "pan_left": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -6}
+    "rotate_up": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 10},
+    "rotate_down": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -10},
+    "rotate_right": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 10},
+    "rotate_left": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -10},
+    "rotate_cw": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 10},
+    "rotate_ccw": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -10},
+    "spin_cw": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 10},
+    "spin_ccw": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -10},
+    "pan_up": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 10},
+    "pan_down": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -10},
+    "pan_right": {"none": 0, "weak": 0.5, "normal": 1, "strong": 3, "vstrong": 10},
+    "pan_left": {"none": 0, "weak": -0.5, "normal": -1, "strong": -3, "vstrong": -10}
 }
 
 # API Route
