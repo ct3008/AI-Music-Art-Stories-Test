@@ -44,6 +44,10 @@ motion_magnitudes = {
 def homepage():
     return render_template('waveform.html')
 
+@app.route('/quick_start')
+def quick_start():
+    return render_template('quick_start.html')
+
 @app.route('/upload_audio', methods=['POST'])
 def upload_audio():
     file = request.files['audioFile']
