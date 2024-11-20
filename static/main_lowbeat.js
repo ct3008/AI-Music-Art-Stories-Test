@@ -32,6 +32,64 @@ const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_
 const motions_3D = ['zoom_in', 'zoom_out', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
 const motions_2D = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'none'];
 const strengths = ['weak', 'normal', 'strong', 'vstrong'];
+const images = {
+    "chaotic_intertwining_lines": [
+        "chaotic_intertwining_lines_charcoal_drawing_output_0.webp",
+        "chaotic_intertwining_lines_pencil_drawing_output_0.webp",
+        "chaotic_intertwining_lines_jagged,_irregular_output_0.webp",
+        "chaotic_intertwining_lines_splattered_paint_output_0.webp",
+        "chaotic_intertwining_lines_digital_glitch_output_0.webp"
+    ],
+    "flowing_waves": [
+        "flowing_waves_mosaic_output_0.webp",
+        "flowing_waves_impasto_palette_knife_painting_output_0.webp",
+        "flowing_waves_rubbed_graphite_on_paper_output_0.webp",
+        "flowing_waves_pastel_watercolor_on_canvas_output_0.webp",
+        "flowing_waves_graffiti_output_0.webp"
+    ],
+    "curvilinear_intertwined_circles": [
+        "curvilinear_intertwined_circles_mosaic_output_0.webp",
+        "curvilinear_intertwined_circles_charcoal_drawing_output_0.webp",
+        "curvilinear_intertwined_circles_impasto_palette_knife_painting_output_0.webp",
+        "curvilinear_intertwined_circles_jagged,irregular_output_0.webp",
+        "curvilinear_intertwined_circles_pastel_watercolor_on_canvas_output_0.webp"
+    ],
+    "whirling_lines": [
+        "whirling_lines_painting_output_0.webp",
+        "whirling_lines_digital_glitch_output_0.webp",
+        "whirling_lines_ink_blots_output_0.webp",
+        "whirling_lines_graffiti_output_0.webp",
+        "whirling_lines_pencil_drawing_output_0.webp"
+    ],
+    "interstellar_light_trails": [
+        "interstellar_light_trails_painting_output_0.webp",
+        "interstellar_light_trails_jagged,irregular_output_0.webp",
+        "interstellar_light_trails_digital_glitch_output_0.webp",
+        "interstellar_light_trails_calligraphy_brush_ink_stroke_output_0.webp",
+        "interstellar_light_trails_ink_blots_output_0.webp"
+    ],
+    "abstract_fractal_patterns": [
+        "abstract_fractal_patterns_impasto_palette_knife_painting_output_0.webp",
+        "abstract_fractal_patterns_mosaic_output_0.webp",
+        "abstract_fractal_patterns_charcoal_drawing_output_0.webp",
+        "abstract_fractal_patterns_splattered_paint_output_0.webp",
+        "abstract_fractal_patterns_rubbed_graphite_on_paper_output_0.webp"
+    ],
+    "dissolving_geometric_shards": [
+        "dissolving_geometric_shards_painting_output_0.webp",
+        "dissolving_geometric_shards_graffiti_output_0.webp",
+        "dissolving_geometric_shards_digital_glitch_output_0.webp",
+        "dissolving_geometric_shards_jagged,irregular_output_0.webp",
+        "dissolving_geometric_shards_pencil_drawing_output_0.webp"
+    ],
+    "translucent_ripple_effects": [
+        "translucent_ripple_effects_mosaic_output_0.webp",
+        "translucent_ripple_effects_charcoal_drawing_output_0.webp",
+        "translucent_ripple_effects_ink_blots_output_0.webp",
+        "translucent_ripple_effects_impasto_palette_knife_painting_output_0.webp",
+        "translucent_ripple_effects_digital_glitch_output_0.webp"
+    ]
+};
 
 
 function movePlayheadOG() {
@@ -250,30 +308,33 @@ function movePlayhead(audioPlayer, endTime) {
 }
 
 function playTimeRange(startTime, endTime) {
-    // console.log("start end play interval: ", startTime, endTime);
-    // Ensure WaveSurfer is available and has been initialized
+    const playPauseButton = document.getElementById('playPauseButton');
     if (waveform && waveform.isReady) {
-        // Seek to the start time
-        waveform.seekTo(startTime / waveform.getDuration());
+        playPauseButton.innerHTML = '⏸';
+        // Pause global playback before starting range playback
+        
 
-        // Start playback
-        waveform.play(startTime, endTime);
-
-        // Use the WaveSurfer API to manage playback
+        // Monitor the playback progress
         const interval = setInterval(() => {
             const currentTime = waveform.getCurrentTime();
-            // console.log(currentTime);
 
-            // Check if the current time has reached the end time or if playback is paused
             if (currentTime >= endTime || !waveform.isPlaying()) {
                 waveform.pause();
+                playPauseButton.innerHTML = '▶';
                 clearInterval(interval);
             }
         }, 100);
+
+        waveform.pause();
+
+        // Seek to the start time and play from there
+        waveform.seekTo(startTime / waveform.getDuration());
+        waveform.play(startTime, endTime);
     } else {
         console.error("WaveSurfer is not initialized or not ready.");
     }
 }
+
 
 // Function to update the color picker based on hex code in the color input
 function updateColorPickerFromInput() {
@@ -316,6 +377,8 @@ function show_default_boxes(){
     const colorBox = document.getElementById("colorBox")
     const imageryBox = document.getElementById("imageryBox")
     const textureBox = document.getElementById("textureBox")
+    const image_examples = document.getElementById("image_examples")
+    // const detailsBox = document.getElementById("detailsBox")
     const fillDefaultsButton = document.getElementById("fill-defaults")
     const trash = document.getElementById("trash")
     const toggleButton = document.getElementById("toggleMotionButton")
@@ -331,6 +394,7 @@ function show_default_boxes(){
     fillDefaultsButton.style.display = "block";
     toggleButton.style.display = "block"
     processButton.style.display = "block"
+    image_examples.style.display = "block"
     
     colorBox.style.justifyContent = "center";
     colorBox.style.alignContent = "center";
@@ -541,6 +605,7 @@ function finalizeTimestamps(name, regionIndex_form, regionIndex_trans) {
 
         const playButton = document.createElement('button');
         playButton.innerText = '▶';
+        // playpauseControl(playButton)
         // 'play'
         playButton.addEventListener('click', () => playTimeRange(timestamps[i], timestamps[i + 1]));
         section.appendChild(playButton);
@@ -1100,10 +1165,12 @@ function addTransitions(id, startTime, endTime, i, existingTransitionValues,regi
             // transitionContainer.appendChild(playButton);
             const playButton = transitionContainer.querySelector('#trans_play_button');
 
+            // playpauseControl(playButton);
             // Ensure that playButton is found and event listener is added
             if (playButton) {
                 playButton.addEventListener('click', () => playTimeRange(parseFloat(startTime), parseFloat(endTime)));
             }
+            
 
             // Insert the transition container in the appropriate position
             form.insertAdjacentElement('afterend', transitionContainer);
@@ -1254,7 +1321,9 @@ function fillDefaults() {
 
     // Get the values entered by the user for vibe and color
     const vibeInput = document.getElementById('vibeInput').value.trim();  
-    const colorInput = document.getElementById('colorInput').value.trim();  
+    const colorInput = document.getElementById('colorInput').value.trim();
+    const imageryInput = document.getElementById("imageryInput").value.trim();
+    const textureInput = document.getElementById("textureInput").value.trim();  
 
     const sections = document.querySelectorAll('.section');
 
@@ -1293,7 +1362,12 @@ function fillDefaults() {
             // Handle texture input for regular sections (no texture for transitions)
             else if (input.id.includes('texture_form')) {
                 if (!input.value) {
-                    input.value = chosenTexture;
+                    input.value = textureInput || textures[Math.floor(Math.random() * textures.length)];
+                }
+                else if(input.value && input.value != textureInput && textureInput != ""){
+                    console.log("Texture: ", input.value);
+                    console.log("Texture input: ", textureInput);
+                    input.value = textureInput;
                 }
             }
             // Handle style input for regular sections (no style for transitions)
@@ -1305,7 +1379,12 @@ function fillDefaults() {
             // Handle imagery input for regular sections (no imagery for transitions)
             else if (input.id.includes('imagery_form')) {
                 if (!input.value) {
-                    input.value = chosenImagery;
+                    input.value = imageryInput || imageries[Math.floor(Math.random() * imageries.length)];
+                }
+                else if(input.value && input.value != imageryInput && imageryInput != ""){
+                    console.log("Imagery: ", input.value);
+                    console.log("Imagery input: ", imageryInput);
+                    input.value = imageryInput;
                 }
             }
             // Handle color input for both regular sections and transitions
@@ -1571,8 +1650,91 @@ document.addEventListener("DOMContentLoaded", function() {
         refreshTable();
     });
 
+    // Base URL for images stored on GitHub
+    const baseURL = "https://raw.githubusercontent.com/Jiaxin-yyjx/SongAnalysis/refs/heads/claudia2/images/";
+
+    // Handle imagery selection
+    const selectElement = document.getElementById("imagery-select");
+    const imageContainer = document.getElementById("image-container");
+
+    // Assuming these are your input fields for imagery and texture
+    const imageryInput = document.getElementById("imageryInput"); // Imagery input box
+    const textureInput = document.getElementById("textureInput"); // Texture input box
+
+    selectElement.addEventListener("change", (event) => {
+        const imagery = event.target.value;
+
+        // Clear the existing images
+        imageContainer.innerHTML = "";
+
+        // Add new images for the selected imagery
+        if (images[imagery]) {
+            images[imagery].forEach((filename) => {
+                // Create a container for the image and its texture name
+                const imgWrapper = document.createElement("div");
+                imgWrapper.classList.add("img-wrapper");
+
+                // Create the image element
+                const img = document.createElement("img");
+                img.src = `${baseURL}${filename}`; // Construct the GitHub URL
+                img.alt = filename.replace(/_/g, "-").replace(".webp", ""); // Alt text as a URL-friendly name
+                img.draggable = true; // Make the image draggable
+
+                // Extract the texture name dynamically
+                const textureName = filename
+                    .replace(imagery.replace(/ /g, "_"), "") // Remove the imagery key part
+                    .replace(/^_/, "") // Remove leading underscore
+                    .replace(/_output_\d+\.webp$/, "") // Remove output and index
+                    .replace(/_/g, " "); // Replace underscores with spaces
+
+                // Create a caption for the texture name
+                const caption = document.createElement("p");
+                caption.textContent = textureName.trim(); // Set the texture name as the caption
+                caption.classList.add("texture-caption");
+
+                // Add click event to update the input fields
+                img.addEventListener("click", () => {
+                    console.log(imagery, textureName)
+                    imageryInput.value = imagery; // Set the imagery value
+                    textureInput.value = textureName.trim(); // Set the texture value
+                });
+
+                // Append the image and caption to the wrapper
+                imgWrapper.appendChild(img);
+                imgWrapper.appendChild(caption);
+
+                // Append the wrapper to the container
+                imageContainer.appendChild(imgWrapper);
+            });
+        }
+    });
+
+
+
 
 });
+
+function playpauseControl(playPauseButton){
+    playPauseButton.addEventListener('click', () => {
+        if (waveform.isPlaying()) {
+            playPauseButton.innerHTML = '▶';
+            waveform.pause();
+        } else {
+            playPauseButton.innerHTML = '⏸';
+            waveform.play();
+        }
+    });
+    waveform.on('finish', () => {
+        playPauseButton.innerHTML = '▶';
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === ' ' && (document.activeElement === waveform.container || waveform.isPlaying())) {
+            event.preventDefault(); // Prevent page scrolling when space is pressed
+            togglePlayPause();
+        }
+    });
+}
 
 function togglePlayPause() {
     if (waveform.isPlaying()) {
@@ -1584,15 +1746,67 @@ function togglePlayPause() {
     }
 }
 
+function audioZoom(){
+    const zoomOutButton = document.getElementById('zoomOut');
+    const zoomInButton = document.getElementById('zoomIn');
+    const zoomLevelDisplay = document.getElementById('zoomLevel');
+    const zoomControl = document.getElementById('zoomControl');
+    let zoomLevel = 50;
+
+    // Zoom limits
+    const zoomMin = 50;
+    const zoomMax = 400;
+    const zoomStep = 50;
+
+    // Example zoom application (replace with your actual zooming logic)
+    function applyZoom(zoomLevel) {
+        // Adjust the waveform zoom level
+        waveform.zoom(zoomLevel);
+    
+        // Get all regions
+        const allRegions = Object.values(waveform.regions.list);
+    
+        // Adjust the width of green bars based on the zoom level
+        allRegions.forEach(region => {
+            if (region.color === 'green') {
+                // Adjust thickness based on zoom level with a max size of 0.5
+                let newWidth = 0.25 / (zoomLevel / 100);
+    
+                // Ensure the width doesn't exceed 0.25 when zooming out
+                if (newWidth > 0.25) {
+                    newWidth = 0.25;
+                }
+    
+                // Update the region width
+                region.update({ start: region.start, end: region.start + newWidth });
+            }
+        });
+    }
+    
+    function updateZoomLevel(newZoomLevel) {
+        zoomLevel = Math.max(zoomMin, Math.min(zoomMax, newZoomLevel)); // Ensure within bounds
+        zoomLevelDisplay.textContent = zoomLevel;
+        applyZoom(zoomLevel);
+    }
+
+    zoomOutButton.addEventListener('click', () => updateZoomLevel(zoomLevel - zoomStep));
+    zoomInButton.addEventListener('click', () => updateZoomLevel(zoomLevel + zoomStep));
+
+    zoomControl.style = "display: flex; align-items: center; gap: 10px;";
+
+}
+
 function processAudio() {
     tablemade = false;
     const fileInput = document.getElementById('audioFile');
     const play_button = document.getElementById("playPauseButton")
-    const slider = document.getElementById("slider")
+    // const slider = document.getElementById("slider")
     const loadingIndicator = document.getElementById("loadingIndicator");
+    audioZoom(); // Function to set all the zooom stuff up
+    
+
 
     play_button.style.display = "block";
-    slider.style.display = "block";
     loadingIndicator.style.display = "block";
 
     // const clearButton = document.getElementById('clearButton');
@@ -1692,57 +1906,9 @@ function processAudio() {
                 
             });
 
-            // Zoom control
-            const zoomSlider = document.getElementById('zoomSlider');
-            // zoomSlider.addEventListener('input', (e) => {
-            //     const zoomLevel = Number(e.target.value); // Get the value from the slider
-            //     waveform.zoom(zoomLevel); // Adjust the zoom level
-            // });
-            
-            zoomSlider.addEventListener('input', (e) => {
-                const zoomLevel = Number(e.target.value); // Get the value from the slider
-                waveform.zoom(zoomLevel); // Adjust the zoom level
-            
-                // Adjust the width of green bars based on the zoom level
-                const allRegions = Object.values(waveform.regions.list); // Get all regions
-            
-                allRegions.forEach(region => {
-                    if (region.color === 'green') {
-                        // Adjust thickness based on zoom level with a max size of 0.5
-                        let newWidth = 0.25 / (zoomLevel / 100);
-            
-                        // Ensure the width doesn't exceed 0.5 when zooming out
-                        if (newWidth > 0.25) {
-                            newWidth = 0.25;
-                        }
-            
-                        // Update the region width
-                        region.update({ start: region.start, end: region.start + newWidth });
-                    }
-                });
-            });
-
             // Play/Pause control
             const playPauseButton = document.getElementById('playPauseButton');
-            playPauseButton.addEventListener('click', () => {
-                if (waveform.isPlaying()) {
-                    playPauseButton.innerHTML = '▶';
-                    waveform.pause();
-                } else {
-                    playPauseButton.innerHTML = '⏸';
-                    waveform.play();
-                }
-            });
-            waveform.on('finish', () => {
-                playPauseButton.innerHTML = '▶';
-            });
-
-            document.addEventListener('keydown', (event) => {
-                if (event.key === ' ' && (document.activeElement === waveform.container || waveform.isPlaying())) {
-                    event.preventDefault(); // Prevent page scrolling when space is pressed
-                    togglePlayPause();
-                }
-            });
+            playpauseControl(playPauseButton);
 
             document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
             lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
