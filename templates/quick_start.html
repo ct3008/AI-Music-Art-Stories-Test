@@ -72,15 +72,116 @@
 <body>
     <div class="container">
         <h1>AI Art System - Quick Start Guide</h1>
+        <h2>Definitions:</h2>
+        <ul>
+            <li>Vibe: The overall mood or emotional tone that the song clip conveys. What is the overall mood you feel
+                from the song clip? </li>
+            <li>Imagery: The visual elements or concepts inspired by the song, such as patterns, objects, or scenes.
+            </li>
+            <li>Style: The artistic approach or design aesthetic used in the visuals, like abstract, realistic, or
+                retro.</li>
+            <li>Color: The primary color palette that defines the visuals, influenced by the song's mood or energy.
+                <strong>Note:</strong> this is subject to change and hard to control in AI models.</li>
+            <ul>
+                <li>Recommended: black and white -> sudden introduction of color at beat drop or crescendo</li>
+            </ul>
+            <li>Motion: The type of camera movement applied to the video, such as 2D (panning) or 3D (rotational)</li>
+            <ul>
+                <li><strong>Default: 3D</strong></li>
+            </ul>
+            <li>Strength: Defines the strength of the motion, how much you feel the visual change. Varies from weak,
+                normal, strong to vstrong</li>
+            <li><strong>Note: Except for Strength and Motion, all other inputs can have values other than those in the
+                    dropdown menus. These are just suggestions.</strong></li>
+            <li>Intervals: These are the main scene changes in your music video. You assign some vibe, color palette,
+                texture, imagery and style and the AI video generator will use these to generate a continuous video that
+                moves through the music.</li>
+            <ul>
+                <li>Defaults are attached at relatively evenly spaced intervals and try to attach either to a nearby
+                    beat or low-point in the song where it makes sense to change scenes.</li>
+                <li><strong>Note:</strong> lines were drawn thick for visibility, but the left-most point on the green
+                    intervals is where the scene change will take place</li>
+                <li>Recommended: Keep texture and style consistent throughout scene changes, imagery and color are
+                    subject to change.</li>
+            </ul>
+            <li>Transitions: Dramatic visual or motion shifts added to sync with the music and make it more
+                audio-reactive or introduce visual change.</li>
+            <li>Initial Image: The starting visual reference that sets the tone or theme for the generated video.
+                <strong>Note:</strong> AI generator will not adhere closely to the image, but will use the color palette
+                and texture as suggestions.</li>
+        </ul>
         <h2>Step 1: Upload Your Audio Clip</h2>
         <ul>
             <li>Click on the <strong>“Upload Audio”</strong> button.</li>
-            <li>Select an audio file from your device (supported formats: <code>.mp3</code>, <code>.wav</code>).</li>
-            <li>Click <strong>“Analyze Audio”</strong> to process your clip.</li>
+            <li>Select an audio file from your device (supported formats: <code>.mp3</code>, <code>.wav</code>,
+                <code>.m4a</code>).</li>
+            <!-- <li>Click <strong>“Analyze Audio”</strong> to process your clip.</li> -->
         </ul>
 
-        <h2>Step 2: Configure Your Segments</h2>
+        <h2>Step 2: Add Interval Segments</h2>
         <ul>
+            <li>You will be prompted to add or delete intervals. Move transitions to ideal locations when new imagery,
+                or feeling is to be expressed and align <strong>left side</strong> of interval to point of visual
+                change.</li>
+            <li>Techniques: </li>
+            <ul>
+                <li>1) Align intervals to beats or low points in the song and change imagery or color (especially good
+                    if the vibe of the song suddenly changes)</li>
+                <li>2) Align intervals at even locations for less dynamic songs and use transitions to incorporate
+                    visual change</li>
+            </ul>
+        </ul>
+        <h2>Step 3: Add Transition Segments</h2>
+        <ul>
+            <li>You will be prompted to manually add transition motions or fill with defaults. Default transitions give
+                1 second around each interval to indicate a scene change occuring and 1.5 seconds at the end for big and
+                impactful ending motion (<strong>Recommended:</strong> vstrong rotation/spin or zoom)</li>
+            <li>Tips:</li>
+            <ul>
+                <li>If transition time is short, ensure strong or vstrong strength to ensure they can be felt, or give
+                    longer time for the transitions.</li>
+                <li>Recommendations:</li>
+                <ul>
+                    <li>Upward pan or rotate on crescendos or upon increase in song's energy</li>
+                    <li>Use zoom_in with sinusoidal strength for swerving effect. <a
+                            href="https://replicate.com/deforum-art/deforum-stable-diffusion" target="_blank">Reference
+                            Here.</a></li>
+                </ul>
+            </ul>
+            <li>Press <strong>Finalize Timestamps</strong> button when done</li>
+        </ul>
+        <h2>Step 4: Feel The Music</h2>
+        <ul>
+            <li>Feel the Music and determine an accurate overall vibe, imagery, texture and color scheme. This will
+                auto-populate the final table which breaks down each interval and transition's input parameters.</li>
+        </ul>
+        <h2>Step 5: Choose an Initial Image</h2>
+        <ul>
+            <li>To the right of the "Input Details" box is an image gallery with some popular image and texture
+                combinations to use as initial images. Click on one to populate the texture and imagery input boxes.
+            </li>
+            <li>If you prefer to create your own, use the Brainstorming section to generate images from textual prompt
+                or upload an image directly. Focus on color palettes, textures, and vibes when selecting an initial
+                image.</li>
+            <li>Press <strong>Fill With Defaults</strong></li>
+        </ul>
+        <h2>Step 6: Finalize Prompt Parameter Table</h2>
+        <ul>
+            <li>Modify inputs in the table as needed to match the overall scene you want to be represented for each
+                chunk of the song.</li>
+            <li>Preset Defaults (subject to change for artistic vision):</li>
+            <ul>
+                <li>Carry over vibe, imagery, texture, style and color for all boxes</li>
+                <li>Motion for scene intervals is zoom in by default</li>
+                <li>Motion for transitions is strong rotate right (3D) or pan right (2D) by default</li>
+                <li>Final transition is a very strong rotation (3D) or spin (2D) </li>
+            </ul>
+            <li>Press <strong>Create Video</strong>. Final output will have the inputs passed into the AI model along
+                with a link to the generated video and a link with the video automatically stitched with the input
+                audio.</li>
+        </ul>
+
+        <!-- <ul>
             <li>Each segment should be around <strong>5 seconds</strong>, with <strong>1 second for
                     transitions</strong>.</li>
             <li>If a segment is shorter than <strong>3 seconds</strong>, consider removing transitions to avoid
@@ -94,19 +195,19 @@
             </li>
             <li><em>Quick Setup Tip:</em> Copy and paste the same settings across all segments for a fast trial run.
             </li>
-        </ul>
+        </ul> -->
 
-        <h2>Step 3: Analyze and Generate</h2>
+        <!-- <h2>Step 3: Analyze and Generate</h2>
         <ul>
             <li>Click <strong>“Generate Art”</strong> to process the audio and create visuals.</li>
             <li>Preview the output and make adjustments if needed.</li>
-        </ul>
+        </ul> -->
 
-        <h2>Step 4: Export or Share</h2>
+        <!-- <h2>Step 4: Export or Share</h2>
         <ul>
             <li>Download your creation by clicking <strong>“Export”</strong>.</li>
             <li>Share it on social platforms or with collaborators.</li>
-        </ul>
+        </ul> -->
 
         <div class="note">
             <strong>Additional Tips:</strong><br>

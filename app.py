@@ -202,6 +202,11 @@ def upload_audio_large():
         return jsonify({"success": True, "low_energy_timestamps": low_energy_before_onset, "top_onset_times": top_onset_times, "duration": duration})
     return jsonify({"success": False, "error": "No file provided"}), 400
 
+@app.route('/initial_image')
+def initial_image():
+    return render_template('quick_start.html')
+
+
 def split_and_pair_values(data):
     motions = data['motion'].strip().split(',')
     strengths = data['strength'].strip().split(',')
@@ -503,31 +508,6 @@ def generate_prompt_completion(client, prompt):
     )
     return completion.choices[0].message['content']
 
-# UPLOAD_FOLDER = 'uploads/'
-# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-# ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-# def allowed_file(filename):
-#     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# @app.route('/upload-image', methods=['POST'])
-# def upload_image():
-#     if 'image' not in request.files:
-#         return jsonify({"error": "No image part in the request"}), 400
-
-#     file = request.files['image']
-
-#     if file.filename == '':
-#         return jsonify({"error": "No selected image"}), 400
-
-#     if file and allowed_file(file.filename):
-#         filename = secure_filename(file.filename)
-#         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-#         file.save(file_path)
-
-#         return jsonify({"image_path": file_path}), 200
-#     else:
-#         return jsonify({"error": "Invalid file type"}), 400
     
 def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
     # print("HERE ", ', '.join(motion_data['rotation_3d_y']))
@@ -546,7 +526,6 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
         "use_mask": False,
         "clip_name": "ViT-L/14",
         "far_plane": 10000,
-        # "init_image":"https://github.com/ct3008/ct3008.github.io/blob/main/images/orchid.png?raw=true",
         "init_image": "https://raw.githubusercontent.com/ct3008/ct3008.github.io/main/images/isee1.jpeg",
         "max_frames": final_anim_frames[-1],
         "near_plane": 200,

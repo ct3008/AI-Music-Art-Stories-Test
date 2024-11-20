@@ -82,9 +82,10 @@
 <div style="display: flex; flex-direction: column; width: 100%;">
     <button id="dropdownToggle" style="margin-bottom: 10px; display: none;">Hide Details ▲</button>
     <div style="display: flex;">
-        <div id="detailsBox" style="display: none; border: 1px solid #ddd; padding: 30px; width: 350px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
+        <div id="detailsBox"
+            style="display: none; border: 1px solid #ddd; padding: 30px; width: 350px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
             <h3 style="margin-bottom: 10px;">Input Details</h3>
-    
+
             <!-- Vibe Input -->
             <div id="vibeBox" style="margin-bottom: 10px; display: none;">
                 <label for="vibeInput">Vibe: </label>
@@ -112,9 +113,9 @@
                 <input type="text" id="colorInput" placeholder="Enter color (e.g., sky blue)" list="colorOptions">
                 <br>
                 <button id="colorPickerButton">🎨</button>
-    
+
                 <input type="color" id="colorPicker" style="display: none; align-items: center;">
-    
+
                 <datalist id="colorOptions">
                     <option value="black/white">
                     <option value="myriad of color">
@@ -128,10 +129,11 @@
             <!-- Imagery Input -->
             <div id="imageryBox" style="margin-bottom: 10px; display: none;">
                 <label for="imageryInput">Imagery:</label>
-                <input type="text" id="imageryInput" placeholder="Enter imagery (e.g., flowing waves)" list="imageryOptions">
+                <input type="text" id="imageryInput" placeholder="Enter imagery (e.g., flowing waves)"
+                    list="imageryOptions">
                 <br>
-                <a href="https://scientific-chili-aec.notion.site/13e34a2bba7580b0803ded971b20a0a7?pvs=4" target="_blank"
-                    style="margin-left: 10px;">See imagery examples</a>
+                <a href="https://scientific-chili-aec.notion.site/13e34a2bba7580b0803ded971b20a0a7?pvs=4"
+                    target="_blank" style="margin-left: 10px;">See imagery examples</a>
                 <datalist id="imageryOptions">
                     <option value="blossoming flower">
                     <option value="chaotic intertwining lines">
@@ -174,7 +176,8 @@
             <hr>
             <button id="toggleMotionButton" style="display: none;" onclick="toggleMotion()">3D Motion</button>
         </div>
-        <div id="image_examples" style="width: 70%; display: none; border: 1px solid #ddd; padding: 30px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
+        <div id="image_examples"
+            style="width: 70%; display: none; border: 1px solid #ddd; padding: 30px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
             <h3>Image Gallery</h3>
             <label for="imagery-select">Choose an Imagery:</label>
             <select id="imagery-select">
@@ -188,7 +191,7 @@
                 <option value="dissolving_geometric_shards">Dissolving Geometric Shards</option>
                 <option value="translucent_ripple_effects">Translucent Ripple Effects</option>
             </select>
-    
+
             <div class="image-container" id="image-container"></div>
         </div>
     </div>

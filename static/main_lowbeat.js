@@ -312,7 +312,7 @@ function playTimeRange(startTime, endTime) {
     if (waveform && waveform.isReady) {
         playPauseButton.innerHTML = '⏸';
         // Pause global playback before starting range playback
-        
+
 
         // Monitor the playback progress
         const interval = setInterval(() => {
@@ -371,7 +371,7 @@ function show_transitions() {
     nextButton.style.display = "none";
 }
 
-function show_default_boxes(){
+function show_default_boxes() {
     //show items in input details and image gallery
     const detailsBox = document.getElementById("detailsBox")
     const vibeBox = document.getElementById("vibeBox")
@@ -400,7 +400,7 @@ function show_default_boxes(){
     processButton.style.display = "block"
 
     image_examples.style.display = "block"
-    
+
     colorBox.style.justifyContent = "center";
     colorBox.style.alignContent = "center";
 
@@ -1175,7 +1175,7 @@ function addTransitions(id, startTime, endTime, i, existingTransitionValues, reg
             if (playButton) {
                 playButton.addEventListener('click', () => playTimeRange(parseFloat(startTime), parseFloat(endTime)));
             }
-            
+
 
             // Insert the transition container in the appropriate position
             form.insertAdjacentElement('afterend', transitionContainer);
@@ -1327,10 +1327,10 @@ function fillDefaults() {
 
 
     // Get the values entered by the user for vibe and color
-    const vibeInput = document.getElementById('vibeInput').value.trim();  
+    const vibeInput = document.getElementById('vibeInput').value.trim();
     const colorInput = document.getElementById('colorInput').value.trim();
     const imageryInput = document.getElementById("imageryInput").value.trim();
-    const textureInput = document.getElementById("textureInput").value.trim();  
+    const textureInput = document.getElementById("textureInput").value.trim();
 
     const sections = document.querySelectorAll('.section');
 
@@ -1371,7 +1371,7 @@ function fillDefaults() {
                 if (!input.value) {
                     input.value = textureInput || textures[Math.floor(Math.random() * textures.length)];
                 }
-                else if(input.value && input.value != textureInput && textureInput != ""){
+                else if (input.value && input.value != textureInput && textureInput != "") {
                     console.log("Texture: ", input.value);
                     console.log("Texture input: ", textureInput);
                     input.value = textureInput;
@@ -1388,7 +1388,7 @@ function fillDefaults() {
                 if (!input.value) {
                     input.value = imageryInput || imageries[Math.floor(Math.random() * imageries.length)];
                 }
-                else if(input.value && input.value != imageryInput && imageryInput != ""){
+                else if (input.value && input.value != imageryInput && imageryInput != "") {
                     console.log("Imagery: ", input.value);
                     console.log("Imagery input: ", imageryInput);
                     input.value = imageryInput;
@@ -1619,7 +1619,7 @@ function processTable() {
         });
 }
 
-function clearExistingData(){
+function clearExistingData() {
     //Clear out Fields
     existingTransitionValues = {};
     existingValues = {};
@@ -1671,7 +1671,7 @@ function clearExistingData(){
     processButton.style.display = 'none';
 
     nextButton.style.display = 'inline-block';
-    
+
 }
 
 
@@ -1698,12 +1698,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 const addButton = document.getElementById("addNewInterval");
                 const deleteButton = document.getElementById("deleteButton");
                 const nextButton = document.getElementById("next-transition");
-            
+
                 addButton.style.display = "block";
                 deleteButton.style.display = "block";
                 nextButton.style.display = "block";
 
-                
+
                 fileSelected = false; // Reset the flag for future selections
             }
         }, 0);
@@ -1731,7 +1731,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // Base URL for images stored on GitHub
-    const baseURL = "https://raw.githubusercontent.com/Jiaxin-yyjx/SongAnalysis/refs/heads/claudia2/images/";
+    const baseURL = "https://raw.githubusercontent.com/Jiaxin-yyjx/SongAnalysis/refs/heads/main/images/";
 
     // Handle imagery selection
     const selectElement = document.getElementById("imagery-select");
@@ -1788,13 +1788,9 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
     });
-
-
-
-
 });
 
-function playpauseControl(playPauseButton){
+function playpauseControl(playPauseButton) {
     playPauseButton.addEventListener('click', () => {
         if (waveform.isPlaying()) {
             playPauseButton.innerHTML = '▶';
@@ -1821,14 +1817,14 @@ function togglePlayPause() {
         playPauseButton.innerHTML = '▶';
         waveform.pause();
     } else {
-        playPauseButton.innerHTML = '⏸'; 
+        playPauseButton.innerHTML = '⏸';
         waveform.play();
     }
 }
 
 // Example zoom application (replace with your actual zooming logic)
 function applyZoom(zoomLevel) {
-    if (waveform){
+    if (waveform) {
         console.log("apply zoom")
         // Adjust the waveform zoom level
         waveform.zoom(zoomLevel);
@@ -1854,7 +1850,7 @@ function applyZoom(zoomLevel) {
     }
 }
 
-function audioZoom(){
+function audioZoom() {
     const zoomOutButton = document.getElementById('zoomOut');
     const zoomInButton = document.getElementById('zoomIn');
     const zoomLevelDisplay = document.getElementById('zoomLevel');
@@ -1866,8 +1862,8 @@ function audioZoom(){
     const zoomMax = 400;
     const zoomStep = 50;
 
-    
-    
+
+
     function updateZoomLevel(newZoomLevel) {
         zoomLevel = Math.max(zoomMin, Math.min(zoomMax, newZoomLevel)); // Ensure within bounds
         zoomLevelDisplay.textContent = zoomLevel;
@@ -1888,7 +1884,7 @@ function processAudio() {
     // const slider = document.getElementById("slider")
     const loadingIndicator = document.getElementById("loadingIndicator");
     audioZoom(); // Function to set all the zooom stuff up
-    
+
 
 
     play_button.style.display = "block";
@@ -1974,26 +1970,26 @@ function processAudio() {
 
 
 
-                waveform.on('region-update-end', (region) => {
-                    // console.log("Region dragging ended");
-                
-                    // Get all regions from the waveform
-                    const allRegions = Object.values(waveform.regions.list); // Fetch all regions as an array
-                
-                    // Filter for regions that are green
-                    const greenRegions = allRegions.filter(r => r.color === 'green');
-                
-                    // Update newsigPoints based on green regions' start times
-                    newsigPoints = greenRegions.map(r => r.start);
-                
-                    // console.log("Updated newsigPoints:", newsigPoints);
-                });
-                
-            });
+                    waveform.on('region-update-end', (region) => {
+                        // console.log("Region dragging ended");
 
-            // Play/Pause control
-            const playPauseButton = document.getElementById('playPauseButton');
-            playpauseControl(playPauseButton);
+                        // Get all regions from the waveform
+                        const allRegions = Object.values(waveform.regions.list); // Fetch all regions as an array
+
+                        // Filter for regions that are green
+                        const greenRegions = allRegions.filter(r => r.color === 'green');
+
+                        // Update newsigPoints based on green regions' start times
+                        newsigPoints = greenRegions.map(r => r.start);
+
+                        // console.log("Updated newsigPoints:", newsigPoints);
+                    });
+
+                });
+
+                // Play/Pause control
+                const playPauseButton = document.getElementById('playPauseButton');
+                playpauseControl(playPauseButton);
 
                 document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
                 lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
@@ -2029,18 +2025,18 @@ function processAudio() {
 
 
 
-        } else {
-            document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-    })
-    .finally(() => {
-        // Hide loading indicator after completion
-        loadingIndicator.style.display = "none";
-    });
+            } else {
+                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+        })
+        .finally(() => {
+            // Hide loading indicator after completion
+            loadingIndicator.style.display = "none";
+        });
 }
 
 
