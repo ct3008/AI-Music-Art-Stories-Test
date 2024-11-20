@@ -286,6 +286,7 @@ audio {
 
 .suggestions-button:hover {
     background-color: #0056b3;
+    color: white;
 }
 
 /* Styling for the suggestions content box (hidden by default) */
@@ -516,18 +517,20 @@ audio {
 }
 
 #loadingIndicator {
-    width: 0.05px; 
+    width: 0.05px;
     height: 0.05px;
 }
 
 h1 {
     margin-top: 20px;
 }
+
 select {
     margin: 20px;
     padding: 10px;
     font-size: 16px;
 }
+
 .image-container {
     display: flex;
     overflow-x: auto;
@@ -539,26 +542,34 @@ select {
     border-radius: 10px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
+
 .image-container img {
     margin: 5px;
     border-radius: 10px;
     max-height: 200px;
     cursor: grab;
 }
+
 .image-container img:active {
     cursor: grabbing;
 }
 
 .texture-caption {
-    font-size: 14px; /* Adjust the font size */
-    margin-top: 5px; /* Space between the image and the caption */
-    color: #555; /* Optional: Caption color */
-    word-wrap: break-word; /* Ensures long words break to the next line */
-    text-align: center; /* Centers the caption below the image */
-    overflow-wrap: anywhere; /* Allows breaking even in long unbroken words */
+    font-size: 14px;
+    /* Adjust the font size */
+    margin-top: 5px;
+    /* Space between the image and the caption */
+    color: #555;
+    /* Optional: Caption color */
+    word-wrap: break-word;
+    /* Ensures long words break to the next line */
+    text-align: center;
+    /* Centers the caption below the image */
+    overflow-wrap: anywhere;
+    /* Allows breaking even in long unbroken words */
 }
 
-#image_examples{
+#image_examples {
     margin-left: 20px;
 }
 
