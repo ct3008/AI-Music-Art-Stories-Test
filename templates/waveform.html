@@ -51,7 +51,7 @@
 <div id="zoomControl" style="display: none;">
     <label for="zoomLevel" style="display: inline-block;">Zoom Level:</label>
     <button id="zoomOut" style="display: inline-block;">-</button>
-    <span id="zoomLevel" style="display: inline-block;">50</span>
+    <span id="zoomLevel" style="display: inline-block;">0</span>
     <button id="zoomIn" style="display: inline-block;">+</button>
 </div>
 
@@ -85,118 +85,120 @@
     <input type="text" id="textureInput"placeholder="Enter texture of imagery (e.g., ink art on calligraphy paper)"> -->
 <!-- </div> -->
 <div style="display: flex; flex-direction: column; width: 100%;">
-    <button id="dropdownToggle" style="margin-bottom: 10px;">Show Details ▼</button>
-</div>
-<div style="display: flex;">
-    <div id="detailsBox" style="display: none; border: 1px solid #ddd; padding: 30px; width: 350px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
-        <h3 style="margin-bottom: 10px;">Input Details</h3>
-
-        <!-- Vibe Input -->
-        <div id="vibeBox" style="margin-bottom: 10px; display: none;">
-            <label for="vibeInput">Vibe: </label>
-            <input type="text" id="vibeInput" placeholder="Enter vibe (e.g., calm)" list="vibeOptions">
-            <datalist id="vibeOptions">
-                <option value="calm">
-                <option value="epic">
-                <option value="aggressive">
-                <option value="chill">
-                <option value="dark">
-                <option value="energetic">
-                <option value="ethereal">
-                <option value="happy">
-                <option value="romantic">
-                <option value="sad">
-                <option value="scary">
-                <option value="sexy">
-                <option value="uplifting">
-            </datalist>
+    <button id="dropdownToggle" style="margin-bottom: 10px; display: none;">Hide Details ▲</button>
+    <div style="display: flex;">
+        <div id="detailsBox" style="display: none; border: 1px solid #ddd; padding: 30px; width: 350px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 10px;">Input Details</h3>
+    
+            <!-- Vibe Input -->
+            <div id="vibeBox" style="margin-bottom: 10px; display: none;">
+                <label for="vibeInput">Vibe: </label>
+                <input type="text" id="vibeInput" placeholder="Enter vibe (e.g., calm)" list="vibeOptions">
+                <datalist id="vibeOptions">
+                    <option value="calm">
+                    <option value="epic">
+                    <option value="aggressive">
+                    <option value="chill">
+                    <option value="dark">
+                    <option value="energetic">
+                    <option value="ethereal">
+                    <option value="happy">
+                    <option value="romantic">
+                    <option value="sad">
+                    <option value="scary">
+                    <option value="sexy">
+                    <option value="uplifting">
+                </datalist>
+            </div>
+            <hr>
+            <!-- Color Input -->
+            <div id="colorBox" style="margin-bottom: 10px; display: none;">
+                <label for="colorInput">Color:</label>
+                <input type="text" id="colorInput" placeholder="Enter color (e.g., sky blue)" list="colorOptions">
+                <br>
+                <button id="colorPickerButton">🎨</button>
+    
+                <input type="color" id="colorPicker" style="display: none; align-items: center;">
+    
+                <datalist id="colorOptions">
+                    <option value="black/white">
+                    <option value="myriad of color">
+                    <option value="sky blue (#00BFFF)">
+                    <option value="fiery red (#db0804)">
+                    <option value="cherry blossom pink (#FFB7C5)">
+                    <option value="amber (#FFBF00)">
+                </datalist>
+            </div>
+            <hr>
+            <!-- Imagery Input -->
+            <div id="imageryBox" style="margin-bottom: 10px; display: none;">
+                <label for="imageryInput">Imagery:</label>
+                <input type="text" id="imageryInput" placeholder="Enter imagery (e.g., flowing waves)" list="imageryOptions">
+                <br>
+                <a href="https://scientific-chili-aec.notion.site/13e34a2bba7580b0803ded971b20a0a7?pvs=4" target="_blank"
+                    style="margin-left: 10px;">See imagery examples</a>
+                <datalist id="imageryOptions">
+                    <option value="blossoming flower">
+                    <option value="chaotic intertwining lines">
+                    <option value="flowing waves">
+                    <option value="starry night">
+                    <option value="curvilinear intertwined circles">
+                    <option value="whirling lines">
+                    <option value="vibrant kaleidoscope of colors">
+                    <option value="interstellar light trails">
+                    <option value="abstract fractal patterns">
+                    <option value="dissolving geometric shards">
+                    <option value="diffused cosmic mists">
+                    <option value="translucent ripple effects">
+                </datalist>
+            </div>
+            <hr>
+            <!-- Texture Input -->
+            <div id="textureBox" style="margin-bottom: 10px; display: none;">
+                <label for="textureInput">Texture:</label>
+                <input type="text" id="textureInput" placeholder="Enter texture (e.g., painting)" list="textureOptions">
+                <br>
+                <a href="https://scientific-chili-aec.notion.site/Texture-Samples-13e34a2bba7580489108f775af821dd0?pvs=4"
+                    target="_blank" style="margin-left: 10px;">See texture examples</a>
+                <datalist id="textureOptions">
+                    <option value="painting">
+                    <option value="calligraphy brush ink stroke">
+                    <option value="pastel watercolor on canvas">
+                    <option value="charcoal drawing">
+                    <option value="pencil drawing">
+                    <option value="impasto palette knife painting">
+                    <option value="mosaic">
+                    <option value="jagged/irregular">
+                    <option value="rubbed graphite on paper">
+                    <option value="digital glitch">
+                    <option value="splattered paint">
+                    <option value="graffiti">
+                    <option value="ink blots">
+                </datalist>
+            </div>
+            <hr>
+            <button id="toggleMotionButton" style="display: none;" onclick="toggleMotion()">3D Motion</button>
         </div>
-        <hr>
-        <!-- Color Input -->
-        <div id="colorBox" style="margin-bottom: 10px; display: none;">
-            <label for="colorInput">Color:</label>
-            <input type="text" id="colorInput" placeholder="Enter color (e.g., sky blue)" list="colorOptions">
-            <br>
-            <button id="colorPickerButton">🎨</button>
-
-            <input type="color" id="colorPicker" style="display: none; align-items: center;">
-
-            <datalist id="colorOptions">
-                <option value="black/white">
-                <option value="myriad of color">
-                <option value="sky blue (#00BFFF)">
-                <option value="fiery red (#db0804)">
-                <option value="cherry blossom pink (#FFB7C5)">
-                <option value="amber (#FFBF00)">
-            </datalist>
+        <div id="image_examples" style="width: 70%; display: none; border: 1px solid #ddd; padding: 30px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
+            <h3>Image Gallery</h3>
+            <label for="imagery-select">Choose an Imagery:</label>
+            <select id="imagery-select">
+                <option value="">-- Select an Imagery --</option>
+                <option value="chaotic_intertwining_lines">Chaotic Intertwining Lines</option>
+                <option value="flowing_waves">Flowing Waves</option>
+                <option value="curvilinear_intertwined_circles">Curvilinear Intertwined Circles</option>
+                <option value="whirling_lines">Whirling Lines</option>
+                <option value="interstellar_light_trails">Interstellar Light Trails</option>
+                <option value="abstract_fractal_patterns">Abstract Fractal Patterns</option>
+                <option value="dissolving_geometric_shards">Dissolving Geometric Shards</option>
+                <option value="translucent_ripple_effects">Translucent Ripple Effects</option>
+            </select>
+    
+            <div class="image-container" id="image-container"></div>
         </div>
-        <hr>
-        <!-- Imagery Input -->
-        <div id="imageryBox" style="margin-bottom: 10px; display: none;">
-            <label for="imageryInput">Imagery:</label>
-            <input type="text" id="imageryInput" placeholder="Enter imagery (e.g., flowing waves)" list="imageryOptions">
-            <br>
-            <a href="https://scientific-chili-aec.notion.site/13e34a2bba7580b0803ded971b20a0a7?pvs=4" target="_blank"
-                style="margin-left: 10px;">See imagery examples</a>
-            <datalist id="imageryOptions">
-                <option value="blossoming flower">
-                <option value="chaotic intertwining lines">
-                <option value="flowing waves">
-                <option value="starry night">
-                <option value="curvilinear intertwined circles">
-                <option value="whirling lines">
-                <option value="vibrant kaleidoscope of colors">
-                <option value="interstellar light trails">
-                <option value="abstract fractal patterns">
-                <option value="dissolving geometric shards">
-                <option value="diffused cosmic mists">
-                <option value="translucent ripple effects">
-            </datalist>
-        </div>
-        <hr>
-        <!-- Texture Input -->
-        <div id="textureBox" style="margin-bottom: 10px; display: none;">
-            <label for="textureInput">Texture:</label>
-            <input type="text" id="textureInput" placeholder="Enter texture (e.g., painting)" list="textureOptions">
-            <br>
-            <a href="https://scientific-chili-aec.notion.site/Texture-Samples-13e34a2bba7580489108f775af821dd0?pvs=4"
-                target="_blank" style="margin-left: 10px;">See texture examples</a>
-            <datalist id="textureOptions">
-                <option value="painting">
-                <option value="calligraphy brush ink stroke">
-                <option value="pastel watercolor on canvas">
-                <option value="charcoal drawing">
-                <option value="pencil drawing">
-                <option value="impasto palette knife painting">
-                <option value="mosaic">
-                <option value="jagged/irregular">
-                <option value="rubbed graphite on paper">
-                <option value="digital glitch">
-                <option value="splattered paint">
-                <option value="graffiti">
-                <option value="ink blots">
-            </datalist>
-        </div>
-        <button id="toggleMotionButton" style="display: none;" onclick="toggleMotion()">3D Motion</button>
     </div>
-    <div id="image_examples" style="display: none;">
-        <h3>Image Gallery</h3>
-        <label for="imagery-select">Choose an Imagery:</label>
-        <select id="imagery-select">
-            <option value="">-- Select an Imagery --</option>
-            <option value="chaotic_intertwining_lines">Chaotic Intertwining Lines</option>
-            <option value="flowing_waves">Flowing Waves</option>
-            <option value="curvilinear_intertwined_circles">Curvilinear Intertwined Circles</option>
-            <option value="whirling_lines">Whirling Lines</option>
-            <option value="interstellar_light_trails">Interstellar Light Trails</option>
-            <option value="abstract_fractal_patterns">Abstract Fractal Patterns</option>
-            <option value="dissolving_geometric_shards">Dissolving Geometric Shards</option>
-            <option value="translucent_ripple_effects">Translucent Ripple Effects</option>
-        </select>
-
-        <div class="image-container" id="image-container"></div>
-    </div>
 </div>
+
 
 
 <!-- <button onclick="fillDefaults()">Fill with Defaults</button> -->

@@ -372,25 +372,29 @@ function show_transitions() {
 }
 
 function show_default_boxes(){
+    //show items in input details and image gallery
     const detailsBox = document.getElementById("detailsBox")
     const vibeBox = document.getElementById("vibeBox")
     const colorBox = document.getElementById("colorBox")
     const imageryBox = document.getElementById("imageryBox")
     const textureBox = document.getElementById("textureBox")
     const image_examples = document.getElementById("image_examples")
-    // const detailsBox = document.getElementById("detailsBox")
+    const detail_gallery_toggle = document.getElementById("dropdownToggle")
+
+
     const fillDefaultsButton = document.getElementById("fill-defaults")
     const trash = document.getElementById("trash")
     const toggleButton = document.getElementById("toggleMotionButton")
     const processButton = document.getElementById("process-table")
     finalizeTimestamps('time',-1,-1)
 
-
+    // trash.style.display = "flex";
     detailsBox.style.display = "block";
     vibeBox.style.display = "block";
     colorBox.style.display = "block";
     imageryBox.style.display = "block";
     textureBox.style.display = "block";
+    detail_gallery_toggle.style.display = "block";
     fillDefaultsButton.style.display = "block";
     toggleButton.style.display = "block"
     processButton.style.display = "block"
@@ -1288,6 +1292,7 @@ function fillDefaultsTemp() {
     const colorInput = document.getElementById("colorInput");
     const imageryInput = document.getElementById("imageryInput");
     const textureInput = document.getElementById("textureInput");
+    const trash = document.getElementById("trash");
 
     // Check if any of the inputs are empty
     if (!vibeInput.value || !colorInput.value || !imageryInput.value || !textureInput.value) {
@@ -1298,6 +1303,7 @@ function fillDefaultsTemp() {
     // Show the toggle button and proceed with fillDefaults if all inputs are filled
     const toggleButton = document.getElementById("toggleMotionButton");
     toggleButton.style.display = "block";
+    trash.style.display = "flex";
     fillDefaults();
 }
 
@@ -1612,6 +1618,61 @@ function processTable(){
     });
 }
 
+function clearExistingData(){
+    //Clear out Fields
+    existingTransitionValues = {};
+    existingValues = {};
+    refreshTable();
+
+    const vibeInput = document.getElementById("vibeInput");
+    const colorInput = document.getElementById("colorInput");
+    const imageryInput = document.getElementById("imageryInput");
+    const textureInput = document.getElementById("textureInput");
+    vibeInput.value = '';
+    colorInput.value = '';
+    imageryInput.value = '';
+    textureInput.value = '';
+
+    // Reset Zoomconst zoomOutButton = document.getElementById('zoomOut');
+    const zoomInButton = document.getElementById('zoomIn');
+    const zoomOutButton = document.getElementById('zoomOut');
+    const zoomLevelDisplay = document.getElementById('zoomLevel');
+    const zoomControl = document.getElementById('zoomControl');
+    document.getElementById('zoomLevel').innerHTML = '0';
+    applyZoom(0);
+    document.getElementById('imagery-select').value = '';
+    zoomControl.style.display = 'none';
+
+
+    //Hide everything
+    const dropdownToggle = document.getElementById('dropdownToggle');
+    const detailsBox = document.getElementById('detailsBox');
+    const imageExamples = document.getElementById('image_examples');
+    const addButton = document.getElementById("add-transitions-button");
+    const deleteButton = document.getElementById("deleteTransitionButton");
+    const nextButton = document.getElementById("next-transition");
+    const defaultButton = document.getElementById("defaultTransitionButton");
+    const finalizeButton = document.getElementById("finalize-timestamps")
+    const trash = document.getElementById("trash")
+    const fillDefaultsButton = document.getElementById("fill-defaults")
+    const processButton = document.getElementById("process-table")
+
+    dropdownToggle.style.display = 'none';
+    detailsBox.style.display = 'none';
+    imageExamples.style.display = 'none';
+    addButton.style.display = 'none';
+    deleteButton.style.display = 'none';
+    defaultButton.style.display = 'none';
+    finalizeButton.style.display = 'none';
+    // trash.innerHTML = '';
+    trash.style.display = 'none';
+    fillDefaultsButton.style.display = 'none';
+    processButton.style.display = 'none';
+
+    nextButton.style.display = 'inline-block';
+    
+}
+
 
 document.addEventListener("DOMContentLoaded", function() {
     // Define the processAudio function
@@ -1624,6 +1685,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Listen for the file selection event
     audioFileInput.addEventListener('change', function(event) {
+        
         console.log("change")
         selectedFile = document.getElementById('audioFile').files[0];
         console.log(selectedFile)
@@ -1631,6 +1693,8 @@ document.addEventListener("DOMContentLoaded", function() {
         setTimeout(() => {
             console.log(fileSelected, selectedFile)
             if (fileSelected && selectedFile) {
+                clearExistingData();
+
                 processAudio();
                 const addButton = document.getElementById("addNewInterval");
                 const deleteButton = document.getElementById("deleteButton");
@@ -1649,6 +1713,23 @@ document.addEventListener("DOMContentLoaded", function() {
     document.getElementById("toggleMotionButton").addEventListener("click", function() {
         refreshTable();
     });
+
+    const dropdownToggle = document.getElementById('dropdownToggle');
+    const detailsBox = document.getElementById('detailsBox');
+    const imageExamples = document.getElementById('image_examples');
+
+    dropdownToggle.addEventListener('click', () => {
+        if (detailsBox.style.display === 'none' || detailsBox.style.display === '') {
+            detailsBox.style.display = 'block';
+            imageExamples.style.display = 'block';
+            dropdownToggle.innerHTML = 'Hide Details ▲';
+        } else {
+            detailsBox.style.display = 'none';
+            imageExamples.style.display = 'none';
+            dropdownToggle.innerHTML = 'Show Details ▼';
+        }
+    });
+
 
     // Base URL for images stored on GitHub
     const baseURL = "https://raw.githubusercontent.com/Jiaxin-yyjx/SongAnalysis/refs/heads/claudia2/images/";
@@ -1695,7 +1776,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 // Add click event to update the input fields
                 img.addEventListener("click", () => {
                     console.log(imagery, textureName)
-                    imageryInput.value = imagery; // Set the imagery value
+                    imageryInput.value = imagery.replace('_', ' '); // Set the imagery value
                     textureInput.value = textureName.trim(); // Set the texture value
                 });
 
@@ -1746,42 +1827,47 @@ function togglePlayPause() {
     }
 }
 
-function audioZoom(){
-    const zoomOutButton = document.getElementById('zoomOut');
-    const zoomInButton = document.getElementById('zoomIn');
-    const zoomLevelDisplay = document.getElementById('zoomLevel');
-    const zoomControl = document.getElementById('zoomControl');
-    let zoomLevel = 50;
-
-    // Zoom limits
-    const zoomMin = 50;
-    const zoomMax = 400;
-    const zoomStep = 50;
-
-    // Example zoom application (replace with your actual zooming logic)
-    function applyZoom(zoomLevel) {
+// Example zoom application (replace with your actual zooming logic)
+function applyZoom(zoomLevel) {
+    if (waveform){
+        console.log("apply zoom")
         // Adjust the waveform zoom level
         waveform.zoom(zoomLevel);
-    
+
         // Get all regions
         const allRegions = Object.values(waveform.regions.list);
-    
+
         // Adjust the width of green bars based on the zoom level
         allRegions.forEach(region => {
             if (region.color === 'green') {
                 // Adjust thickness based on zoom level with a max size of 0.5
                 let newWidth = 0.25 / (zoomLevel / 100);
-    
+
                 // Ensure the width doesn't exceed 0.25 when zooming out
                 if (newWidth > 0.25) {
                     newWidth = 0.25;
                 }
-    
+
                 // Update the region width
                 region.update({ start: region.start, end: region.start + newWidth });
             }
         });
     }
+}
+
+function audioZoom(){
+    const zoomOutButton = document.getElementById('zoomOut');
+    const zoomInButton = document.getElementById('zoomIn');
+    const zoomLevelDisplay = document.getElementById('zoomLevel');
+    const zoomControl = document.getElementById('zoomControl');
+    let zoomLevel = 0;
+
+    // Zoom limits
+    const zoomMin = 0;
+    const zoomMax = 400;
+    const zoomStep = 50;
+
+    
     
     function updateZoomLevel(newZoomLevel) {
         zoomLevel = Math.max(zoomMin, Math.min(zoomMax, newZoomLevel)); // Ensure within bounds
