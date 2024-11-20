@@ -138,11 +138,16 @@ audio {
 
 
 .form-container {
-    display: flex; /* Use flexbox for horizontal layout */
-    overflow-x: auto; /* Allow horizontal scrolling */
-    white-space: nowrap; /* Prevent wrapping of child elements */
-    border: 2px solid black; /* Optional: Add border for visual clarity */
-    padding: 10px; /* Optional: Add padding for spacing */
+    display: flex;
+    /* Use flexbox for horizontal layout */
+    overflow-x: auto;
+    /* Allow horizontal scrolling */
+    white-space: nowrap;
+    /* Prevent wrapping of child elements */
+    border: 2px solid black;
+    /* Optional: Add border for visual clarity */
+    padding: 10px;
+    /* Optional: Add padding for spacing */
 }
 
 #transitionsContainer {
@@ -159,8 +164,10 @@ audio {
 #trash,
 #transitionsContainer {
     display: flex;
-    overflow-x: auto; /* Allow horizontal scrolling */
-    white-space: nowrap; /* Prevent line breaks */
+    overflow-x: auto;
+    /* Allow horizontal scrolling */
+    white-space: nowrap;
+    /* Prevent line breaks */
     border: 2px solid white;
 }
 
@@ -332,7 +339,7 @@ audio {
     background-color: #218838;
 }
 
-#finalize-timestamps{
+#finalize-timestamps {
 
     padding: 10px 20px;
     background-color: rgb(230, 147, 147);
@@ -341,12 +348,12 @@ audio {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    
+
 }
 
 .beat:hover {
-    cursor: grab; 
-    background-color: greenyellow; 
+    cursor: grab;
+    background-color: greenyellow;
 }
 
 /* #colorPickerButton {
@@ -359,8 +366,10 @@ audio {
 
 #colorBox {
     display: flex;
-    align-items: center; /* Vertically centers items within the box */
-    justify-content: space-around; /* Spreads elements across the width */
+    align-items: center;
+    /* Vertically centers items within the box */
+    justify-content: space-around;
+    /* Spreads elements across the width */
     /* border: 1px solid #ccc; */
     border-radius: 8px;
     margin-bottom: 10px;
@@ -371,7 +380,8 @@ audio {
     width: 150px;
     height: 50px;
     display: flex;
-    justify-content: center; /* Center icon inside button */
+    justify-content: center;
+    /* Center icon inside button */
     align-items: center;
     background-color: #f0f0f0;
     margin-left: 50px;
@@ -381,22 +391,22 @@ audio {
     font-size: 2em;
 }
 
-#finalize-timestamps{
+#finalize-timestamps {
 
     padding: 10px 20px;
     background-color: rgb(230, 147, 147);
     color: black;
     border: none;
     border-radius: 4px;
-    
+
     cursor: pointer;
     transition: background-color 0.3s ease;
-    
+
 }
 
 .beat:hover {
-    cursor: grab; 
-    background-color: greenyellow; 
+    cursor: grab;
+    background-color: greenyellow;
 }
 
 /* #colorPickerButton {
@@ -409,8 +419,10 @@ audio {
 
 #colorBox {
     display: flex;
-    align-items: center; /* Vertically centers items within the box */
-    justify-content: space-around; /* Spreads elements across the width */
+    align-items: center;
+    /* Vertically centers items within the box */
+    justify-content: space-around;
+    /* Spreads elements across the width */
     /* border: 1px solid #ccc; */
     border-radius: 8px;
     margin-bottom: 10px;
@@ -421,7 +433,8 @@ audio {
     width: 150px;
     height: 50px;
     display: flex;
-    justify-content: center; /* Center icon inside button */
+    justify-content: center;
+    /* Center icon inside button */
     align-items: center;
     background-color: #f0f0f0;
     margin-left: 50px;
@@ -431,22 +444,22 @@ audio {
     font-size: 2em;
 }
 
-#finalize-timestamps{
+#finalize-timestamps {
 
     padding: 10px 20px;
     background-color: rgb(230, 147, 147);
     color: black;
     border: none;
     border-radius: 4px;
-    
+
     cursor: pointer;
     transition: background-color 0.3s ease;
-    
+
 }
 
 .beat:hover {
-    cursor: grab; 
-    background-color: greenyellow; 
+    cursor: grab;
+    background-color: greenyellow;
 }
 
 /* #colorPickerButton {
@@ -459,8 +472,10 @@ audio {
 
 #colorBox {
     display: flex;
-    align-items: center; /* Vertically centers items within the box */
-    justify-content: space-around; /* Spreads elements across the width */
+    align-items: center;
+    /* Vertically centers items within the box */
+    justify-content: space-around;
+    /* Spreads elements across the width */
     /* border: 1px solid #ccc; */
     border-radius: 8px;
     margin-bottom: 10px;
@@ -471,7 +486,8 @@ audio {
     width: 150px;
     height: 50px;
     display: flex;
-    justify-content: center; /* Center icon inside button */
+    justify-content: center;
+    /* Center icon inside button */
     align-items: center;
     background-color: #f0f0f0;
     margin-left: 50px;
@@ -544,4 +560,14 @@ select {
 
 #image_examples{
     margin-left: 20px;
+}
+
+#brainstormingBox {
+    display: none;
+    border: 2px solid #ddd;
+    padding: 20px;
+    overflow-x: auto;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    margin-right: 20px;
 }
