@@ -48,6 +48,29 @@ def homepage():
 def quick_start():
     return render_template('quick_start.html')
 
+AUDIO_FOLDER = 'uploads/audioclip'
+app.config['AUDIO_FOLDER'] = AUDIO_FOLDER
+
+# Make sure the upload folder exists
+if not os.path.exists(AUDIO_FOLDER):
+    os.makedirs(AUDIO_FOLDER)
+
+@app.route('/upload-file', methods=['POST'])
+def upload_file():
+    if 'audioFile' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['audioFile']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if file:
+        # Save the file to the upload folder
+        file_path = os.path.join(app.config['AUDIO_FOLDER'], file.filename)
+        file.save(file_path)
+        return jsonify({'message': 'File uploaded successfully!', 'filename': file.filename}), 200
+
+
 @app.route('/upload_audio', methods=['POST'])
 def upload_audio():
     file = request.files['audioFile']
@@ -480,31 +503,31 @@ def generate_prompt_completion(client, prompt):
     )
     return completion.choices[0].message['content']
 
-UPLOAD_FOLDER = 'uploads/'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+# UPLOAD_FOLDER = 'uploads/'
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+# def allowed_file(filename):
+#     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route('/upload-image', methods=['POST'])
-def upload_image():
-    if 'image' not in request.files:
-        return jsonify({"error": "No image part in the request"}), 400
+# @app.route('/upload-image', methods=['POST'])
+# def upload_image():
+#     if 'image' not in request.files:
+#         return jsonify({"error": "No image part in the request"}), 400
 
-    file = request.files['image']
+#     file = request.files['image']
 
-    if file.filename == '':
-        return jsonify({"error": "No selected image"}), 400
+#     if file.filename == '':
+#         return jsonify({"error": "No selected image"}), 400
 
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
+#     if file and allowed_file(file.filename):
+#         filename = secure_filename(file.filename)
+#         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+#         file.save(file_path)
 
-        return jsonify({"image_path": file_path}), 200
-    else:
-        return jsonify({"error": "Invalid file type"}), 400
+#         return jsonify({"image_path": file_path}), 200
+#     else:
+#         return jsonify({"error": "Invalid file type"}), 400
     
 def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
     # print("HERE ", ', '.join(motion_data['rotation_3d_y']))
