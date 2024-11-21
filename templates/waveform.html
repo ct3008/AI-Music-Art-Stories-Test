@@ -208,6 +208,23 @@
     <div class="row">
         <div class="col">
             <h3 style="margin-bottom: 10px;">Initial Image Brainstorming</h3>
+            <form id="image-form">
+                <div class="form-group">
+                    <label for="prompt">Enter your prompt:</label>
+                    <input type="text" class="form-control" id="prompt" name="prompt"
+                        placeholder="e.g., black fluffy gorgeous dangerous cat...">
+                </div>
+                <button type="submit" class="btn btn-primary">Generate Image</button>
+            </form>
+            <div id="output-container" class="mt-5">
+                <h5>Generated Image:</h5>
+                <div id="loading-indicator" class="text-center" style="display: none;">
+                    <div class="spinner-border" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                </div>
+                <img id="generated-image" src="" alt="Your Generated Image" class="img-fluid" style="display: none;">
+            </div>
         </div>
         <div class="col">
             <h3 style="margin-bottom: 10px;">Initial Image</h3>
