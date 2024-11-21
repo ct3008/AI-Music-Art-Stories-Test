@@ -34,7 +34,8 @@
 </div>
 
 <div id="waveform" style="position: relative;">
-    <div id="loadingIndicator" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
+    <div id="loadingIndicator"
+        style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
         <div class="spinner"></div>
     </div>
 </div>
@@ -178,7 +179,7 @@
             <hr>
             <button id="fill-defaults" style="display: none;" onclick="fillDefaultsTemp()">Fill With Defaults</button>
 
-            
+
         </div>
         <div id="image_examples"
             style="width: 70%; display: none; border: 1px solid #ddd; padding: 30px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
@@ -199,7 +200,7 @@
             <div class="image-container" id="image-container"></div>
         </div>
     </div>
-    
+
 </div>
 
 </br>
@@ -267,5 +268,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.4.0/wavesurfer.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.4.0/plugin/wavesurfer.regions.min.js"></script>
-
+<script src="{{url_for('static', filename='image.js')}}"></script>
 {% endblock %}

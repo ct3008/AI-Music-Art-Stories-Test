@@ -31,7 +31,7 @@ const colorOptions = ['black/white', 'myriad of color', 'sky blue (#00BFFF)', "f
 const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
 const motions_3D = ['zoom_in', 'zoom_out', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
 const motions_2D = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'none'];
-const strengths = ['weak', 'normal', 'strong', 'vstrong','10*sin(2*3.14*t/10)'];
+const strengths = ['weak', 'normal', 'strong', 'vstrong', '10*sin(2*3.14*t/10)'];
 const images = {
     "chaotic_intertwining_lines": [
         "chaotic_intertwining_lines_charcoal_drawing_output_0.webp",
@@ -397,7 +397,7 @@ function show_default_boxes() {
     detail_gallery_toggle.style.display = "block";
     fillDefaultsButton.style.display = "block";
     toggleButton.style.display = "block";
-    
+
 
     image_examples.style.display = "block"
     finalizeButton.style.display = "none";
@@ -1300,7 +1300,7 @@ function fillDefaultsTemp() {
     const trash = document.getElementById("trash");
     const processButton = document.getElementById("process-table")
     const seed = document.getElementById("seed")
-    
+
 
     // Check if any of the inputs are empty
     if (!vibeInput.value || !colorInput.value || !imageryInput.value || !textureInput.value) {
@@ -1355,15 +1355,15 @@ function fillDefaults() {
         'blossoming flower': ['painting', 'pastel watercolor on canvas'],
         'chaotic intertwining lines': ['charcoal drawing', 'calligraphy brush ink stroke', 'rubbed graphite on paper', "pencil on paper"],
         'flowing waves': ['impasto palette knife painting', 'rubbed graphite on paper', 'calligraphy brush ink stroke'],
-        'starry night': ['painting', 'splattered paint', 'mosaic','ink blots'],
-        'curvilinear intertwined circles': [ 'ink blots','mosaic','splattered paint'],
+        'starry night': ['painting', 'splattered paint', 'mosaic', 'ink blots'],
+        'curvilinear intertwined circles': ['ink blots', 'mosaic', 'splattered paint'],
         'whirling lines': ['charcoal drawing', 'calligraphy brush ink stroke', 'rubbed graphite on paper'],
         'vibrant kaleidoscope of colors': ['mosaic', 'splattered paint', 'digital glitch'],
         'interstellar light trails': ['digital glitch', 'impasto palette knife painting'],
         'abstract fractal patterns': ['mosaic', 'graffiti', 'ink blots'],
         'dissolving geometric shards': ['charcoal drawing', 'rubbed graphite on paper'],
         'diffused cosmic mists': ['pastel watercolor on canvas', 'splattered paint'],
-        'translucent ripple effects': ['painting', 'impasto palette knife painting','ink blots']
+        'translucent ripple effects': ['painting', 'impasto palette knife painting', 'ink blots']
     };
 
     // Reverse compatibility map for textures
@@ -1693,12 +1693,12 @@ function processTable() {
     const transitionsData = gatherTransitionData(formData);
     let seed = document.getElementById("seed").value;
     document.getElementById('processedDataContainer').innerHTML = '';
-            document.getElementById('processedDataContainer').style = "border: none;"
+    document.getElementById('processedDataContainer').style = "border: none;"
     seed = parseInt(seed, 10);
     if (isNaN(seed)) {
         seed = 868591112; // Default value
     }
-    
+
     const data = {
         timestamps_scenes: significantPoints.map(point => point.toFixed(2)),
         form_data: formData,
@@ -1819,7 +1819,7 @@ function clearExistingData() {
     process_table.style.display = 'none';
     seed.value = '';
     // seed.style.display = 'none';
-    brainstormbox.style.display='none';
+    brainstormbox.style.display = 'none';
 
     nextButton.style.display = 'inline-block';
 
@@ -1867,15 +1867,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const dropdownToggle = document.getElementById('dropdownToggle');
     const detailsBox = document.getElementById('detailsBox');
     const imageExamples = document.getElementById('image_examples');
+    const brainstormingBox = document.getElementById("brainstormingBox");
 
     dropdownToggle.addEventListener('click', () => {
         if (detailsBox.style.display === 'none' || detailsBox.style.display === '') {
             detailsBox.style.display = 'block';
             imageExamples.style.display = 'block';
+            brainstormingBox.style.display = 'block';
             dropdownToggle.innerHTML = 'Hide Details ▲';
         } else {
             detailsBox.style.display = 'none';
             imageExamples.style.display = 'none';
+            brainstormingBox.style.display = 'none';
             dropdownToggle.innerHTML = 'Show Details ▼';
         }
     });
@@ -1910,7 +1913,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 img.src = `${baseURL}${filename}`; // Construct the GitHub URL
                 img.alt = filename.replace(/_/g, "-").replace(".webp", ""); // Alt text as a URL-friendly name
                 img.draggable = true; // Make the image draggable
-
                 // Extract the texture name dynamically
                 const textureName = filename
                     .replace(imagery.replace(/ /g, "_"), "") // Remove the imagery key part
