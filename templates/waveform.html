@@ -33,9 +33,9 @@
         onclick="show_default_boxes(); show_brainstorming();">Finalize Time Stamps</button>
 </div>
 
-<div id="waveform">
-    <div id="loadingIndicator" style="display: none;">
-        <img width="auto" height="200" src="./static/loading.gif" alt="Loading..." />
+<div id="waveform" style="position: relative;">
+    <div id="loadingIndicator" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
+        <div class="spinner"></div>
     </div>
 </div>
 <button id="playPauseButton" style="display: none; size: 25px">▶</button>
@@ -86,6 +86,8 @@
             style="display: none; border: 1px solid #ddd; padding: 30px; width: 350px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
             <h3 style="margin-bottom: 10px;">Input Details</h3>
 
+            <button id="toggleMotionButton" style="display: none;" onclick="toggleMotion()">3D Motion</button>
+            <hr>
             <!-- Vibe Input -->
             <div id="vibeBox" style="margin-bottom: 10px; display: none;">
                 <label for="vibeInput">Vibe: </label>
@@ -104,25 +106,6 @@
                     <option value="scary">
                     <option value="sexy">
                     <option value="uplifting">
-                </datalist>
-            </div>
-            <hr>
-            <!-- Color Input -->
-            <div id="colorBox" style="margin-bottom: 10px; display: none;">
-                <label for="colorInput">Color:</label>
-                <input type="text" id="colorInput" placeholder="Enter color (e.g., sky blue)" list="colorOptions">
-                <br>
-                <button id="colorPickerButton">🎨</button>
-
-                <input type="color" id="colorPicker" style="display: none; align-items: center;">
-
-                <datalist id="colorOptions">
-                    <option value="black/white">
-                    <option value="myriad of color">
-                    <option value="sky blue (#00BFFF)">
-                    <option value="fiery red (#db0804)">
-                    <option value="cherry blossom pink (#FFB7C5)">
-                    <option value="amber (#FFBF00)">
                 </datalist>
             </div>
             <hr>
@@ -174,7 +157,28 @@
                 </datalist>
             </div>
             <hr>
-            <button id="toggleMotionButton" style="display: none;" onclick="toggleMotion()">3D Motion</button>
+            <!-- Color Input -->
+            <div id="colorBox" style="margin-bottom: 10px; display: none;">
+                <label for="colorInput">Color:</label>
+                <input type="text" id="colorInput" placeholder="Enter color (e.g., sky blue)" list="colorOptions">
+                <br>
+                <button id="colorPickerButton">🎨</button>
+
+                <input type="color" id="colorPicker" style="display: none; align-items: center;">
+
+                <datalist id="colorOptions">
+                    <option value="black/white">
+                    <option value="myriad of color">
+                    <option value="sky blue (#00BFFF)">
+                    <option value="fiery red (#db0804)">
+                    <option value="cherry blossom pink (#FFB7C5)">
+                    <option value="amber (#FFBF00)">
+                </datalist>
+            </div>
+            <hr>
+            <button id="fill-defaults" style="display: none;" onclick="fillDefaultsTemp()">Fill With Defaults</button>
+
+            
         </div>
         <div id="image_examples"
             style="width: 70%; display: none; border: 1px solid #ddd; padding: 30px; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1);">
@@ -195,6 +199,7 @@
             <div class="image-container" id="image-container"></div>
         </div>
     </div>
+    
 </div>
 
 </br>
@@ -211,7 +216,6 @@
 
 
 <!-- <button onclick="fillDefaults()">Fill with Defaults</button> -->
-<button id="fill-defaults" style="display: none;" onclick="fillDefaultsTemp()">Fill With Defaults</button>
 
 
 <div class="form-container" id="trash"></div>
@@ -236,10 +240,17 @@
     <button type="submit">Upload</button>
 </form> -->
 <!-- <button id="submitSelectedImage">Submit Selected Image</button> -->
-
-<button id="process-table" style="display: none;" onclick="processTable()">Create Video</button>
-<div id="processing" style="display: none; color: red;">
-    PROCESSING
+<div id="process-table" style="display:none;">
+    <button id="process-table" style="display:inline-block;" onclick="processTable()">Create Video</button>
+    <input type="number" id="seed" step="1" style="display:inline-block;" placeholder="Seed. Default: 868591112">
+</div>
+<div id="processing" style="display: none;">
+    <!-- <div id="loadingIndicator_process">
+        <img width="auto" height="200" src="./static/loading.gif" alt="Loading..." />
+    </div> -->
+    <div id="loadingIndicator_process">
+        <div class="spinner"></div>
+    </div>
 </div>
 <!-- Add a condition later so that this only appears after everything is filled out -->
 <div id="processedDataContainer"></div>

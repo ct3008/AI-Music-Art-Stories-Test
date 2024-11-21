@@ -31,7 +31,7 @@ const colorOptions = ['black/white', 'myriad of color', 'sky blue (#00BFFF)', "f
 const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
 const motions_3D = ['zoom_in', 'zoom_out', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
 const motions_2D = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'none'];
-const strengths = ['weak', 'normal', 'strong', 'vstrong'];
+const strengths = ['weak', 'normal', 'strong', 'vstrong','10*sin(2*3.14*t/10)'];
 const images = {
     "chaotic_intertwining_lines": [
         "chaotic_intertwining_lines_charcoal_drawing_output_0.webp",
@@ -373,6 +373,7 @@ function show_transitions() {
 
 function show_default_boxes() {
     //show items in input details and image gallery
+    const finalizeButton = document.getElementById("finalize-timestamps");
     const detailsBox = document.getElementById("detailsBox")
     const vibeBox = document.getElementById("vibeBox")
     const colorBox = document.getElementById("colorBox")
@@ -385,7 +386,6 @@ function show_default_boxes() {
     const fillDefaultsButton = document.getElementById("fill-defaults")
     const trash = document.getElementById("trash")
     const toggleButton = document.getElementById("toggleMotionButton")
-    const processButton = document.getElementById("process-table")
     finalizeTimestamps('time', -1, -1)
 
     // trash.style.display = "flex";
@@ -396,10 +396,14 @@ function show_default_boxes() {
     textureBox.style.display = "block";
     detail_gallery_toggle.style.display = "block";
     fillDefaultsButton.style.display = "block";
-    toggleButton.style.display = "block"
-    processButton.style.display = "block"
+    toggleButton.style.display = "block";
+    
 
     image_examples.style.display = "block"
+    finalizeButton.style.display = "none";
+
+
+    //Set up Input Details
 
     colorBox.style.justifyContent = "center";
     colorBox.style.alignContent = "center";
@@ -1182,8 +1186,8 @@ function addTransitions(id, startTime, endTime, i, existingTransitionValues, reg
             // form.insertAdjacentElement('beforeend', transitionContainer);//seems interesting
 
             // Add dropdown functionality to inputs
-            const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
-            const strengths = ['weak', 'normal', 'strong', 'vstrong'];
+            // const motions = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down', 'spin_cw', 'spin_ccw', 'rotate_up', 'rotate_down', 'rotate_right', 'rotate_left', 'rotate_cw', 'rotate_ccw', 'none'];
+            // const strengths = ['weak', 'normal', 'strong', 'vstrong'];
             const labels = ["Motion", "Strength"]
             // const speeds = ['vslow', 'slow', 'normal', 'fast', 'vfast'];
 
@@ -1294,18 +1298,27 @@ function fillDefaultsTemp() {
     const imageryInput = document.getElementById("imageryInput");
     const textureInput = document.getElementById("textureInput");
     const trash = document.getElementById("trash");
+    const processButton = document.getElementById("process-table")
+    const seed = document.getElementById("seed")
+    
 
     // Check if any of the inputs are empty
     if (!vibeInput.value || !colorInput.value || !imageryInput.value || !textureInput.value) {
-        alert("Please fill in all fields: Vibe, Color, Imagery, and Texture before proceeding.");
-        return; // Stop execution if any field is empty
+        const proceed = window.confirm(
+            "Some fields are empty: Vibe, Color, Imagery, or Texture. Do you want to proceed anyway?"
+        );
+        if (!proceed) {
+            return; // Stop execution if the user chooses not to proceed
+        }
     }
 
-    // Show the toggle button and proceed with fillDefaults if all inputs are filled
+    // Show the toggle button and proceed with fillDefaults
     const toggleButton = document.getElementById("toggleMotionButton");
     toggleButton.style.display = "block";
     trash.style.display = "flex";
     fillDefaults();
+    processButton.style.display = "block";
+    seed.style.display = "inline-block";
 }
 
 function fillDefaults() {
@@ -1335,10 +1348,62 @@ function fillDefaults() {
     const sections = document.querySelectorAll('.section');
 
     // Choose a random texture and style for consistency
-    let chosenTexture = textures[Math.floor(Math.random() * textures.length)];
+    // let chosenTexture = textures[Math.floor(Math.random() * textures.length)];
     const chosenStyle = 'abstract';
-    const chosenImagery = imageries[Math.floor(Math.random() * imageries.length)];
+    // const chosenImagery = imageries[Math.floor(Math.random() * imageries.length)];
+    const compatibilityMap = {
+        'blossoming flower': ['painting', 'pastel watercolor on canvas'],
+        'chaotic intertwining lines': ['charcoal drawing', 'calligraphy brush ink stroke', 'rubbed graphite on paper', "pencil on paper"],
+        'flowing waves': ['impasto palette knife painting', 'rubbed graphite on paper', 'calligraphy brush ink stroke'],
+        'starry night': ['painting', 'splattered paint', 'mosaic','ink blots'],
+        'curvilinear intertwined circles': [ 'ink blots','mosaic','splattered paint'],
+        'whirling lines': ['charcoal drawing', 'calligraphy brush ink stroke', 'rubbed graphite on paper'],
+        'vibrant kaleidoscope of colors': ['mosaic', 'splattered paint', 'digital glitch'],
+        'interstellar light trails': ['digital glitch', 'impasto palette knife painting'],
+        'abstract fractal patterns': ['mosaic', 'graffiti', 'ink blots'],
+        'dissolving geometric shards': ['charcoal drawing', 'rubbed graphite on paper'],
+        'diffused cosmic mists': ['pastel watercolor on canvas', 'splattered paint'],
+        'translucent ripple effects': ['painting', 'impasto palette knife painting','ink blots']
+    };
 
+    // Reverse compatibility map for textures
+    // const reverseCompatibilityMap = Object.entries(compatibilityMap).reduce((acc, [imagery, textures]) => {
+    //     textures.forEach(texture => {
+    //         if (!acc[texture]) acc[texture] = [];
+    //         acc[texture].push(imagery);
+    //     });
+    //     return acc;
+    // }, {});
+
+    // Get the values entered by the user for vibe, color, imagery, and texture
+    // const vibeInput = document.getElementById('vibeInput').value.trim();
+    // const colorInput = document.getElementById('colorInput').value.trim();
+    // const imageryInput = document.getElementById("imageryInput").value.trim();
+    // const textureInput = document.getElementById("textureInput").value.trim();
+
+    // Choose a compatible texture if imagery is provided
+    let chosenTexture = textureInput;
+    let chosenImagery = imageryInput;
+
+    if (!textureInput && imageryInput && compatibilityMap[imageryInput]) {
+        const compatibleTextures = compatibilityMap[imageryInput];
+        chosenTexture = compatibleTextures[Math.floor(Math.random() * compatibleTextures.length)];
+        // console.log("compatible texture:", compatibleTextures, chosenTexture, imageryInput);
+    } else if (!imageryInput && textureInput && reverseCompatibilityMap[textureInput]) {
+        const compatibleImageries = reverseCompatibilityMap[textureInput];
+        chosenImagery = compatibleImageries[Math.floor(Math.random() * compatibleImageries.length)];
+    }
+
+    // Randomize imagery and texture if both are missing
+    if (!chosenImagery) {
+        chosenImagery = imageries[Math.floor(Math.random() * imageries.length)];
+        chosenTexture = compatibilityMap[chosenImagery][Math.floor(Math.random() * compatibilityMap[chosenImagery].length)];
+
+    }
+    // if (!chosenTexture) {
+    //     chosenTexture = textures[Math.floor(Math.random() * textures.length)];
+    //     chosenImagery = reverseCompatibilityMap[chosenTexture][Math.floor(Math.random() * reverseCompatibilityMap[chosenTexture].length)];
+    // }
     // Check for conflicts based on user input
     if (colorInput && conflictMapping[colorInput]) {
         // Exclude conflicting textures if a color is chosen
@@ -1369,7 +1434,7 @@ function fillDefaults() {
             // Handle texture input for regular sections (no texture for transitions)
             else if (input.id.includes('texture_form')) {
                 if (!input.value) {
-                    input.value = textureInput || textures[Math.floor(Math.random() * textures.length)];
+                    input.value = textureInput || chosenTexture;
                 }
                 else if (input.value && input.value != textureInput && textureInput != "") {
                     console.log("Texture: ", input.value);
@@ -1386,7 +1451,7 @@ function fillDefaults() {
             // Handle imagery input for regular sections (no imagery for transitions)
             else if (input.id.includes('imagery_form')) {
                 if (!input.value) {
-                    input.value = imageryInput || imageries[Math.floor(Math.random() * imageries.length)];
+                    input.value = imageryInput || chosenImagery;
                 }
                 else if (input.value && input.value != imageryInput && imageryInput != "") {
                     console.log("Imagery: ", input.value);
@@ -1472,11 +1537,40 @@ function fillDefaults() {
 
 
 
+// Validation Function
+function validateInputs(motionInput, strengthInput, index) {
+    // Split inputs by comma
+    const motionValues = motionInput.split(",").map(item => item.trim());
+    const strengthValues = strengthInput.split(",").map(item => item.trim());
 
+    // Check if counts match
+    if (motionValues.length !== strengthValues.length) {
+        alert(`Timestamp ${index + 1}: Mismatch in the number of motion and strength inputs. Ensure they match.`);
+        return false;
+    }
 
+    // Validate motion values
+    const invalidMotions = motionValues.filter(value => !motions.includes(value));
+    if (invalidMotions.length > 0) {
+        alert(`Timestamp ${index + 1}: Invalid motion values: ${invalidMotions.join(", ")}. Valid motions: ${motions.join(", ")}.`);
+        return false;
+    }
 
+    // Validate strength values
+    const invalidStrengths = strengthValues.filter(value => {
+        // Check if value is not in strengths and not a valid mathematical function
+        return !strengths.includes(value) && !["sin", "cos", "tan"].includes(value);
+    });
+    if (invalidStrengths.length > 0) {
+        alert(`Timestamp ${index + 1}: Invalid strength values: ${invalidStrengths.join(", ")}. Valid strengths: ${strengths.join(", ")} or mathematical functions like sin, cos.`);
+        return false;
+    }
+
+    return true;
+}
+
+// Updated gatherFormData function
 function gatherFormData() {
-    // const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
     let roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
 
     // Add the final timestamp if it's not already included
@@ -1484,26 +1578,63 @@ function gatherFormData() {
     if (!roundedSignificantPoints.includes(finalTimeStamp)) {
         roundedSignificantPoints.push(finalTimeStamp);
     }
+
     // Prepare form data dictionary
     const formData = {};
-    roundedSignificantPoints.forEach((timestamp, index) => {
+    for (let index = 0; index < roundedSignificantPoints.length; index++) {
+        const timestamp = roundedSignificantPoints[index];
+        const motionInput = document.getElementById(`motion_form_${index + 1}`).value;
+        const strengthInput = document.getElementById(`strength_form_${index + 1}`).value;
+
+        // Validate motion and strength inputs
+        if (!validateInputs(motionInput, strengthInput, index)) {
+            return null; // Stop the form submission if validation fails
+        }
+
         formData[timestamp] = {
             "vibe": document.getElementById(`vibe_form_${index + 1}`).value,
             "imagery": document.getElementById(`imagery_form_${index + 1}`).value,
             "texture": document.getElementById(`texture_form_${index + 1}`).value,
             "style": document.getElementById(`style_form_${index + 1}`).value,
             "color": document.getElementById(`color_form_${index + 1}`).value,
-            "motion": document.getElementById(`motion_form_${index + 1}`).value,
-            "strength": document.getElementById(`strength_form_${index + 1}`).value,
-            // "speed": document.getElementById(`speed_form_${index + 1}`).value
+            "motion": motionInput,
+            "strength": strengthInput,
         };
-    });
+    }
 
-    // console.log("GATHER FORM DATA");
-    // console.log(formData);
-    // console.log(formData.length);
     return formData;
 }
+
+
+// function gatherFormData() {
+//     // const roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
+//     let roundedSignificantPoints = newsigPoints.map(point => point.toFixed(2));
+
+//     // Add the final timestamp if it's not already included
+//     const finalTimeStamp = audioDuration.toFixed(2);
+//     if (!roundedSignificantPoints.includes(finalTimeStamp)) {
+//         roundedSignificantPoints.push(finalTimeStamp);
+//     }
+//     // Prepare form data dictionary
+//     const formData = {};
+//     roundedSignificantPoints.forEach((timestamp, index) => {
+//         formData[timestamp] = {
+//             "vibe": document.getElementById(`vibe_form_${index + 1}`).value,
+//             "imagery": document.getElementById(`imagery_form_${index + 1}`).value,
+//             "texture": document.getElementById(`texture_form_${index + 1}`).value,
+//             "style": document.getElementById(`style_form_${index + 1}`).value,
+//             "color": document.getElementById(`color_form_${index + 1}`).value,
+//             "motion": document.getElementById(`motion_form_${index + 1}`).value,
+//             "strength": document.getElementById(`strength_form_${index + 1}`).value,
+//             // "speed": document.getElementById(`speed_form_${index + 1}`).value
+//         };
+//     });
+
+//     // console.log("GATHER FORM DATA");
+//     // console.log(formData);
+//     // console.log(formData.length);
+//     return formData;
+// }
 
 function gatherTransitionData(formData) {
     const transitionsData = {};
@@ -1560,14 +1691,25 @@ function gatherTransitionData(formData) {
 function processTable() {
     const formData = gatherFormData();
     const transitionsData = gatherTransitionData(formData);
+    let seed = document.getElementById("seed").value;
+    document.getElementById('processedDataContainer').innerHTML = '';
+            document.getElementById('processedDataContainer').style = "border: none;"
+    seed = parseInt(seed, 10);
+    if (isNaN(seed)) {
+        seed = 868591112; // Default value
+    }
+    
     const data = {
         timestamps_scenes: significantPoints.map(point => point.toFixed(2)),
         form_data: formData,
         transitions_data: transitionsData,
         song_len: audioDuration,
-        motion_mode: motion_mode
+        motion_mode: motion_mode,
+        seed: seed
     };
     document.getElementById('processing').style = "display: block;"
+    const loadingIndicator = document.getElementById("loadingIndicator_process");
+    loadingIndicator.style.display = "block";
     // console.log(data);
     // console.log("RUNNING PROCESS TABLE");
 
@@ -1616,6 +1758,10 @@ function processTable() {
         })
         .catch(error => {
             console.error('Error:', error);
+        })
+        .finally(() => {
+            // Hide loading indicator after completion
+            loadingIndicator.style.display = "none";
         });
 }
 
@@ -1656,7 +1802,9 @@ function clearExistingData() {
     const finalizeButton = document.getElementById("finalize-timestamps")
     const trash = document.getElementById("trash")
     const fillDefaultsButton = document.getElementById("fill-defaults")
-    const processButton = document.getElementById("process-table")
+    const process_table = document.getElementById("process-table")
+    const seed = document.getElementById("seed")
+    const brainstormbox = document.getElementById('brainstormingBox')
 
     dropdownToggle.style.display = 'none';
     detailsBox.style.display = 'none';
@@ -1668,7 +1816,10 @@ function clearExistingData() {
     // trash.innerHTML = '';
     trash.style.display = 'none';
     fillDefaultsButton.style.display = 'none';
-    processButton.style.display = 'none';
+    process_table.style.display = 'none';
+    seed.value = '';
+    // seed.style.display = 'none';
+    brainstormbox.style.display='none';
 
     nextButton.style.display = 'inline-block';
 

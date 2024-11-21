@@ -178,6 +178,11 @@
                 <li>Motion for scene intervals is zoom in by default</li>
                 <li>Motion for transitions is strong rotate right (3D) or pan right (2D) by default</li>
                 <li>Final transition is a very strong rotation (3D) or spin (2D) </li>
+                <li>Motion and Strength can have multiple different motions at the same time</li>
+                <ul>
+                    <li>Motion: zoom_in,pan_right</li>
+                    <li>Stength: vstrong,10*sin(2*3.14*t/10)</li>
+                </ul>
             </ul>
             <li>Press <strong>Create Video</strong>. Final output will have the inputs passed into the AI model along
                 with a link to the generated video and a link with the video automatically stitched with the input
