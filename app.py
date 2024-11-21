@@ -214,14 +214,73 @@ def split_and_pair_values(data):
     # speeds = data['speed'].strip().split(',')
     return list(zip(motions, strengths, speeds))
 
+# def get_motion_data(form_data, trans_data, time_intervals):
+#     motion_data = []
+
+#     for i in range(len(time_intervals) - 1):
+#         start = float(time_intervals[i])
+#         end = float(time_intervals[i + 1])
+#         if (time_intervals[i] >= time_intervals[i + 1]):
+#             break
+#         segment_motion_data = []
+
+#         # Check for transitions
+#         for interval, data in trans_data.items():
+#             interval_start, interval_end = map(float, interval.split('-'))
+#             if start <= interval_start < end or start < interval_end <= end:
+#                 segment_motion_data.extend(split_and_pair_values(data))
+#                 break  # Only take the transition motion
+
+#         # If no transition, default to closest form_data motion
+#         if not segment_motion_data:
+#             closest_form_data = get_closest_form_data(start, form_data)
+#             if closest_form_data:
+#                 segment_motion_data.extend(split_and_pair_values(closest_form_data))
+
+#         motion_data.append(segment_motion_data)
+
+#     return motion_data
+
+
+# def get_closest_form_data(time, form_data):
+#     closest_time = min((float(t) for t in form_data.keys() if float(t) >= time), default=None)
+#     if closest_time is not None:
+#         # print(closest_time)
+#         # print(form_data)
+#         return form_data[f"{closest_time:.2f}"]
+#     else:
+#         closest_time = min((float(t) for t in form_data.keys() if float(t) <= time), default=None)
+#         return form_data[f"{closest_time:.2f}"]
+
+
+
+# def get_motion_and_speed(time, form_data):
+#     motion_options = ["zoom_in", "zoom_out", "pan_right", "pan_left", "pan_up", "pan_down", "spin_cw", "spin_ccw", 
+#                       "rotate_up", "rotate_down", "rotate_right", "rotate_left", "rotate_cw", "rotate_ccw", "none"]
+#     speed_options = ["vslow", "slow", "normal", "fast", "vfast"]
+#     strength_options = ["weak", "normal", "strong", "vstrong"]
+
+#     form_entry = form_data.get(time, {})
+#     motion = form_entry.get('motion', 'none')
+#     speed = form_entry.get('speed', 'normal')
+#     strength = form_entry.get('strength', 'normal')
+
+#     if motion not in motion_options:
+#         print(f"Invalid motion option for time {time}. Using default 'none'.")
+#         motion = 'none'
+
+#     motions = [(motion, speed, strength)]
+#     return motions
+
 def get_motion_data(form_data, trans_data, time_intervals):
     motion_data = []
 
     for i in range(len(time_intervals) - 1):
         start = float(time_intervals[i])
         end = float(time_intervals[i + 1])
-        if (time_intervals[i] >= time_intervals[i + 1]):
+        if start >= end:
             break
+
         segment_motion_data = []
 
         # Check for transitions
@@ -245,18 +304,37 @@ def get_motion_data(form_data, trans_data, time_intervals):
 def get_closest_form_data(time, form_data):
     closest_time = min((float(t) for t in form_data.keys() if float(t) >= time), default=None)
     if closest_time is not None:
-        # print(closest_time)
-        # print(form_data)
         return form_data[f"{closest_time:.2f}"]
     else:
         closest_time = min((float(t) for t in form_data.keys() if float(t) <= time), default=None)
         return form_data[f"{closest_time:.2f}"]
 
 
+def split_and_pair_values(data):
+    """
+    Splits motion and strength values and pairs them correctly.
+    """
+    motions = data['motion'].split(',')
+    strengths = data['strength'].split(',')
+
+    # Ensure the number of motions and strengths match
+    if len(motions) != len(strengths):
+        raise ValueError(f"Mismatch between motions ({len(motions)}) and strengths ({len(strengths)}).")
+
+    # Create pairs of motion and strength
+    paired_values = []
+    for motion, strength in zip(motions, strengths):
+        paired_values.append({'motion': motion.strip(), 'strength': strength.strip()})
+
+    return paired_values
+
 
 def get_motion_and_speed(time, form_data):
-    motion_options = ["zoom_in", "zoom_out", "pan_right", "pan_left", "pan_up", "pan_down", "spin_cw", "spin_ccw", 
-                      "rotate_up", "rotate_down", "rotate_right", "rotate_left", "rotate_cw", "rotate_ccw", "none"]
+    motion_options = [
+        "zoom_in", "zoom_out", "pan_right", "pan_left", "pan_up", "pan_down", 
+        "spin_cw", "spin_ccw", "rotate_up", "rotate_down", "rotate_right", 
+        "rotate_left", "rotate_cw", "rotate_ccw", "none"
+    ]
     speed_options = ["vslow", "slow", "normal", "fast", "vfast"]
     strength_options = ["weak", "normal", "strong", "vstrong"]
 
@@ -265,35 +343,153 @@ def get_motion_and_speed(time, form_data):
     speed = form_entry.get('speed', 'normal')
     strength = form_entry.get('strength', 'normal')
 
-    if motion not in motion_options:
-        print(f"Invalid motion option for time {time}. Using default 'none'.")
-        motion = 'none'
+    # Split motion and strength if they are comma-separated
+    motion_list = motion.split(',')
+    strength_list = strength.split(',')
 
-    motions = [(motion, speed, strength)]
+    # Validate and pair motion and strength
+    motions = []
+    for motion, strength in zip(motion_list, strength_list):
+        if motion not in motion_options:
+            print(f"Invalid motion option '{motion}' for time {time}. Using default 'none'.")
+            motion = 'none'
+        if strength not in strength_options and not is_valid_strength_expression(strength):
+            print(f"Invalid strength option '{strength}' for time {time}. Using default 'normal'.")
+            strength = 'normal'
+        motions.append({'motion': motion.strip(), 'strength': strength.strip(), 'speed': speed.strip()})
+
     return motions
+
+
+def is_valid_strength_expression(expression):
+    """
+    Validates if a strength expression is a mathematical function like 10*sin(2*3.14*t/10).
+    """
+    try:
+        # Replace `t` with 1 for validation, as it's a placeholder for time
+        eval(expression.replace('t', '1'), {"sin": __import__('math').sin, "cos": __import__('math').cos})
+        return True
+    except Exception:
+        return False
+
+def merge_intervals(interval_strings, motion_data):
+    merged_intervals = []
+    
+    # Loop through intervals
+    i = 0
+    while i < len(interval_strings) - 1:
+        current_interval = interval_strings[i]
+        next_interval = interval_strings[i + 1]
+        
+        current_motions = motion_data[i]
+        next_motions = motion_data[i + 1]
+        
+        # Extract start and end times from the intervals
+        current_start_time, current_end_time = current_interval.split("-")
+        next_start_time, next_end_time = next_interval.split("-")
+        
+        # Compare the end time of the current interval and start time of the next
+        if current_end_time == next_start_time and current_motions == next_motions:
+            # Merge intervals and combine motion data
+            merged_interval = f"{current_start_time}-{next_end_time}"
+            merged_motions = current_motions  # Since both motions are the same, use one
+            
+            # Add the merged interval and motion data
+            merged_intervals.append((merged_interval, merged_motions))
+            
+            # Skip the next interval, as it's already merged
+            i += 2
+        else:
+            # Add the current interval and motion data as is
+            merged_intervals.append((current_interval, current_motions))
+            i += 1
+    
+    # Handle the last interval if it wasn't merged
+    if i < len(interval_strings):
+        merged_intervals.append((interval_strings[i], motion_data[i]))
+    
+    return merged_intervals
+# def parse_input_data(form_data, trans_data, song_duration):
+#     trans_data = {k: v for k, v in trans_data.items() if v.get('transition', True)}
+#     scene_change_times = sorted(list(map(float,form_data.keys())))
+#     # print(scene_change_times)
+
+#     # print(trans_data.keys())
+#     transition_times = list(map(float, [time.split('-')[0] for time in trans_data.keys()] + [time.split('-')[1] for time in trans_data.keys()] + list(form_data.keys())))
+#     # print(transition_times)
+#     time_intervals = sorted(set(scene_change_times + transition_times))
+#     time_intervals = [0] + [float(i) for i in time_intervals] + [float(round(song_duration, 2))]
+#     time_intervals = set(time_intervals)
+#     time_intervals = list(sorted(time_intervals))
+#     # print("HERE TIME: ", time_intervals)
+#     interval_strings = [f"{time_intervals[i]}-{time_intervals[i+1]}" for i in range(len(time_intervals) - 1)]
+#     motion_data = get_motion_data(form_data, trans_data, time_intervals)
+#     # interval_strings = [f"{time_intervals[i]}-{time_intervals[i+1]}" for i in range(len(time_intervals) - 1)]
+
+#     for interval, motions in zip(interval_strings, motion_data):
+#         print(f"Interval: {interval}, Motions: {motions}")
+
+#     merged_intervals = merge_intervals(interval_strings, motion_data)
+
+    
+#     # Output the merged intervals
+#     for interval, motions in merged_intervals:
+#         print(f"MERGED Interval: {interval}, Motions: {motions}")
+
+#     print("merged: ", merged_intervals)
+
+#     # print("TIME INTERVAL", time_intervals)
+
+#     for key, value in form_data.items():
+#         time_intervals.append(float(key))
+    
+#     for key in trans_data.keys():
+#         start, end = map(float, key.split('-'))
+#         time_intervals.extend([start, end])
+    
+#     time_intervals = sorted(set(time_intervals))
+#     time_intervals = [str(i) for i in time_intervals]
+#     # print(time_intervals)
+    
+#     return song_duration, scene_change_times, transition_times, time_intervals, interval_strings, motion_data
 
 def parse_input_data(form_data, trans_data, song_duration):
     trans_data = {k: v for k, v in trans_data.items() if v.get('transition', True)}
-    scene_change_times = sorted(list(map(float,form_data.keys())))
-    # print(scene_change_times)
-
-    # print(trans_data.keys())
-    transition_times = list(map(float, [time.split('-')[0] for time in trans_data.keys()] + [time.split('-')[1] for time in trans_data.keys()] + list(form_data.keys())))
-    # print(transition_times)
+    scene_change_times = sorted(list(map(float, form_data.keys())))
+    
+    # Create the combined list of transition times
+    transition_times = list(map(float, [time.split('-')[0] for time in trans_data.keys()] + 
+                                  [time.split('-')[1] for time in trans_data.keys()] + list(form_data.keys())))
     time_intervals = sorted(set(scene_change_times + transition_times))
+    
+    # Add 0 at the beginning and the song's duration at the end
     time_intervals = [0] + [float(i) for i in time_intervals] + [float(round(song_duration, 2))]
-    time_intervals = set(time_intervals)
-    time_intervals = list(sorted(time_intervals))
-    # print("HERE TIME: ", time_intervals)
+    time_intervals = sorted(set(time_intervals))  # Remove duplicates and sort
+    
+    # Create the interval strings based on time intervals
     interval_strings = [f"{time_intervals[i]}-{time_intervals[i+1]}" for i in range(len(time_intervals) - 1)]
+    
+    # Get the motion data
     motion_data = get_motion_data(form_data, trans_data, time_intervals)
-    interval_strings = [f"{time_intervals[i]}-{time_intervals[i+1]}" for i in range(len(time_intervals) - 1)]
-
+    
+    # Print the intervals and motions before merging
     for interval, motions in zip(interval_strings, motion_data):
         print(f"Interval: {interval}, Motions: {motions}")
 
-    # print("TIME INTERVAL", time_intervals)
+    # Merge intervals with identical motion data
+    merged_intervals = merge_intervals(interval_strings, motion_data)
 
+    # Print the merged intervals
+    for interval, motions in merged_intervals:
+        print(f"MERGED Interval: {interval}, Motions: {motions}")
+
+    print("merged: ", merged_intervals)
+
+    # Replace the old interval_strings and motion_data with the merged values
+    interval_strings = [interval for interval, motions in merged_intervals]
+    motion_data = [motions for interval, motions in merged_intervals]
+
+    # Add time intervals from form_data and trans_data
     for key, value in form_data.items():
         time_intervals.append(float(key))
     
@@ -303,10 +499,89 @@ def parse_input_data(form_data, trans_data, song_duration):
     
     time_intervals = sorted(set(time_intervals))
     time_intervals = [str(i) for i in time_intervals]
-    # print(time_intervals)
     
+    # Return the updated values
     return song_duration, scene_change_times, transition_times, time_intervals, interval_strings, motion_data
 
+
+# def calculate_frames(scene_change_times, time_intervals, motion_data, total_song_len, final_anim_frames):
+#     frame_data = {
+#         "zoom": [],
+#         "translation_x": [],
+#         "translation_y": [],
+#         "angle": [],
+#         "rotation_3d_x": [],
+#         "rotation_3d_y": [],
+#         "rotation_3d_z": []
+#     }
+#     tmp_times = scene_change_times.copy()
+
+#     speed_multiplier = {"vslow": 0.25, "slow": 0.5, "normal": 1, "fast": 2.5, "vfast": 6}
+#     frame_rate = 15
+
+#     current_frame = 0
+#     animation_prompts = []
+#     # print("INTERVAL: ", time_intervals)
+#     for interval, motions in zip(time_intervals, motion_data):
+#         _, strength, speed = motions[0]
+#         start_time, end_time = map(float, interval.split('-'))
+        
+#         # print("TMP TIME: ", tmp_times)
+#         if tmp_times != [] and int(tmp_times[0]) <= end_time and int(tmp_times[0]) >= start_time:
+#             new_frame = round(current_frame + ((tmp_times[0]) - start_time) * 15 * speed_multiplier[speed])
+#             # print("----------------END FRAME:---------------", new_frame)
+#             if new_frame not in final_anim_frames:
+				
+#                 final_anim_frames.append(new_frame)
+#             tmp_times.pop(0)
+#         duration = (end_time - start_time) * frame_rate
+#         adjusted_duration = round(duration * speed_multiplier[speed])
+#         end_frame = current_frame + adjusted_duration
+#         for motion, strength, speed in motions:
+#             animation_prompts.append((start_time, end_time, current_frame, end_frame))
+            
+#             def get_motion_value(motion, strength):
+#                 return motion_magnitudes.get(motion, {}).get(strength, strength)
+
+#             motion_value = get_motion_value(motion, strength)
+#             print("motion value: ", motion_value)
+#             if motion == "zoom_in":
+#                 frame_data["zoom"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "zoom_out":
+#                 frame_data["zoom"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "pan_right":
+#                 frame_data["translation_x"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "pan_left":
+#                 frame_data["translation_x"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "pan_up":
+#                 frame_data["translation_y"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "pan_down":
+#                 frame_data["translation_y"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "spin_cw":
+#                 frame_data["angle"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "spin_ccw":
+#                 frame_data["angle"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "rotate_up":
+#                 frame_data["rotation_3d_x"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "rotate_down":
+#                 frame_data["rotation_3d_x"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "rotate_right":
+#                 frame_data["rotation_3d_y"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "rotate_left":
+#                 frame_data["rotation_3d_y"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "rotate_cw":
+#                 frame_data["rotation_3d_z"].append((current_frame, end_frame, adjusted_duration, motion_value))
+#             elif motion == "rotate_ccw":
+#                 frame_data["rotation_3d_z"].append((current_frame, end_frame, adjusted_duration, motion_value))
+
+
+#         current_frame = end_frame
+
+#         if str(end_time) == str(total_song_len) and end_frame not in final_anim_frames and (end_frame - 1) not in final_anim_frames:
+#             final_anim_frames.append(end_frame)
+        
+
+#     return frame_data, animation_prompts
 def calculate_frames(scene_change_times, time_intervals, motion_data, total_song_len, final_anim_frames):
     frame_data = {
         "zoom": [],
@@ -324,62 +599,75 @@ def calculate_frames(scene_change_times, time_intervals, motion_data, total_song
 
     current_frame = 0
     animation_prompts = []
-    # print("INTERVAL: ", time_intervals)
+
     for interval, motions in zip(time_intervals, motion_data):
-        _, strength, speed = motions[0]
         start_time, end_time = map(float, interval.split('-'))
-        
-        # print("TMP TIME: ", tmp_times)
-        if tmp_times != [] and int(tmp_times[0]) <= end_time and int(tmp_times[0]) >= start_time:
-            new_frame = round(current_frame + ((tmp_times[0]) - start_time) * 15 * speed_multiplier[speed])
-            # print("----------------END FRAME:---------------", new_frame)
+
+        # Handle scene change times
+        if tmp_times and start_time <= tmp_times[0] <= end_time:
+            new_frame = round(current_frame + ((tmp_times[0] - start_time) * frame_rate * speed_multiplier['normal']))
             if new_frame not in final_anim_frames:
-				
                 final_anim_frames.append(new_frame)
             tmp_times.pop(0)
+
+        # Calculate duration for the interval
         duration = (end_time - start_time) * frame_rate
-        adjusted_duration = round(duration * speed_multiplier[speed])
+        adjusted_duration = round(duration * speed_multiplier['normal'])
         end_frame = current_frame + adjusted_duration
-        for motion, strength, speed in motions:
-            animation_prompts.append((start_time, end_time, current_frame, end_frame))
+
+        # Process all motions for this interval
+        for motion_entry in motions:
+            motion = motion_entry['motion']
+            strength = motion_entry['strength']
             
+
+            def get_motion_value(motion, strength):
+                return motion_magnitudes.get(motion, {}).get(strength, strength)
+
+            motion_value = get_motion_value(motion, strength)
+
+            # Add motion-specific frame data
             if motion == "zoom_in":
-                frame_data["zoom"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["zoom"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "zoom_out":
-                frame_data["zoom"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["zoom"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "pan_right":
-                frame_data["translation_x"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["translation_x"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "pan_left":
-                frame_data["translation_x"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["translation_x"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "pan_up":
-                frame_data["translation_y"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["translation_y"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "pan_down":
-                frame_data["translation_y"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["translation_y"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "spin_cw":
-                frame_data["angle"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["angle"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "spin_ccw":
-                frame_data["angle"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["angle"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "rotate_up":
-                frame_data["rotation_3d_x"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["rotation_3d_x"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "rotate_down":
-                frame_data["rotation_3d_x"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["rotation_3d_x"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "rotate_right":
-                frame_data["rotation_3d_y"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["rotation_3d_y"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "rotate_left":
-                frame_data["rotation_3d_y"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["rotation_3d_y"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "rotate_cw":
-                frame_data["rotation_3d_z"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["rotation_3d_z"].append((current_frame, end_frame, adjusted_duration, motion_value))
             elif motion == "rotate_ccw":
-                frame_data["rotation_3d_z"].append((current_frame, end_frame, adjusted_duration, motion_magnitudes[motion][strength]))
+                frame_data["rotation_3d_z"].append((current_frame, end_frame, adjusted_duration, motion_value))
 
+            # Add animation prompts
+            animation_prompts.append((start_time, end_time, current_frame, end_frame, motion, strength))
 
+        # Update the current frame
         current_frame = end_frame
 
+        # Handle the final frame at the end of the song
         if str(end_time) == str(total_song_len) and end_frame not in final_anim_frames and (end_frame - 1) not in final_anim_frames:
             final_anim_frames.append(end_frame)
-        
 
     return frame_data, animation_prompts
+
 
 def build_transition_strings(frame_data):
     motion_defaults = {
@@ -420,6 +708,7 @@ def build_transition_strings(frame_data):
         if not any(s.startswith('0:') for s in motion_strings[motion]):
             motion_strings[motion].insert(0, f"0:({motion_defaults[motion]})")
 
+    print("motion strings: ", motion_strings)
     return motion_strings
 
 def create_prompt(data):
@@ -509,13 +798,13 @@ def generate_prompt_completion(client, prompt):
     return completion.choices[0].message['content']
 
     
-def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts):
+def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts,seed):
     # print("HERE ", ', '.join(motion_data['rotation_3d_y']))
     # print(motion_data['rotation_3d_y'][0:-1])
     input={
         "fov": 40,
         "fps": 15,
-        "seed": 868591112,
+        "seed": seed,
         "zoom": ", ".join(motion_data['zoom']),
         "angle": ", ".join(motion_data['angle']),
         "width": 512,
@@ -596,6 +885,8 @@ def process_data():
     transitions_data = data['transitions_data']
     song_len = data['song_len']
     motion_mode = data['motion_mode']
+    seed = data['seed']
+    print("seed: " + str(seed))
 
     # Here you can integrate your Python logic with the received data
     # Example: processed_data = your_function(timestamps_scenes, form_data, transitions_data)
@@ -656,7 +947,7 @@ def process_data():
     print(prompts)
     # print("MOTIONS")
     # print(motion_strings)
-    deforum_prompt = create_deforum_prompt(motion_strings, final_anim_frames, motion_mode, prompts)
+    deforum_prompt = create_deforum_prompt(motion_strings, final_anim_frames, motion_mode, prompts,seed)
     print("DEFORUM PROMPTS")
     print(deforum_prompt)
     output = api.run(
