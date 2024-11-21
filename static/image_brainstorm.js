@@ -3,4 +3,5 @@ function show_brainstorming() {
 
     brainstormingBox.style.display = "block";
 
+    
 }

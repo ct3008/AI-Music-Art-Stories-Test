@@ -210,6 +210,14 @@
         </div>
         <div class="col">
             <h3 style="margin-bottom: 10px;">Initial Image</h3>
+            <label for="input-file" id="drop-area">
+                <input type="file" accept="image/*" id="input-file" hidden>
+                <div id="img-view">
+                    <img src="./static/icon.png">
+                    <p>Drag and drop or click here <br> to upload image</p>
+                    <span> Upload any images from desktop</span>
+                </div>
+            </label>
         </div>
     </div>
 </div>
@@ -259,45 +267,5 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.4.0/wavesurfer.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/wavesurfer.js/6.4.0/plugin/wavesurfer.regions.min.js"></script>
-
-<script>
-    $(document).ready(function () {
-        console.log("Document is ready!"); // Check if this logs to ensure jQuery is working
-
-        let selectedImagePath = null;
-
-        // Handle selection of predefined images
-        $('.selectable-image').on('click', function () {
-            console.log("Image clicked!"); // Confirm click event
-
-            // Remove the 'selected' class from any previously selected image
-            $('.selectable-image').removeClass('selected');
-
-            // Add the 'selected' class to the clicked image
-            $(this).addClass('selected');
-
-            // Store the path of the selected image
-            selectedImagePath = $(this).data('path');
-            console.log("Selected image path:", selectedImagePath); // Log selected path
-        });
-
-        // Handle the Submit button click
-        $('#submitSelectedImage').on('click', function () {
-            if (!selectedImagePath) {
-                alert("Please select an image before submitting.");
-                return;
-            }
-
-            // Remove the 'selected' class from all images to hide the border
-            $('.selectable-image').removeClass('selected');
-
-            // Clear the selected image path
-            selectedImagePath = null;
-
-            // Display success message
-            $('#predefinedImages').after("<p>Initial image selected successfully!</p>");
-        });
-    });
-</script>
 
 {% endblock %}
