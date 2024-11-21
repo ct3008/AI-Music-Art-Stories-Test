@@ -202,9 +202,44 @@ def upload_audio_large():
         return jsonify({"success": True, "low_energy_timestamps": low_energy_before_onset, "top_onset_times": top_onset_times, "duration": duration})
     return jsonify({"success": False, "error": "No file provided"}), 400
 
-@app.route('/initial_image')
-def initial_image():
-    return render_template('quick_start.html')
+    
+@app.route('/generate_initial', methods=['POST'])
+def generate_initial():
+    data = request.get_json()
+    prompt = data.get('prompt', '')
+
+    if not prompt:
+        return jsonify({'error': 'No prompt provided'}), 400
+
+    try:
+        output = api.run(
+            "lucataco/open-dalle-v1.1:1c7d4c8dec39c7306df7794b28419078cb9d18b9213ab1c21fdc46a1deca0144",
+            input={
+                "width": 1024,
+                "height": 1024,
+                "prompt": prompt,
+                "scheduler": "KarrasDPM",
+                "num_outputs": 1,
+                "guidance_scale": 7.5,
+                "apply_watermark": True,
+                "negative_prompt": "worst quality, low quality",
+                "prompt_strength": 0.8,
+                "num_inference_steps": 60
+            }
+        )
+        
+        # Assuming the output is a list with FileOutput objects, extract the URL
+        if output and isinstance(output, list):
+            output_url = output[0].get('url')  # Extract the URL from the FileOutput object
+            print("Initial Image OUTPUT", output)
+            return jsonify({'output': output_url})
+
+        return jsonify({'error': 'Unexpected output format'}), 500
+
+    except Exception as e:
+        print("Error:", str(e))  # Log the actual error to the console
+        return jsonify({'error': str(e)}), 500
+
 
 
 def split_and_pair_values(data):
