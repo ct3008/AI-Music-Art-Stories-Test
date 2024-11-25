@@ -92,6 +92,37 @@ const images = {
 };
 
 
+window.onload = function() {
+    const storedKey = localStorage.getItem('api_key');
+    if (storedKey) {
+        document.getElementById('stored_key').innerText = storedKey;
+    }
+};
+
+async function sendApiKey() {
+    const apiKey = document.getElementById('api_key').value;
+    if (!apiKey) {
+        alert('Please enter a valid API Key.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/save_api_key', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ api_key: apiKey }),
+        });
+
+        const result = await response.json();
+        document.getElementById('response').innerText = result.message;
+        alert('API Key sent to backend!');
+    } catch (error) {
+        document.getElementById('response').innerText = 'Error: ' + error.message;
+    }
+}
+
 function movePlayheadOG() {
     const containerWidth = beatContainer.offsetWidth; // Width of the container
     const duration = audioPlayer.duration; // Duration of the audio in seconds

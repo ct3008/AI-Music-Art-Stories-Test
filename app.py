@@ -15,10 +15,29 @@ app = Flask(__name__, template_folder='./templates', static_folder='./static')
 # client = OpenAI(api_key=api_key)
 
 # api_token = os.getenv("MY_REPLICATE_TOKEN")
-api_token = os.getenv("LAB_DISCO_API_KEY")
+# api_token = os.getenv("LAB_DISCO_API_KEY")
 # api_token = ''
-print("API TOKEN?: ", api_token)
-api = replicate.Client(api_token=api_token)
+# print("API TOKEN OG: ", api_token)
+# api = replicate.Client(api_token=api_token)
+
+api_key_storage = {}
+
+@app.route('/save_api_key', methods=['POST'])
+def save_api_key():
+    try:
+        data = request.get_json()
+        api_key = data.get('api_key')
+        
+
+        if not api_key:
+            return jsonify({'message': 'API Key is missing!'}), 400
+        
+        # Store the API key (you can replace this with database/file storage)
+        api_key_storage['api_key'] = api_key
+
+        return jsonify({'message': 'API Key saved successfully!'}), 200
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
 
 
 motion_magnitudes = {
@@ -207,11 +226,17 @@ def upload_audio_large():
 def generate_initial():
     data = request.get_json()
     prompt = data.get('prompt', '')
+    api_key = api_key_storage['api_key']
+    print("API TOKEN?: ", api_key)
+    api = replicate.Client(api_token=api_key)
 
     if not prompt:
         return jsonify({'error': 'No prompt provided'}), 400
 
     try:
+        
+        # Store the API key (you can replace this with database/file storage)
+        
         output = api.run(
             "lucataco/open-dalle-v1.1:1c7d4c8dec39c7306df7794b28419078cb9d18b9213ab1c21fdc46a1deca0144",
             input={
@@ -912,6 +937,9 @@ def create_deforum_prompt(motion_data, final_anim_frames, motion_mode, prompts,s
 
 @app.route('/process-data', methods=['POST'])
 def process_data():
+    api_key = api_key_storage['api_key']
+    print("API TOKEN?: ", api_key)
+    api = replicate.Client(api_token=api_key)
     print("PROCESS DATA")
     data = request.json
     timestamps_scenes = data['timestamps_scenes']
