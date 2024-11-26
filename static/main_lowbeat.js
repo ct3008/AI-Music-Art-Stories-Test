@@ -116,10 +116,11 @@ async function sendApiKey() {
         });
 
         const result = await response.json();
-        document.getElementById('response').innerText = result.message;
+        // document.getElementById('response').innerText = result.message;
         alert('API Key sent to backend!');
     } catch (error) {
-        document.getElementById('response').innerText = 'Error: ' + error.message;
+        console.log("no api key")
+        // document.getElementById('response').innerText = 'Error: ' + error.message;
     }
 }
 
@@ -1719,6 +1720,69 @@ function gatherTransitionData(formData) {
     return transitionsData;
 }
 
+function checkJobStatus(jobId) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    loadingIndicator.style.display = "block"; // Show loading indicator
+    
+    // Check job status every 3 seconds (you can adjust this interval)
+    const interval = setInterval(() => {
+        fetch(`/check-job-status/${jobId}`, {
+            method: 'GET',
+        })
+        .then(response => response.json())
+        .then(statusData => {
+            console.log('Job status:', statusData);
+            
+            // If the job is finished
+            if (statusData.status === 'finished') {
+                clearInterval(interval);  // Stop polling
+                
+                // Process the result when the job is done
+                handleJobResult(statusData);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching job status:', error);
+        });
+    }, 3000);  // 3000 ms = 3 seconds
+}
+
+// Handle the job result
+function handleJobResult(statusData) {
+    const resultHTML = buildResultHTML(statusData.result);  // Assume the result is in 'statusData.result'
+    console.log("job completed")
+    // Display the results on the page
+    document.getElementById('processedDataContainer').innerHTML = resultHTML;
+    document.getElementById('processedDataContainer').style = "border: 2px solid black;";
+
+    // Hide loading indicator after completion
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    loadingIndicator.style.display = "none";
+}
+
+// Build the HTML result
+function buildResultHTML(result) {
+    let resultHTML = '';
+
+    // Build HTML based on the result (adjust this according to your response data structure)
+    if (result.motion_prompts) {
+        resultHTML += `<h3>Motion Strings:</h3>`;
+        for (const [motion, transitions] of Object.entries(result.motion_prompts)) {
+            resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
+        }
+    }
+
+    if (result.prompts) {
+        resultHTML += `<h3>Prompts:</h3><p>${result.prompts}</p>`;
+    }
+
+    if (result.output) {
+        resultHTML += `<h3>Output:</h3><p><a href="${result.output}" target="_blank">Click here to view the output</a></p>`;
+    }
+
+    return resultHTML;
+}
+
 function processTable() {
     const formData = gatherFormData();
     const transitionsData = gatherTransitionData(formData);
@@ -1754,38 +1818,45 @@ function processTable() {
     })
         .then(response => response.json())
         .then(data => {
-            // console.log(data);
-            // console.log("returned back");
-            for (const [key, value] of Object.entries(data)) {
-                // console.log(`${key}: ${value}`);
-                if (key === 'output') {
-                    // console.log(value);
-                    window.open(value, '_blank');
-                }
-            }
-            let resultHTML = '';
+            console.log('Job queued:', data);
+        
+            // Store the job ID
+            const jobId = data.job_id;
 
-            // if (data.animation_prompts) {
-            //     resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
+            // Call the function to check the job status
+            checkJobStatus(jobId);
+            console.log("done checking job status");
+            // console.log("returned back");
+            // for (const [key, value] of Object.entries(data)) {
+            //     // console.log(`${key}: ${value}`);
+            //     if (key === 'output') {
+            //         // console.log(value);
+            //         window.open(value, '_blank');
+            //     }
+            // }
+            // let resultHTML = '';
+
+            // // if (data.animation_prompts) {
+            // //     resultHTML += `<h3>Animation Prompts:</h3><p>${data.animation_prompts}</p>`;
+            // // }
+
+            // if (data.motion_prompts) {
+            //     resultHTML += `<h3>Motion Strings:</h3>`;
+            //     for (const [motion, transitions] of Object.entries(data.motion_prompts)) {
+            //         resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
+            //     }
             // }
 
-            if (data.motion_prompts) {
-                resultHTML += `<h3>Motion Strings:</h3>`;
-                for (const [motion, transitions] of Object.entries(data.motion_prompts)) {
-                    resultHTML += `<p>${motion}: ${transitions.join(', ')}</p>`;
-                }
-            }
+            // if (data.prompts) {
+            //     resultHTML += `<h3>Prompts:</h3><p>${data.prompts}</p>`;
+            // }
 
-            if (data.prompts) {
-                resultHTML += `<h3>Prompts:</h3><p>${data.prompts}</p>`;
-            }
+            // if (data.output) {
+            //     resultHTML += `<h3>Output:</h3><p><a href="${data.output}" target="_blank">Click here to view the output</a></p>`;
+            // }
 
-            if (data.output) {
-                resultHTML += `<h3>Output:</h3><p><a href="${data.output}" target="_blank">Click here to view the output</a></p>`;
-            }
-
-            document.getElementById('processedDataContainer').innerHTML = resultHTML;
-            document.getElementById('processedDataContainer').style = "border: 2px solid black;"
+            // document.getElementById('processedDataContainer').innerHTML = resultHTML;
+            // document.getElementById('processedDataContainer').style = "border: 2px solid black;"
         })
         .catch(error => {
             console.error('Error:', error);
