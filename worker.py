@@ -31,13 +31,18 @@ import ssl
 #     ssl_context=None  # Ensure no SSL context is created
 # )
 
-redis_url = os.getenv('REDIS_URL', "redis://localhost:6379/0")
+# redis_url = os.getenv('REDIS_URL', "redis://localhost:6379/0")
 
-# Connect to Redis using the URL
-redis_conn = redis.from_url(redis_url, ssl=True, ssl_context=ssl.create_default_context())
+# # Connect to Redis using the URL
+# redis_conn = redis.from_url(redis_url, ssl=True, ssl_context=ssl.create_default_context())
 
-# Optionally, if you need to disable SSL verification (not recommended for production)
-redis_conn.ssl_context.verify_mode = ssl.CERT_NONE
+# # Optionally, if you need to disable SSL verification (not recommended for production)
+# redis_conn.ssl_context.verify_mode = ssl.CERT_NONE
+# redis_url = os.getenv('REDIS_TLS_URL')  # Test with REDIS_TLS_URL in your app
+# redis_conn = redis.from_url(redis_url, ssl=True, ssl_context=ssl.create_default_context())
+
+url = urlparse(os.environ.get("REDIS_URL"))
+redis_conn = redis.Redis(host=url.hostname, port=url.port, password=url.password, ssl=(url.scheme == "rediss"), ssl_cert_reqs=None)
 
 # redis_conn.ssl_context.verify_mode = ssl.CERT_NONE  # Disable verification
 
