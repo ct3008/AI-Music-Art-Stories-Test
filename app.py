@@ -9,6 +9,8 @@ import replicate
 from dotenv import load_dotenv
 from tasks import long_running_task, process_audio
 from queue_config import queue
+from flask_cors import CORS
+
 # from celery import Celery
 # from redis import Redis
 # from tasks import enqueue_process_data
@@ -19,7 +21,7 @@ from queue_config import queue
 
 load_dotenv()
 app = Flask(__name__, template_folder='./templates', static_folder='./static')
-
+CORS(app)
 # api_key = os.getenv("OPENAI_DISCO_API_KEY")
 # client = OpenAI(api_key=api_key)
 
@@ -207,7 +209,7 @@ if not os.path.exists(AUDIO_FOLDER):
 @app.route('/upload_audio', methods=['POST'])
 def upload_audio():
     file = request.files['audioFile']
-    print("REQUESTED FILE: " + file)
+    print("REQUESTED FILE: " + file.filename)
     if file:
         file_path = os.path.join('.', file.filename)
         file.save(file_path)
