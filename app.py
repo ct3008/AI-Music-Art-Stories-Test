@@ -6,7 +6,7 @@ import numpy as np
 from flask import Flask, jsonify, request, render_template
 import replicate
 from dotenv import load_dotenv
-from tasks import long_running_task
+from tasks import long_running_task, process_audio
 from queue_config import queue
 # from celery import Celery
 # from redis import Redis
@@ -101,81 +101,99 @@ def upload_file():
         return jsonify({'message': 'File uploaded successfully!', 'filename': file.filename}), 200
 
 
+# @app.route('/upload_audio', methods=['POST'])
+# def upload_audio():
+#     file = request.files['audioFile']
+#     if file:
+#         file_path = os.path.join('.', file.filename)
+#         file.save(file_path)
+
+#         # Load the audio file using librosa
+#         y, sr = librosa.load(file_path, sr=None)
+
+#         # Calculate RMS energy
+#         rms = librosa.feature.rms(y=y)[0]
+
+#         # Smooth RMS energy to remove minor fluctuations
+#         smoothed_rms = np.convolve(rms, np.ones(10)/10, mode='same')
+
+#         # Perform onset detection with adjusted parameters
+#         onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+#         smoothed_onset_env = np.convolve(onset_env, np.ones(5)/5, mode='same')
+#         onset_frames = librosa.onset.onset_detect(onset_envelope=smoothed_onset_env, sr=sr, hop_length=512, backtrack=True)
+        
+#         onset_times = librosa.frames_to_time(onset_frames, sr=sr)
+
+#         # Perform beat detection
+#         tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+#         beat_times2 = librosa.frames_to_time(beat_frames, sr=sr)
+#         beat_times = [{'time': beat} for beat in beat_times2]
+
+#         onset_strengths = [onset_env[int(frame)] for frame in onset_frames if int(frame) < len(onset_env)]
+#         onset_strength_pairs = list(zip(onset_times, onset_strengths))
+
+#         # Sort by strength, largest to smallest
+#         sorted_onsets = sorted(onset_strength_pairs, key=lambda x: x[1], reverse=True)
+#         top_onset_times = sorted_onsets  # Keep both time and strength pairs
+
+#         # Align onsets with closest beats while keeping strength information
+#         aligned_onsets = [
+#             {
+#                 'time': min(beat_times2, key=lambda x: abs(x - time)),
+#                 'strength': float(strength),  # Convert to float
+#             }
+#             for time, strength in top_onset_times
+#         ]
+
+#         # Find low-energy periods
+#         threshold = np.percentile(smoothed_rms, 10)
+#         low_energy_before_onset = []
+#         for i in range(1, len(onset_frames)):
+#             start = onset_frames[i-1]
+#             end = onset_frames[i]
+            
+#             # Ensure the segment is valid and non-empty
+#             if start < end and end <= len(smoothed_rms):
+#                 rms_segment = smoothed_rms[start:end]
+#                 if len(rms_segment) > 0:  # Ensure the segment is non-empty
+#                     min_rms = np.min(rms_segment)
+#                     if min_rms < threshold:
+#                         low_energy_before_onset.append({
+#                             'time': float(librosa.frames_to_time(start, sr=sr)),  # Convert to float
+#                             'strength': float(min_rms)  # Convert to float
+#                         })
+
+#         duration = librosa.get_duration(y=y, sr=sr)
+#         print("BEATS: ", beat_times[0:5])  # Change to beat_times2 for accurate print
+#         print("ALIGNED: ", aligned_onsets[0:15])
+
+#         return jsonify({
+#             "success": True,
+#             "low_energy_timestamps": low_energy_before_onset,
+#             "top_onset_times": beat_times,
+#             "aligned_onsets": aligned_onsets, 
+#             "duration": float(duration)
+#         })
+#     return jsonify({"success": False, "error": "No file provided"}), 400
+
 @app.route('/upload_audio', methods=['POST'])
 def upload_audio():
     file = request.files['audioFile']
     if file:
+        # Save the file locally
         file_path = os.path.join('.', file.filename)
         file.save(file_path)
+        job = queue.enqueue(process_audio, file)
 
-        # Load the audio file using librosa
-        y, sr = librosa.load(file_path, sr=None)
+        # Enqueue the task to process the audio file
+        # queue = Queue(connection=conn)  # Use the global Redis connection (from worker.py)
+        # job = queue.enqueue(process_audio, file_path)
 
-        # Calculate RMS energy
-        rms = librosa.feature.rms(y=y)[0]
-
-        # Smooth RMS energy to remove minor fluctuations
-        smoothed_rms = np.convolve(rms, np.ones(10)/10, mode='same')
-
-        # Perform onset detection with adjusted parameters
-        onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-        smoothed_onset_env = np.convolve(onset_env, np.ones(5)/5, mode='same')
-        onset_frames = librosa.onset.onset_detect(onset_envelope=smoothed_onset_env, sr=sr, hop_length=512, backtrack=True)
-        
-        onset_times = librosa.frames_to_time(onset_frames, sr=sr)
-
-        # Perform beat detection
-        tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
-        beat_times2 = librosa.frames_to_time(beat_frames, sr=sr)
-        beat_times = [{'time': beat} for beat in beat_times2]
-
-        onset_strengths = [onset_env[int(frame)] for frame in onset_frames if int(frame) < len(onset_env)]
-        onset_strength_pairs = list(zip(onset_times, onset_strengths))
-
-        # Sort by strength, largest to smallest
-        sorted_onsets = sorted(onset_strength_pairs, key=lambda x: x[1], reverse=True)
-        top_onset_times = sorted_onsets  # Keep both time and strength pairs
-
-        # Align onsets with closest beats while keeping strength information
-        aligned_onsets = [
-            {
-                'time': min(beat_times2, key=lambda x: abs(x - time)),
-                'strength': float(strength),  # Convert to float
-            }
-            for time, strength in top_onset_times
-        ]
-
-        # Find low-energy periods
-        threshold = np.percentile(smoothed_rms, 10)
-        low_energy_before_onset = []
-        for i in range(1, len(onset_frames)):
-            start = onset_frames[i-1]
-            end = onset_frames[i]
-            
-            # Ensure the segment is valid and non-empty
-            if start < end and end <= len(smoothed_rms):
-                rms_segment = smoothed_rms[start:end]
-                if len(rms_segment) > 0:  # Ensure the segment is non-empty
-                    min_rms = np.min(rms_segment)
-                    if min_rms < threshold:
-                        low_energy_before_onset.append({
-                            'time': float(librosa.frames_to_time(start, sr=sr)),  # Convert to float
-                            'strength': float(min_rms)  # Convert to float
-                        })
-
-        duration = librosa.get_duration(y=y, sr=sr)
-        print("BEATS: ", beat_times[0:5])  # Change to beat_times2 for accurate print
-        print("ALIGNED: ", aligned_onsets[0:15])
-
-        return jsonify({
-            "success": True,
-            "low_energy_timestamps": low_energy_before_onset,
-            "top_onset_times": beat_times,
-            "aligned_onsets": aligned_onsets, 
-            "duration": float(duration)
-        })
+        return jsonify({"success": True, "message": "Audio processing started", "job_id": job.get_id()}), 202
     return jsonify({"success": False, "error": "No file provided"}), 400
 
+if __name__ == "__main__":
+    app.run(debug=True)
     
 @app.route('/generate_initial', methods=['POST'])
 def generate_initial():

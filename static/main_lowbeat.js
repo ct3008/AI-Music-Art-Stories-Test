@@ -1723,7 +1723,7 @@ function gatherTransitionData(formData) {
 function checkJobStatus(jobId) {
     const loadingIndicator = document.getElementById('loadingIndicator');
     loadingIndicator.style.display = "block"; // Show loading indicator
-    
+    console.log("check status")
     // Check job status every 3 seconds (you can adjust this interval)
     const interval = setInterval(() => {
         fetch(`/check-job-status/${jobId}`, {
@@ -1735,6 +1735,7 @@ function checkJobStatus(jobId) {
             
             // If the job is finished
             if (statusData.status === 'finished') {
+                console.log("FINISHED")
                 clearInterval(interval);  // Stop polling
                 
                 // Process the result when the job is done
@@ -1744,7 +1745,7 @@ function checkJobStatus(jobId) {
         .catch(error => {
             console.error('Error fetching job status:', error);
         });
-    }, 3000);  // 3000 ms = 3 seconds
+    }, 10000);  // 3000 ms = 3 seconds
 }
 
 // Handle the job result
@@ -1756,12 +1757,13 @@ function handleJobResult(statusData) {
     document.getElementById('processedDataContainer').style = "border: 2px solid black;";
 
     // Hide loading indicator after completion
-    const loadingIndicator = document.getElementById('loadingIndicator');
-    loadingIndicator.style.display = "none";
+    // const loadingIndicator = document.getElementById('loadingIndicator');
+    // loadingIndicator.style.display = "none";
 }
 
 // Build the HTML result
 function buildResultHTML(result) {
+    console.log("build result")
     let resultHTML = '';
 
     // Build HTML based on the result (adjust this according to your response data structure)
@@ -1808,6 +1810,7 @@ function processTable() {
     // console.log(data);
     // console.log("RUNNING PROCESS TABLE");
 
+    console.log("process table")
 
     fetch('/process-data', {
         method: 'POST',
