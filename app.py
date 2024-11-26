@@ -179,7 +179,7 @@ def upload_audio():
 def generate_initial():
     data = request.get_json()
     prompt = data.get('prompt', '')
-    api_key = api_key_storage['api_key']
+    api_key = api_key_storage
     print("API TOKEN?: ", api_key)
     api = replicate.Client(api_token=api_key)
 
@@ -890,7 +890,7 @@ def process_data():
     # Enqueue the task and pass the request data
     data = request.json
     print("PROCESS DATA")
-    api_key = api_key_storage['api_key']
+    api_key = api_key_storage
     print("API TOKEN?: ", api_key)
     data['api_key'] = api_key 
     # api = replicate.Client(api_token=api_key)
@@ -902,7 +902,7 @@ def process_data():
 
 @app.route('/process-data-og', methods=['POST'])
 def process_data_og():
-    api_key = api_key_storage['api_key']
+    api_key = api_key_storage
     print("API TOKEN?: ", api_key)
     api = replicate.Client(api_token=api_key)
     print("PROCESS DATA")
