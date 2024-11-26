@@ -213,7 +213,15 @@ def upload_audio():
     if file:
         file_path = os.path.join('.', file.filename)
         file.save(file_path)
+        uploaded_file_content = file.read()
+        print(uploaded_file_content)
         print("File path: " + file_path)
+        # file.save('./isee3.wav')
+        print("File saved at:", os.path.abspath(file_path))
+        file_path = os.path.abspath(file_path)
+        # with open('./isee3.wav', 'wb') as f:
+        #     f.write(uploaded_file_content)
+        # print("File saved at:", os.path.abspath('./isee3.wav'))
 
         # Enqueue the background task and pass the file path
         # job = queue.enqueue(process_audio, file_path, job_timeout=1000)
