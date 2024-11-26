@@ -102,28 +102,28 @@ if not os.path.exists(AUDIO_FOLDER):
 #         return jsonify({'message': 'File uploaded successfully!', 'filename': file.filename}), 200
 
 
-@app.route('/upload_audio', methods=['POST'])
-def upload_audio():
-    if 'audioFile' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+# @app.route('/upload_audio', methods=['POST'])
+# def upload_audio():
+#     if 'audioFile' not in request.files:
+#         return jsonify({'error': 'No file part'}), 400
 
-    file = request.files['audioFile']
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
+#     file = request.files['audioFile']
+#     if file.filename == '':
+#         return jsonify({'error': 'No selected file'}), 400
 
-    if file:
-        # Use a temporary directory for the file
-        temp_dir = tempfile.gettempdir()
-        file_path = os.path.join(temp_dir, file.filename)
-        print("file path: ", file_path)
+#     if file:
+#         # Use a temporary directory for the file
+#         temp_dir = tempfile.gettempdir()
+#         file_path = os.path.join(temp_dir, file.filename)
+#         print("file path: ", file_path)
 
-        try:
-            file.save(file_path)
-            # Enqueue the file for processing
-            job = queue.enqueue(process_audio, file_path, job_timeout=2400)
-            return jsonify({'job_id': job.get_id(), 'status': 'queued'}), 202
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+#         try:
+#             file.save(file_path)
+#             # Enqueue the file for processing
+#             job = queue.enqueue(process_audio, file_path, job_timeout=2400)
+#             return jsonify({'job_id': job.get_id(), 'status': 'queued'}), 202
+#         except Exception as e:
+#             return jsonify({'error': str(e)}), 500
 
 # @app.route('/upload_audio', methods=['POST'])
 # def upload_audio():
@@ -204,20 +204,30 @@ def upload_audio():
 
 
 
-# @app.route('/upload_audio', methods=['POST'])
-# def upload_audio():
-#     file = request.files['audioFile']
-#     if file:
-#         file_path = os.path.join('.', file.filename)
-#         file.save(file_path)
+@app.route('/upload_audio', methods=['POST'])
+def upload_audio():
+    file = request.files['audioFile']
+    if file:
+        file_path = os.path.join('.', file.filename)
+        file.save(file_path)
+        print("File path: " + file_path)
 
-#         # Enqueue the background task and pass the file path
-#         job = queue.enqueue(process_audio, file_path, job_timeout=1000)
+        # Enqueue the background task and pass the file path
+        # job = queue.enqueue(process_audio, file_path, job_timeout=1000)
+        y, sr = librosa.load(file_path, sr=None)
 
-#         # Respond with the job ID and a status
-#         return jsonify({"job_id": job.get_id(), "status": "queued"}), 202
+        # Convert the numpy arrays to lists (for serialization)
+        
+        print("Y LIST AND SR: ", type(y), sr)
 
-#     return jsonify({"success": False, "error": "No file provided"}), 400
+        # Enqueue the task with serialized data
+        # job = queue.enqueue(process_audio, y, sr, job_timeout=600)
+        job = queue.enqueue(process_audio, file_path, job_timeout=600)
+
+        # Respond with the job ID and a status
+        return jsonify({"job_id": job.get_id(), "status": "queued"}), 202
+
+    return jsonify({"success": False, "error": "No file provided"}), 400
 
 
 @app.route('/generate_initial', methods=['POST'])

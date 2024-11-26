@@ -2348,6 +2348,7 @@ function pollJobStatus(jobId) {
                     clearInterval(interval); // Stop polling
                     processAudioData(data.result); // Process the result
                 } else if (data.status === "failed") {
+                    console.log("failed?")
                     loadingIndicator.style.display = "none"
                     clearInterval(interval); // Stop polling
                     alert("Audio processing failed: " + data.error);

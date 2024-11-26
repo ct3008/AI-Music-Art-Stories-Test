@@ -28,9 +28,10 @@ from helpers import (  # Adjust the import paths as needed
     
 def process_audio(file_path):
     job = get_current_job()  # Get the current job
-
+    print("file path process: ", file_path)
     # Load the audio file using librosa
     y, sr = librosa.load(file_path, sr=None)
+    
 
     # Calculate RMS energy
     rms = librosa.feature.rms(y=y)[0]
