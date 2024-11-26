@@ -23,19 +23,16 @@ print("SEGMENT: ", url.hostname, url.port, url.password)
 #     ssl=False,
 #     ssl_cert_reqs=ssl.CERT_NONE  # Disable certificate validation for self-signed certificates
 # )
-
-redis_conn = redis.StrictRedis(
+redis_conn= redis.StrictRedis(
     host='ec2-18-206-36-186.compute-1.amazonaws.com',
     port=23840,
-    ssl=True,  # Enable SSL/TLS
-    ssl_certfile=None,  # Path to client certificate (if needed)
-    ssl_keyfile=None,   # Path to client key file (if needed)
-    ssl_ca_certs=None,  # Path to CA certificate if you're verifying the server's certificate
-    ssl_check_hostname=False  # This will skip verification of the server's hostname (useful if using a self-signed certificate)
+    ssl=True,
+    ssl_context=ssl.create_default_context()
 )
 
-redis_conn.ssl_context.verify_mode = ssl.CERT_NONE  # Disable certificate verification
-
+redis_conn.ssl_context.verify_mode = ssl.CERT_NONE  # Disable verification
+redis_conn.set('foo', 'bar')
+print(redis_conn.get('foo'))
 
 # Listen to the default queue
 if __name__ == "__main__":
