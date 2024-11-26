@@ -3,6 +3,7 @@ import os
 # from openai import OpenAI
 import librosa
 import numpy as np
+import tempfile
 from flask import Flask, jsonify, request, render_template
 import replicate
 from dotenv import load_dotenv
@@ -85,8 +86,24 @@ app.config['AUDIO_FOLDER'] = AUDIO_FOLDER
 if not os.path.exists(AUDIO_FOLDER):
     os.makedirs(AUDIO_FOLDER)
 
-@app.route('/upload-file', methods=['POST'])
-def upload_file():
+# @app.route('/upload-file', methods=['POST'])
+# def upload_file():
+#     if 'audioFile' not in request.files:
+#         return jsonify({'error': 'No file part'}), 400
+
+#     file = request.files['audioFile']
+#     if file.filename == '':
+#         return jsonify({'error': 'No selected file'}), 400
+
+#     if file:
+#         # Save the file to the upload folder
+#         file_path = os.path.join(app.config['AUDIO_FOLDER'], file.filename)
+#         file.save(file_path)
+#         return jsonify({'message': 'File uploaded successfully!', 'filename': file.filename}), 200
+
+
+@app.route('/upload_audio', methods=['POST'])
+def upload_audio():
     if 'audioFile' not in request.files:
         return jsonify({'error': 'No file part'}), 400
 
@@ -95,11 +112,18 @@ def upload_file():
         return jsonify({'error': 'No selected file'}), 400
 
     if file:
-        # Save the file to the upload folder
-        file_path = os.path.join(app.config['AUDIO_FOLDER'], file.filename)
-        file.save(file_path)
-        return jsonify({'message': 'File uploaded successfully!', 'filename': file.filename}), 200
+        # Use a temporary directory for the file
+        temp_dir = tempfile.gettempdir()
+        file_path = os.path.join(temp_dir, file.filename)
+        print("file path: ", file_path)
 
+        try:
+            file.save(file_path)
+            # Enqueue the file for processing
+            job = queue.enqueue(process_audio, file_path, job_timeout=2400)
+            return jsonify({'job_id': job.get_id(), 'status': 'queued'}), 202
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
 
 # @app.route('/upload_audio', methods=['POST'])
 # def upload_audio():
@@ -176,20 +200,24 @@ def upload_file():
 #         })
 #     return jsonify({"success": False, "error": "No file provided"}), 400
 
-@app.route('/upload_audio', methods=['POST'])
-def upload_audio():
-    file = request.files['audioFile']
-    if file:
-        file_path = os.path.join('.', file.filename)
-        file.save(file_path)
 
-        # Enqueue the background task and pass the file path
-        job = queue.enqueue(process_audio, file_path, job_timeout=1000)
 
-        # Respond with the job ID and a status
-        return jsonify({"job_id": job.get_id(), "status": "queued"}), 202
 
-    return jsonify({"success": False, "error": "No file provided"}), 400
+
+# @app.route('/upload_audio', methods=['POST'])
+# def upload_audio():
+#     file = request.files['audioFile']
+#     if file:
+#         file_path = os.path.join('.', file.filename)
+#         file.save(file_path)
+
+#         # Enqueue the background task and pass the file path
+#         job = queue.enqueue(process_audio, file_path, job_timeout=1000)
+
+#         # Respond with the job ID and a status
+#         return jsonify({"job_id": job.get_id(), "status": "queued"}), 202
+
+#     return jsonify({"success": False, "error": "No file provided"}), 400
 
 
 @app.route('/generate_initial', methods=['POST'])
