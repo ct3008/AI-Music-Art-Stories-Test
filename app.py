@@ -207,6 +207,7 @@ if not os.path.exists(AUDIO_FOLDER):
 @app.route('/upload_audio', methods=['POST'])
 def upload_audio():
     file = request.files['audioFile']
+    print("REQUESTED FILE: " + file)
     if file:
         file_path = os.path.join('.', file.filename)
         file.save(file_path)

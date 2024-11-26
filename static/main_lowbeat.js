@@ -2302,7 +2302,7 @@ function audioZoom() {
 function processAudio() {
     const fileInput = document.getElementById('audioFile');
     const loadingIndicator = document.getElementById("loadingIndicator");
-
+    console.log("process audio")
     if (fileInput.files.length === 0) {
         alert("Please select an audio file first.");
         return;
@@ -2310,6 +2310,7 @@ function processAudio() {
 
     const formData = new FormData();
     formData.append('audioFile', fileInput.files[0]);
+    console.log("formData: ", formData)
 
     loadingIndicator.style.display = "block";
 
@@ -2320,6 +2321,7 @@ function processAudio() {
     .then(response => response.json())
     .then(data => {
         if (data.status === "queued") {
+            console.log("queueud")
             const jobId = data.job_id;
             pollJobStatus(jobId); // Start polling the job status
         } else {
