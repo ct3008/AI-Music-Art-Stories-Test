@@ -27,9 +27,10 @@ def long_running_task(data):
     job = get_current_job()
     # Extract the data from the input
     # api_key = os.getenv("REPLICATE_API_KEY")  # Store your API key in environment variables
+    print("Long running running")
     api_key = data['api_key']
     api = replicate.Client(api_token=api_key)
-
+    print("API: ", api_key)
     timestamps_scenes = data['timestamps_scenes']
     form_data = data['form_data']
     transitions_data = data['transitions_data']

@@ -895,7 +895,9 @@ def process_data():
     api_key = api_key_storage
     print("API TOKEN?: ", api_key)
     data['api_key'] = api_key 
+    
     # api = replicate.Client(api_token=api_key)
+    print("ABOUT TO ENQUEUE")
     job = queue.enqueue(long_running_task, data)
     print("done enqueue")
     
