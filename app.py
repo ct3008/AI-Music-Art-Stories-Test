@@ -37,12 +37,14 @@ def save_api_key():
         data = request.get_json()
         api_key = data.get('api_key')
         
+        
 
         if not api_key:
             return jsonify({'message': 'API Key is missing!'}), 400
         
         # Store the API key (you can replace this with database/file storage)
         api_key_storage = api_key
+        print("API KEY: ", api_key_storage)
 
         return jsonify({'message': 'API Key saved successfully!'}), 200
     except Exception as e:
