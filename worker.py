@@ -16,7 +16,7 @@ print("REDIS URL: ", url)
 print("SEGMENT: ", url.hostname, url.port, url.password)
 
 # Configure Redis connection with SSL/TLS support and certificate validation disabled
-redis_conn = redis.Redis(
+redis_conn = redis.StrictRedis(
     host=url.hostname,
     port=url.port,
     password=url.password,
