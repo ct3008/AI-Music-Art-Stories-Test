@@ -1,6 +1,6 @@
 import os
-import openai
-from openai import OpenAI
+# import openai
+# from openai import OpenAI
 import librosa
 import numpy as np
 from flask import Flask, jsonify, request, render_template
