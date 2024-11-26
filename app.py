@@ -219,6 +219,7 @@ def upload_audio():
         # file.save('./isee3.wav')
         print("File saved at:", os.path.abspath(file_path))
         file_path = os.path.abspath(file_path)
+        print("Save to: ", file_path)
         # with open('./isee3.wav', 'wb') as f:
         #     f.write(uploaded_file_content)
         # print("File saved at:", os.path.abspath('./isee3.wav'))
@@ -229,7 +230,7 @@ def upload_audio():
 
         # Convert the numpy arrays to lists (for serialization)
         
-        print("Y LIST AND SR: ", type(y), sr)
+        print("Y LIST AND SR app: ", type(y), len(y), sr)
 
         # Enqueue the task with serialized data
         # job = queue.enqueue(process_audio, y, sr, job_timeout=600)
