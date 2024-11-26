@@ -20,19 +20,18 @@ print("SEGMENT: ", url.hostname, url.port, url.password)
 #     host=url.hostname,
 #     port=url.port,
 #     password=url.password,
-#     ssl=False,
+#     ssl=True,
 #     ssl_cert_reqs=ssl.CERT_NONE  # Disable certificate validation for self-signed certificates
 # )
 redis_conn= redis.StrictRedis(
     host='ec2-18-206-36-186.compute-1.amazonaws.com',
     port=23840,
-    ssl=True,
+    db=0,
+    ssl=False,
     ssl_context=ssl.create_default_context()
 )
 
 redis_conn.ssl_context.verify_mode = ssl.CERT_NONE  # Disable verification
-redis_conn.set('foo', 'bar')
-print(redis_conn.get('foo'))
 
 # Listen to the default queue
 if __name__ == "__main__":
