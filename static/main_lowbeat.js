@@ -1721,7 +1721,7 @@ function gatherTransitionData(formData) {
 }
 
 function checkJobStatus(jobId) {
-    const loadingIndicator = document.getElementById('loadingIndicator');
+    const loadingIndicator = document.getElementById('loadingIndicator_process');
     loadingIndicator.style.display = "block"; // Show loading indicator
     console.log("check status")
     // Check job status every 3 seconds (you can adjust this interval)
@@ -2137,22 +2137,172 @@ function audioZoom() {
 
 }
 
+// function processAudio() {
+//     tablemade = false;
+//     const fileInput = document.getElementById('audioFile');
+//     const play_button = document.getElementById("playPauseButton")
+//     // const slider = document.getElementById("slider")
+//     const loadingIndicator = document.getElementById("loadingIndicator");
+//     audioZoom(); // Function to set all the zooom stuff up
+
+
+
+//     play_button.style.display = "block";
+//     loadingIndicator.style.display = "block";
+
+//     // const clearButton = document.getElementById('clearButton');
+
+//     // clearButton.click(); // Ensure clear button is clicked before processing
+//     if (fileInput.files.length === 0) {
+//         alert("Please select an audio file first.");
+//         return;
+//     }
+
+//     const formData = new FormData();
+//     formData.append('audioFile', fileInput.files[0]);
+
+//     fetch('/upload_audio', {
+//         method: 'POST',
+//         body: formData
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.success) {
+//                 const audioUrl = URL.createObjectURL(fileInput.files[0]);
+
+//                 if (waveform) {
+//                     // If there's already a waveform
+//                     if (waveform.regions) {
+//                         waveform.clearRegions();
+//                     }
+
+//                     waveform.unAll();
+
+//                     waveform.load(audioUrl);
+
+//                 } else {
+//                     // Create a new WaveSurfer instance
+//                     waveform = WaveSurfer.create({
+//                         container: '#waveform',
+//                         height: 256,
+//                         waveColor: 'rgb(200, 0, 200)',
+//                         progressColor: 'rgb(100, 0, 100)',
+//                         plugins: [
+//                             WaveSurfer.regions.create() // Initialize the Regions plugin
+//                         ],
+//                     });
+
+//                     // Load the audio URL
+//                     waveform.load(audioUrl);
+
+//                     // console.log("New WaveSurfer instance created and audio loaded: ", audioUrl);
+//                 }
+
+//                 waveform.on('error', (error) => {
+//                     console.error('WaveSurfer Error: ', error);
+//                 });
+
+//                 let beats_time = [];
+
+//                 data.top_onset_times.forEach(beat => {
+//                     beats_time.push(beat.time);
+//                 });
+
+//                 // Draw the fetched lowEnergyBeats
+//                 let lowEnergyBeatTimes = [];
+//                 data.low_energy_timestamps.forEach(beats => {
+//                     lowEnergyBeatTimes.push(beats.time);
+//                 });
+
+//                 // Set up regions and markers after the waveform is ready
+//                 waveform.on('ready', () => {
+//                     // console.log("Waveform is ready.");
+//                     setupRegions(waveform, lowEnergyBeatTimes, 'Low Energy Beat', 'red', 0.01, false);
+//                     setupRegions(waveform, beats_time, 'Beats', 'blue', 0.01, false);
+//                     // Event listener for clicking a region
+//                     waveform.on('region-click', (region) => {
+//                         const currentTime = waveform.getCurrentTime();
+//                         if (currentTime >= region.start && currentTime <= region.end) {
+//                             waveform.play(region.start); // Play from the marker start
+//                         }
+//                         // console.log("TIME: ", currentTime);
+//                     });
+
+
+
+//                     waveform.on('region-update-end', (region) => {
+//                         // console.log("Region dragging ended");
+
+//                         // Get all regions from the waveform
+//                         const allRegions = Object.values(waveform.regions.list); // Fetch all regions as an array
+
+//                         // Filter for regions that are green
+//                         const greenRegions = allRegions.filter(r => r.color === 'green');
+
+//                         // Update newsigPoints based on green regions' start times
+//                         newsigPoints = greenRegions.map(r => r.start);
+
+//                         // console.log("Updated newsigPoints:", newsigPoints);
+//                     });
+
+//                 });
+
+//                 // Play/Pause control
+//                 const playPauseButton = document.getElementById('playPauseButton');
+//                 playpauseControl(playPauseButton);
+
+//                 document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+//                 lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+//                 audioDuration = data.duration;
+
+//                 // console.log("sig pts: ", newsigPoints);
+//                 significantPoints = findSignificantPoints(data.aligned_onsets, lowEnergyBeats, audioDuration);
+//                 significantPoints.sort((a, b) => a - b);
+//                 if (newsigPoints.length == 0) {
+//                     // console.log("refresh new song");
+//                     //no sig pts have been identified yet
+//                     newsigPoints = [...significantPoints]
+//                     newsigPoints.sort((a, b) => a - b);
+//                     // console.log("SIG POINTS: " + significantPoints);
+
+//                 }
+//                 else if (significantPoints[0] != newsigPoints[0] || significantPoints.length != newsigPoints.length) {
+//                     //new song loaded
+//                     // console.log("new song when one loaded");
+//                     newsigPoints = [...significantPoints]
+//                     newsigPoints.sort((a, b) => a - b);
+
+//                 } else {
+//                     // console.log("same song");
+//                     //same song is loaded
+//                     newsigPoints.sort((a, b) => a - b);
+
+//                 }
+//                 setupRegions(waveform, newsigPoints, 'Significant Points', 'green', 0.25, true);
+//                 waveform.on('region-drag', (region) => {
+//                     console.log('Region dragged to', region.start); // Log new start time
+//                 });
+
+
+
+//             } else {
+//                 document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+//             }
+//         })
+//         .catch(error => {
+//             console.error('Error:', error);
+//             document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+//         })
+//         .finally(() => {
+//             // Hide loading indicator after completion
+//             loadingIndicator.style.display = "none";
+//         });
+// }
+
 function processAudio() {
-    tablemade = false;
     const fileInput = document.getElementById('audioFile');
-    const play_button = document.getElementById("playPauseButton")
-    // const slider = document.getElementById("slider")
     const loadingIndicator = document.getElementById("loadingIndicator");
-    audioZoom(); // Function to set all the zooom stuff up
 
-
-
-    play_button.style.display = "block";
-    loadingIndicator.style.display = "block";
-
-    // const clearButton = document.getElementById('clearButton');
-
-    // clearButton.click(); // Ensure clear button is clicked before processing
     if (fileInput.files.length === 0) {
         alert("Please select an audio file first.");
         return;
@@ -2161,142 +2311,179 @@ function processAudio() {
     const formData = new FormData();
     formData.append('audioFile', fileInput.files[0]);
 
+    loadingIndicator.style.display = "block";
+
     fetch('/upload_audio', {
         method: 'POST',
         body: formData
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const audioUrl = URL.createObjectURL(fileInput.files[0]);
-
-                if (waveform) {
-                    // If there's already a waveform
-                    if (waveform.regions) {
-                        waveform.clearRegions();
-                    }
-
-                    waveform.unAll();
-
-                    waveform.load(audioUrl);
-
-                } else {
-                    // Create a new WaveSurfer instance
-                    waveform = WaveSurfer.create({
-                        container: '#waveform',
-                        height: 256,
-                        waveColor: 'rgb(200, 0, 200)',
-                        progressColor: 'rgb(100, 0, 100)',
-                        plugins: [
-                            WaveSurfer.regions.create() // Initialize the Regions plugin
-                        ],
-                    });
-
-                    // Load the audio URL
-                    waveform.load(audioUrl);
-
-                    // console.log("New WaveSurfer instance created and audio loaded: ", audioUrl);
-                }
-
-                waveform.on('error', (error) => {
-                    console.error('WaveSurfer Error: ', error);
-                });
-
-                let beats_time = [];
-
-                data.top_onset_times.forEach(beat => {
-                    beats_time.push(beat.time);
-                });
-
-                // Draw the fetched lowEnergyBeats
-                let lowEnergyBeatTimes = [];
-                data.low_energy_timestamps.forEach(beats => {
-                    lowEnergyBeatTimes.push(beats.time);
-                });
-
-                // Set up regions and markers after the waveform is ready
-                waveform.on('ready', () => {
-                    // console.log("Waveform is ready.");
-                    setupRegions(waveform, lowEnergyBeatTimes, 'Low Energy Beat', 'red', 0.01, false);
-                    setupRegions(waveform, beats_time, 'Beats', 'blue', 0.01, false);
-                    // Event listener for clicking a region
-                    waveform.on('region-click', (region) => {
-                        const currentTime = waveform.getCurrentTime();
-                        if (currentTime >= region.start && currentTime <= region.end) {
-                            waveform.play(region.start); // Play from the marker start
-                        }
-                        // console.log("TIME: ", currentTime);
-                    });
-
-
-
-                    waveform.on('region-update-end', (region) => {
-                        // console.log("Region dragging ended");
-
-                        // Get all regions from the waveform
-                        const allRegions = Object.values(waveform.regions.list); // Fetch all regions as an array
-
-                        // Filter for regions that are green
-                        const greenRegions = allRegions.filter(r => r.color === 'green');
-
-                        // Update newsigPoints based on green regions' start times
-                        newsigPoints = greenRegions.map(r => r.start);
-
-                        // console.log("Updated newsigPoints:", newsigPoints);
-                    });
-
-                });
-
-                // Play/Pause control
-                const playPauseButton = document.getElementById('playPauseButton');
-                playpauseControl(playPauseButton);
-
-                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-                audioDuration = data.duration;
-
-                // console.log("sig pts: ", newsigPoints);
-                significantPoints = findSignificantPoints(data.aligned_onsets, lowEnergyBeats, audioDuration);
-                significantPoints.sort((a, b) => a - b);
-                if (newsigPoints.length == 0) {
-                    // console.log("refresh new song");
-                    //no sig pts have been identified yet
-                    newsigPoints = [...significantPoints]
-                    newsigPoints.sort((a, b) => a - b);
-                    // console.log("SIG POINTS: " + significantPoints);
-
-                }
-                else if (significantPoints[0] != newsigPoints[0] || significantPoints.length != newsigPoints.length) {
-                    //new song loaded
-                    // console.log("new song when one loaded");
-                    newsigPoints = [...significantPoints]
-                    newsigPoints.sort((a, b) => a - b);
-
-                } else {
-                    // console.log("same song");
-                    //same song is loaded
-                    newsigPoints.sort((a, b) => a - b);
-
-                }
-                setupRegions(waveform, newsigPoints, 'Significant Points', 'green', 0.25, true);
-                waveform.on('region-drag', (region) => {
-                    console.log('Region dragged to', region.start); // Log new start time
-                });
-
-
-
-            } else {
-                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-        })
-        .finally(() => {
-            // Hide loading indicator after completion
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "queued") {
+            const jobId = data.job_id;
+            pollJobStatus(jobId); // Start polling the job status
+        } else {
             loadingIndicator.style.display = "none";
+            alert("Failed to enqueue audio processing.");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        loadingIndicator.style.display = "none";
+        alert("An error occurred while uploading the audio.");
+    });
+}
+
+function pollJobStatus(jobId) {
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    loadingIndicator.style.display = "block";
+    const interval = setInterval(() => {
+        fetch(`/check-job-status/${jobId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "finished") {
+                    console.log("finished audio");
+                    console.log("data:", data)
+                    loadingIndicator.style.display = "none"
+                    clearInterval(interval); // Stop polling
+                    processAudioData(data.result); // Process the result
+                } else if (data.status === "failed") {
+                    loadingIndicator.style.display = "none"
+                    clearInterval(interval); // Stop polling
+                    alert("Audio processing failed: " + data.error);
+                } else {
+                    console.log(`Job ${jobId} status: ${data.status}`); // Log status for debugging
+                }
+            })
+            .catch(error => {
+                loadingIndicator.style.display = "none"
+                console.error('Error:', error);
+                alert("Failed to get job status.");
+            });
+    }, 200); // Poll
+}
+
+function processAudioData(data) {
+    const fileInput = document.getElementById('audioFile');
+    console.log("Audio processing result:", data);
+    const audioUrl = URL.createObjectURL(fileInput.files[0]);
+
+    if (waveform) {
+        // If there's already a waveform
+        if (waveform.regions) {
+            waveform.clearRegions();
+        }
+
+        waveform.unAll();
+
+        waveform.load(audioUrl);
+
+    } else {
+        // Create a new WaveSurfer instance
+        waveform = WaveSurfer.create({
+            container: '#waveform',
+            height: 256,
+            waveColor: 'rgb(200, 0, 200)',
+            progressColor: 'rgb(100, 0, 100)',
+            plugins: [
+                WaveSurfer.regions.create() // Initialize the Regions plugin
+            ],
         });
+
+        // Load the audio URL
+        waveform.load(audioUrl);
+
+        // console.log("New WaveSurfer instance created and audio loaded: ", audioUrl);
+    }
+
+    waveform.on('error', (error) => {
+        console.error('WaveSurfer Error: ', error);
+    });
+
+    let beats_time = [];
+
+    data.top_onset_times.forEach(beat => {
+        beats_time.push(beat.time);
+    });
+
+    // Draw the fetched lowEnergyBeats
+    let lowEnergyBeatTimes = [];
+    data.low_energy_timestamps.forEach(beats => {
+        lowEnergyBeatTimes.push(beats.time);
+    });
+
+    // Set up regions and markers after the waveform is ready
+    waveform.on('ready', () => {
+        // console.log("Waveform is ready.");
+        setupRegions(waveform, lowEnergyBeatTimes, 'Low Energy Beat', 'red', 0.01, false);
+        setupRegions(waveform, beats_time, 'Beats', 'blue', 0.01, false);
+        // Event listener for clicking a region
+        waveform.on('region-click', (region) => {
+            const currentTime = waveform.getCurrentTime();
+            if (currentTime >= region.start && currentTime <= region.end) {
+                waveform.play(region.start); // Play from the marker start
+            }
+            // console.log("TIME: ", currentTime);
+        });
+
+
+
+        waveform.on('region-update-end', (region) => {
+            // console.log("Region dragging ended");
+
+            // Get all regions from the waveform
+            const allRegions = Object.values(waveform.regions.list); // Fetch all regions as an array
+
+            // Filter for regions that are green
+            const greenRegions = allRegions.filter(r => r.color === 'green');
+
+            // Update newsigPoints based on green regions' start times
+            newsigPoints = greenRegions.map(r => r.start);
+
+            // console.log("Updated newsigPoints:", newsigPoints);
+        });
+
+    });
+
+    // Play/Pause control
+    const playPauseButton = document.getElementById('playPauseButton');
+    playpauseControl(playPauseButton);
+
+    document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+    lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+    audioDuration = data.duration;
+
+    // console.log("sig pts: ", newsigPoints);
+    significantPoints = findSignificantPoints(data.aligned_onsets, lowEnergyBeats, audioDuration);
+    significantPoints.sort((a, b) => a - b);
+    if (newsigPoints.length == 0) {
+        // console.log("refresh new song");
+        //no sig pts have been identified yet
+        newsigPoints = [...significantPoints]
+        newsigPoints.sort((a, b) => a - b);
+        // console.log("SIG POINTS: " + significantPoints);
+
+    }
+    else if (significantPoints[0] != newsigPoints[0] || significantPoints.length != newsigPoints.length) {
+        //new song loaded
+        // console.log("new song when one loaded");
+        newsigPoints = [...significantPoints]
+        newsigPoints.sort((a, b) => a - b);
+
+    } else {
+        // console.log("same song");
+        //same song is loaded
+        newsigPoints.sort((a, b) => a - b);
+
+    }
+    setupRegions(waveform, newsigPoints, 'Significant Points', 'green', 0.25, true);
+    waveform.on('region-drag', (region) => {
+        console.log('Region dragged to', region.start); // Log new start time
+    });
+
+    // Handle waveform updates, region creation, etc.
+    // Example:
+    // setupRegions(waveform, data.low_energy_timestamps, 'Low Energy Beat', 'red', 0.01, false);
 }
 
 // function processAudio() {

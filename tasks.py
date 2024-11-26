@@ -26,73 +26,75 @@ from helpers import (  # Adjust the import paths as needed
 
 
     
-# def process_audio(file_path):
-#     # Load the audio file using librosa
-#     y, sr = librosa.load(file_path, sr=None)
+def process_audio(file_path):
+    job = get_current_job()  # Get the current job
 
-#     # Calculate RMS energy
-#     rms = librosa.feature.rms(y=y)[0]
+    # Load the audio file using librosa
+    y, sr = librosa.load(file_path, sr=None)
 
-#     # Smooth RMS energy to remove minor fluctuations
-#     smoothed_rms = np.convolve(rms, np.ones(10) / 10, mode='same')
+    # Calculate RMS energy
+    rms = librosa.feature.rms(y=y)[0]
 
-#     # Perform onset detection with adjusted parameters
-#     onset_env = librosa.onset.onset_strength(y=y, sr=sr)
-#     smoothed_onset_env = np.convolve(onset_env, np.ones(5) / 5, mode='same')
-#     onset_frames = librosa.onset.onset_detect(onset_envelope=smoothed_onset_env, sr=sr, hop_length=512, backtrack=True)
+    # Smooth RMS energy to remove minor fluctuations
+    smoothed_rms = np.convolve(rms, np.ones(10)/10, mode='same')
 
-#     onset_times = librosa.frames_to_time(onset_frames, sr=sr)
+    # Perform onset detection with adjusted parameters
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr)
+    smoothed_onset_env = np.convolve(onset_env, np.ones(5)/5, mode='same')
+    onset_frames = librosa.onset.onset_detect(onset_envelope=smoothed_onset_env, sr=sr, hop_length=512, backtrack=True)
 
-#     # Perform beat detection
-#     tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
-#     beat_times2 = librosa.frames_to_time(beat_frames, sr=sr)
-#     beat_times = [{'time': beat} for beat in beat_times2]
+    onset_times = librosa.frames_to_time(onset_frames, sr=sr)
 
-#     onset_strengths = [onset_env[int(frame)] for frame in onset_frames if int(frame) < len(onset_env)]
-#     onset_strength_pairs = list(zip(onset_times, onset_strengths))
+    # Perform beat detection
+    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr)
+    beat_times2 = librosa.frames_to_time(beat_frames, sr=sr)
+    beat_times = [{'time': beat} for beat in beat_times2]
 
-#     # Sort by strength, largest to smallest
-#     sorted_onsets = sorted(onset_strength_pairs, key=lambda x: x[1], reverse=True)
-#     top_onset_times = sorted_onsets  # Keep both time and strength pairs
+    onset_strengths = [onset_env[int(frame)] for frame in onset_frames if int(frame) < len(onset_env)]
+    onset_strength_pairs = list(zip(onset_times, onset_strengths))
 
-#     # Align onsets with closest beats while keeping strength information
-#     aligned_onsets = [
-#         {
-#             'time': min(beat_times2, key=lambda x: abs(x - time)),
-#             'strength': float(strength),  # Convert to float
-#         }
-#         for time, strength in top_onset_times
-#     ]
+    # Sort by strength, largest to smallest
+    sorted_onsets = sorted(onset_strength_pairs, key=lambda x: x[1], reverse=True)
+    top_onset_times = sorted_onsets  # Keep both time and strength pairs
 
-#     # Find low-energy periods
-#     threshold = np.percentile(smoothed_rms, 10)
-#     low_energy_before_onset = []
-#     for i in range(1, len(onset_frames)):
-#         start = onset_frames[i - 1]
-#         end = onset_frames[i]
+    # Align onsets with closest beats while keeping strength information
+    aligned_onsets = [
+        {
+            'time': min(beat_times2, key=lambda x: abs(x - time)),
+            'strength': float(strength),  # Convert to float
+        }
+        for time, strength in top_onset_times
+    ]
 
-#         # Ensure the segment is valid and non-empty
-#         if start < end and end <= len(smoothed_rms):
-#             rms_segment = smoothed_rms[start:end]
-#             if len(rms_segment) > 0:  # Ensure the segment is non-empty
-#                 min_rms = np.min(rms_segment)
-#                 if min_rms < threshold:
-#                     low_energy_before_onset.append({
-#                         'time': float(librosa.frames_to_time(start, sr=sr)),  # Convert to float
-#                         'strength': float(min_rms)  # Convert to float
-#                     })
+    # Find low-energy periods
+    threshold = np.percentile(smoothed_rms, 10)
+    low_energy_before_onset = []
+    for i in range(1, len(onset_frames)):
+        start = onset_frames[i-1]
+        end = onset_frames[i]
 
-#     duration = librosa.get_duration(y=y, sr=sr)
-#     print("BEATS: ", beat_times[0:5])  # Change to beat_times2 for accurate print
-#     print("ALIGNED: ", aligned_onsets[0:15])
+        # Ensure the segment is valid and non-empty
+        if start < end and end <= len(smoothed_rms):
+            rms_segment = smoothed_rms[start:end]
+            if len(rms_segment) > 0:  # Ensure the segment is non-empty
+                min_rms = np.min(rms_segment)
+                if min_rms < threshold:
+                    low_energy_before_onset.append({
+                        'time': float(librosa.frames_to_time(start, sr=sr)),  # Convert to float
+                        'strength': float(min_rms)  # Convert to float
+                    })
 
-#     return {
-#         "success": True,
-#         "low_energy_timestamps": low_energy_before_onset,
-#         "top_onset_times": beat_times,
-#         "aligned_onsets": aligned_onsets,
-#         "duration": float(duration)
-#     }
+    duration = librosa.get_duration(y=y, sr=sr)
+
+    response = {
+        "low_energy_timestamps": low_energy_before_onset,
+        "top_onset_times": beat_times,
+        "aligned_onsets": aligned_onsets, 
+        "duration": float(duration)
+    }
+
+    # Return the result (or save to DB, etc.)
+    return response
 
 def long_running_task(data):
     job = get_current_job()
