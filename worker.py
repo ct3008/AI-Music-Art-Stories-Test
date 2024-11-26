@@ -23,13 +23,21 @@ import ssl
 #     ssl=True,
 #     ssl_cert_reqs=ssl.CERT_NONE  # Disable certificate validation for self-signed certificates
 # )
-redis_conn = redis.StrictRedis(
-    host='ec2-18-206-36-186.compute-1.amazonaws.com',
-    port=23840,
-    db=0,
-    ssl=False,  # Disable SSL encryption
-    ssl_context=None  # Ensure no SSL context is created
-)
+# redis_conn = redis.StrictRedis(
+#     host='ec2-18-206-36-186.compute-1.amazonaws.com',
+#     port=23840,
+#     db=0,
+#     ssl=False,  # Disable SSL encryption
+#     ssl_context=None  # Ensure no SSL context is created
+# )
+
+redis_url = os.getenv('REDIS_URL', "redis://localhost:6379/0")
+
+# Connect to Redis using the URL
+redis_conn = redis.from_url(redis_url, ssl=True, ssl_context=ssl.create_default_context())
+
+# Optionally, if you need to disable SSL verification (not recommended for production)
+redis_conn.ssl_context.verify_mode = ssl.CERT_NONE
 
 # redis_conn.ssl_context.verify_mode = ssl.CERT_NONE  # Disable verification
 
