@@ -28,10 +28,11 @@ app = Flask(__name__, template_folder='./templates', static_folder='./static')
 # print("API TOKEN OG: ", api_token)
 # api = replicate.Client(api_token=api_token)
 
-api_key_storage = {}
+api_key_storage = ''
 
 @app.route('/save_api_key', methods=['POST'])
 def save_api_key():
+    global api_key_storage
     try:
         data = request.get_json()
         api_key = data.get('api_key')
@@ -41,7 +42,7 @@ def save_api_key():
             return jsonify({'message': 'API Key is missing!'}), 400
         
         # Store the API key (you can replace this with database/file storage)
-        api_key_storage['api_key'] = api_key
+        api_key_storage = api_key
 
         return jsonify({'message': 'API Key saved successfully!'}), 200
     except Exception as e:
@@ -888,6 +889,7 @@ def check_job_status(job_id):
 def process_data():
     # Enqueue the task and pass the request data
     data = request.json
+    print("PROCESS DATA")
     api_key = api_key_storage['api_key']
     print("API TOKEN?: ", api_key)
     data['api_key'] = api_key 
