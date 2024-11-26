@@ -5,15 +5,15 @@ from urllib.parse import urlparse
 import ssl
 
 # Ensure you're using the Heroku Redis URL from the environment variables
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+# redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-if not redis_url:
-    raise ValueError("REDIS_URL environment variable is not set!")
+# if not redis_url:
+#     raise ValueError("REDIS_URL environment variable is not set!")
 
-# Parse the Redis URL
-url = urlparse(redis_url)
-print("REDIS URL: ", url)
-print("SEGMENT: ", url.hostname, url.port, url.password)
+# # Parse the Redis URL
+# url = urlparse(redis_url)
+# print("REDIS URL: ", url)
+# print("SEGMENT: ", url.hostname, url.port, url.password)
 
 # Configure Redis connection with SSL/TLS support and certificate validation disabled
 # redis_conn = redis.StrictRedis(
@@ -23,15 +23,15 @@ print("SEGMENT: ", url.hostname, url.port, url.password)
 #     ssl=True,
 #     ssl_cert_reqs=ssl.CERT_NONE  # Disable certificate validation for self-signed certificates
 # )
-redis_conn= redis.StrictRedis(
+redis_conn = redis.StrictRedis(
     host='ec2-18-206-36-186.compute-1.amazonaws.com',
     port=23840,
     db=0,
-    ssl=False,
-    ssl_context=ssl.create_default_context()
+    ssl=False,  # Disable SSL encryption
+    ssl_context=None  # Ensure no SSL context is created
 )
 
-redis_conn.ssl_context.verify_mode = ssl.CERT_NONE  # Disable verification
+# redis_conn.ssl_context.verify_mode = ssl.CERT_NONE  # Disable verification
 
 # Listen to the default queue
 if __name__ == "__main__":
