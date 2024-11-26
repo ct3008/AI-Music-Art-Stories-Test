@@ -1735,6 +1735,7 @@ function checkJobStatus(jobId) {
             
             // If the job is finished
             if (statusData.status === 'finished') {
+                loadingIndicator.style.display = 'none';
                 console.log("FINISHED")
                 clearInterval(interval);  // Stop polling
                 
@@ -1743,9 +1744,10 @@ function checkJobStatus(jobId) {
             }
         })
         .catch(error => {
+            loadingIndicator.style.display = 'none';
             console.error('Error fetching job status:', error);
         });
-    }, 10000);  // 3000 ms = 3 seconds
+    }, 3000);  // 3000 ms = 3 seconds
 }
 
 // Handle the job result
@@ -1866,7 +1868,7 @@ function processTable() {
         })
         .finally(() => {
             // Hide loading indicator after completion
-            loadingIndicator.style.display = "none";
+            // loadingIndicator.style.display = "none";
         });
 }
 
@@ -2297,6 +2299,153 @@ function processAudio() {
         });
 }
 
+// function processAudio() {
+//     tablemade = false;
+//     const fileInput = document.getElementById('audioFile');
+//     const play_button = document.getElementById("playPauseButton");
+//     const loadingIndicator = document.getElementById("loadingIndicator");
+//     audioZoom(); // Function to set all the zoom stuff up
+
+//     play_button.style.display = "block";
+//     loadingIndicator.style.display = "block";
+
+//     if (fileInput.files.length === 0) {
+//         alert("Please select an audio file first.");
+//         return;
+//     }
+
+//     const formData = new FormData();
+//     formData.append('audioFile', fileInput.files[0]);
+
+//     fetch('/upload_audio', {
+//         method: 'POST',
+//         body: formData
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.success) {
+//                 const jobId = data.task_id; // Assuming task_id is returned when uploading the audio
+//                 checkJobStatus(jobId);
+//                 console.log("checking upload progress: ", jobId);
+//                 // // Function to check the status of the task
+//                 // function checkJobStatus() {
+//                 //     fetch(`/check-job-status/${jobId}`)
+//                 //         .then(response => response.json())
+//                 //         .then(jobData => {
+//                 //             if (jobData.status === 'finished') {
+//                 //                 // Process the output once the job is finished
+//                 //                 processOutput(jobData.result); // Pass the job result to processOutput
+//                 //                 loadingIndicator.style.display = "none"; // Hide loading indicator when finished
+//                 //             } else if (jobData.status === 'failed') {
+//                 //                 document.getElementById('outputContainer').textContent = 'Job failed.';
+//                 //                 loadingIndicator.style.display = "none"; // Hide loading indicator on failure
+//                 //             } else {
+//                 //                 // Keep polling if job is still running
+//                 //                 setTimeout(checkJobStatus, 2000); // Check every 2 seconds
+//                 //             }
+//                 //         })
+//                 //         .catch(error => {
+//                 //             console.error('Error checking job status:', error);
+//                 //             document.getElementById('outputContainer').textContent = 'Failed to check job status.';
+//                 //             loadingIndicator.style.display = "none";
+//                 //         });
+//                 // }
+
+//                 // Start polling for job status
+                
+//             } else {
+//                 document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+//                 loadingIndicator.style.display = "none";
+//             }
+//         })
+//         .catch(error => {
+//             console.error('Error:', error);
+//             document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+//             loadingIndicator.style.display = "none";
+//         });
+// }
+
+function processOutput(output) {
+    const audioUrl = URL.createObjectURL(fileInput.files[0]);
+
+    if (waveform) {
+        if (waveform.regions) {
+            waveform.clearRegions();
+        }
+        waveform.unAll();
+        waveform.load(audioUrl);
+    } else {
+        waveform = WaveSurfer.create({
+            container: '#waveform',
+            height: 256,
+            waveColor: 'rgb(200, 0, 200)',
+            progressColor: 'rgb(100, 0, 100)',
+            plugins: [
+                WaveSurfer.regions.create()
+            ],
+        });
+
+        waveform.load(audioUrl);
+    }
+
+    waveform.on('error', (error) => {
+        console.error('WaveSurfer Error: ', error);
+    });
+
+    let beats_time = [];
+
+    output.top_onset_times.forEach(beat => {
+        beats_time.push(beat.time);
+    });
+
+    let lowEnergyBeatTimes = [];
+    output.low_energy_timestamps.forEach(beats => {
+        lowEnergyBeatTimes.push(beats.time);
+    });
+
+    waveform.on('ready', () => {
+        setupRegions(waveform, lowEnergyBeatTimes, 'Low Energy Beat', 'red', 0.01, false);
+        setupRegions(waveform, beats_time, 'Beats', 'blue', 0.01, false);
+
+        waveform.on('region-click', (region) => {
+            const currentTime = waveform.getCurrentTime();
+            if (currentTime >= region.start && currentTime <= region.end) {
+                waveform.play(region.start);
+            }
+        });
+
+        waveform.on('region-update-end', (region) => {
+            const allRegions = Object.values(waveform.regions.list);
+            const greenRegions = allRegions.filter(r => r.color === 'green');
+            newsigPoints = greenRegions.map(r => r.start);
+        });
+    });
+
+    const playPauseButton = document.getElementById('playPauseButton');
+    playpauseControl(playPauseButton);
+
+    document.getElementById('outputContainer').textContent = JSON.stringify(output, null, 2);
+    lowEnergyBeats = output.low_energy_timestamps;
+    audioDuration = output.duration;
+
+    significantPoints = findSignificantPoints(output.aligned_onsets, lowEnergyBeats, audioDuration);
+    significantPoints.sort((a, b) => a - b);
+
+    if (newsigPoints.length == 0) {
+        newsigPoints = [...significantPoints];
+        newsigPoints.sort((a, b) => a - b);
+    } else if (significantPoints[0] != newsigPoints[0] || significantPoints.length != newsigPoints.length) {
+        newsigPoints = [...significantPoints];
+        newsigPoints.sort((a, b) => a - b);
+    } else {
+        newsigPoints.sort((a, b) => a - b);
+    }
+
+    setupRegions(waveform, newsigPoints, 'Significant Points', 'green', 0.25, true);
+    waveform.on('region-drag', (region) => {
+        console.log('Region dragged to', region.start);
+    });
+}
 
 function setupRegions(waveform, data, content, color, size, drag, resize = false) {
     data.forEach(beat => {
@@ -3566,36 +3715,36 @@ function showSignificantPoints() {
 
 
 
-function getLyrics() {
-    const fileInput = document.getElementById('audioFile');
-    if (fileInput.files.length === 0) {
-        alert("Please select an audio file first.");
-        return;
-    }
+// function getLyrics() {
+//     const fileInput = document.getElementById('audioFile');
+//     if (fileInput.files.length === 0) {
+//         alert("Please select an audio file first.");
+//         return;
+//     }
 
-    const formData = new FormData();
-    formData.append('audioFile', fileInput.files[0]);
+//     const formData = new FormData();
+//     formData.append('audioFile', fileInput.files[0]);
 
-    fetch('/upload_audio', {
-        method: 'POST',
-        body: formData
-    })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
-                lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
-                // console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
-                updateUIWithLowEnergyBeats(); // Example function call
-            } else {
-                document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
-        });
-}
+//     fetch('/upload_audio', {
+//         method: 'POST',
+//         body: formData
+//     })
+//         .then(response => response.json())
+//         .then(data => {
+//             if (data.success) {
+//                 document.getElementById('outputContainer').textContent = JSON.stringify(data.output, null, 2);
+//                 lowEnergyBeats = data.low_energy_timestamps; // Update the global variable
+//                 // console.log("LOW ENERGY: " + lowEnergyBeats); // Log for debugging
+//                 updateUIWithLowEnergyBeats(); // Example function call
+//             } else {
+//                 document.getElementById('outputContainer').textContent = 'Error: ' + data.error;
+//             }
+//         })
+//         .catch(error => {
+//             console.error('Error:', error);
+//             document.getElementById('outputContainer').textContent = 'Failed to fetch data.';
+//         });
+// }
 
 function toggleMotion() {
     const button = document.getElementById("toggleMotionButton");
