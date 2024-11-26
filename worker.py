@@ -3,7 +3,7 @@ import redis
 from rq import Worker, Queue, Connection
 
 # Ensure you're using the Heroku Redis URL from the environment variables
-redis_url = os.getenv("REDIS_URL")
+redis_url = os.getenv("REDIS_URL","redis://localhost:6379/0")
 
 if not redis_url:
     raise ValueError("REDIS_URL environment variable is not set!")
