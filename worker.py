@@ -2,6 +2,7 @@ import os
 import redis
 from rq import Worker, Queue, Connection
 from urllib.parse import urlparse
+import ssl
 
 # Ensure you're using the Heroku Redis URL from the environment variables
 redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
@@ -19,8 +20,9 @@ redis_conn = redis.Redis(
     host=url.hostname,
     port=url.port,
     password=url.password,
-    ssl=(url.scheme == "rediss"),  # Use SSL if the scheme is rediss
-    ssl_cert_reqs=None  # Disable certificate validation for self-signed certificates
+    db=0,
+    ssl=True,
+    ssl_cert_reqs=ssl.CERT_NONE  # Disable certificate validation for self-signed certificates
 )
 
 # Listen to the default queue
